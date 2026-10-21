@@ -539,6 +539,7 @@ function renderSaved() {
   $('#saved-like-count').textContent = profile.likes.length;
   const list = $('#saved-list');
   list.replaceChildren(...profile.likes.slice().reverse().map(t => trackRow(t, {
+    extra: t.country ? { country: t.country, decade: t.decade } : undefined, // re-loving from the now-playing bar keeps the stamp
     reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `loved ${new Date(t.ts).toLocaleDateString()}`].filter(Boolean).join(' · ') })));
   if (!profile.likes.length) list.append(el('li', { className: 'state empty' },
     el('p', { textContent: 'Nothing saved yet. Press Love on any track to keep it here.' }),
