@@ -100,6 +100,18 @@ test('cache expiry per host and prune', () => {
   assert.ok(isFresh({ t: now - 29 * 86400000 }, 'https://musicbrainz.org/ws/2/x', now));
   assert.ok(!isFresh({ t: now - 2 * 86400000 }, 'https://itunes.apple.com/x', now));
   assert.ok(!isFresh(undefined, 'https://api.deezer.com/x', now));
-  const c = { a: { t: 3 }, b: { t: 1 }, c: { t: 2 } };
-  assert.deepEqual(Object.keys(prune(c, 2)).sort(), ['a', 'c']);
+  const u = k => `https://musicbrainz.org/${k}`;
+  const c = { [u('a')]: { t: now - 3 }, [u('b')]: { t: now - 5 }, [u('c')]: { t: now - 4 } };
+  assert.deepEqual(Object.keys(prune(c, 2, 1e9, now)).sort(), [u('a'), u('c')]);
+});
+
+test('prune drops expired entries and enforces a byte budget', () => {
+  const now = 1e12, big = 'x'.repeat(1000);
+  const c = {
+    'https://api.deezer.com/search?q=old': { t: now - 11 * 60000, body: {} }, // expired: never served again
+    'https://musicbrainz.org/1': { t: now - 3, body: big },
+    'https://musicbrainz.org/2': { t: now - 2, body: big },
+    'https://musicbrainz.org/3': { t: now - 1, body: big },
+  };
+  assert.deepEqual(Object.keys(prune(c, 5000, 2500, now)).sort(), ['https://musicbrainz.org/2', 'https://musicbrainz.org/3']);
 });
