@@ -126,7 +126,14 @@ function afterLikeChange() {
   $$('.love').forEach(b => b.sync && b.sync());
   $('#saved-count').textContent = profile.likes.length || '';
   renderStamps();
-  if (!$('#saved').hidden) renderSaved(); // R3: Saved reflects unloves immediately
+  if ($('#saved').hidden) return;
+  const i = $$('#saved-list > li').findIndex(r => r.contains(document.activeElement));
+  renderSaved(); // R3: Saved reflects unloves immediately
+  if (i < 0) return;
+  // The focused row was just re-rendered away: land on the next row's Love, else the heading (R6).
+  const rows = $$('#saved-list > li .love'), h = $('#saved-like-count').parentElement;
+  if (rows.length) return rows[Math.min(i, rows.length - 1)].focus();
+  h.tabIndex = -1; h.focus();
 }
 
 function loveButton(t, extra) {
