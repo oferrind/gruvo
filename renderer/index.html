@@ -8,58 +8,124 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav id="tabs" role="tablist">
-    <button role="tab" data-tab="blind" aria-selected="true">Blind Test</button>
-    <button role="tab" data-tab="passport" aria-selected="false">Passport</button>
-    <button role="tab" data-tab="liner" aria-selected="false">Liner Notes</button>
-    <button role="tab" data-tab="saved" aria-selected="false">Saved</button>
-  </nav>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <span class="brand">Music Discovery</span>
+    <nav id="tabs" role="tablist" aria-label="Modes">
+      <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="true">Blind Test</button>
+      <button role="tab" id="tab-passport" data-tab="passport" aria-controls="passport" aria-selected="false" tabindex="-1">Passport</button>
+      <button role="tab" id="tab-liner" data-tab="liner" aria-controls="liner" aria-selected="false" tabindex="-1">Liner Notes</button>
+      <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
+    </nav>
+  </header>
 
-  <main>
+  <main id="main">
+    <!-- First-launch guide: three modes at a glance -->
+    <section id="intro" class="intro" aria-labelledby="intro-title" hidden>
+      <h1 id="intro-title">Find music you would never have searched for</h1>
+      <p class="muted">Three ways in. Each one starts from somewhere different.</p>
+      <ol class="modes">
+        <li><h2>Blind Test</h2><p>Hear a track with no name, no cover, no hype. Rate it first, then see who it was.</p><p class="why">Why: you judge the sound, not the name.</p></li>
+        <li><h2>Passport</h2><p>Pick a country and a decade, get ten playable tracks from there and then.</p><p class="why">Why: no algorithm, just a place and a time.</p></li>
+        <li><h2>Liner Notes</h2><p>Start from a song you know. Follow its producer or session player to other records.</p><p class="why">Why: the people behind the music link it.</p></li>
+      </ol>
+      <div class="row">
+        <button id="intro-start" type="button" class="primary">Start the Blind Test</button>
+        <button type="button" class="ghost" data-goto="passport">Open Passport</button>
+        <button type="button" class="ghost" data-goto="liner">Open Liner Notes</button>
+      </div>
+    </section>
+
     <!-- A. Blind Taste Test -->
-    <section id="blind" class="panel" role="tabpanel">
-      <h1>Blind Taste Test</h1>
-      <label>Adventure <input id="adventure" type="range" min="0" max="100" step="1"> <output id="adventure-value"></output></label>
-      <article id="mystery" class="card">
-        <h2 id="mystery-title">Loading…</h2>
-        <button id="mystery-play" type="button">Play / Pause</button>
-        <progress id="mystery-progress" max="1" value="0"></progress>
-        <div id="rate">
-          <button type="button" data-rate="skip">1 · Skip</button>
-          <button type="button" data-rate="ok">2 · OK</button>
-          <button type="button" data-rate="love">3 · Love</button>
+    <section id="blind" class="panel" role="tabpanel" aria-labelledby="tab-blind">
+      <div class="panel-head">
+        <h1>Blind Test</h1>
+        <p class="muted">Listen, rate, then find out who it was.</p>
+      </div>
+
+      <article id="mystery" class="card mystery" aria-busy="true">
+        <h2 id="mystery-title">Finding your first mystery…</h2>
+        <div class="player">
+          <button id="mystery-play" type="button" class="bigplay" aria-label="Play" disabled><span aria-hidden="true">▶</span></button>
+          <progress id="mystery-progress" max="1" value="0" aria-label="Playback progress"></progress>
         </div>
-        <div id="reveal" aria-live="polite"></div>
-        <button id="mystery-next" type="button" hidden>Next (Enter)</button>
+        <div id="rate" class="rate" role="group" aria-label="Rate this track">
+          <button type="button" data-rate="skip" disabled>Skip <kbd>1</kbd></button>
+          <button type="button" data-rate="ok" disabled>OK <kbd>2</kbd></button>
+          <button type="button" data-rate="love" disabled>Love <kbd>3</kbd></button>
+        </div>
+        <div id="reveal" class="reveal" aria-live="polite"></div>
+        <button id="mystery-next" type="button" class="primary" hidden>Next mystery <kbd>Enter</kbd></button>
+        <div id="blind-error" class="state error" role="alert" hidden>
+          <p><strong>Can't reach the music services.</strong> Check your internet connection.</p>
+          <button id="blind-retry" type="button" class="primary">Try again</button>
+        </div>
       </article>
-      <p id="blind-error" hidden>Can't reach music services. <button id="blind-retry" type="button">Retry</button></p>
+      <p class="hint">Keys: <kbd>Space</kbd> play/pause · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> rate · <kbd>Enter</kbd> next</p>
+
+      <div class="adventure">
+        <label for="adventure">Adventure</label>
+        <div class="slider">
+          <span class="end">Comfort zone</span>
+          <input id="adventure" type="range" min="0" max="100" step="1" aria-describedby="adventure-help">
+          <span class="end">Total stranger</span>
+        </div>
+        <p id="adventure-help" class="muted"><output id="adventure-value"></output></p>
+      </div>
     </section>
 
     <!-- B. Sonic Passport -->
-    <section id="passport" class="panel" role="tabpanel" hidden>
-      <h1>Sonic Passport</h1>
-      <label>Country <select id="country"></select></label>
-      <div id="decades"></div>
-      <p id="passport-status" aria-live="polite"></p>
-      <ul id="passport-results" class="tracks"></ul>
-      <h2>Passport stamps: <span id="stamp-count">0</span></h2>
-      <ul id="stamps"></ul>
+    <section id="passport" class="panel" role="tabpanel" aria-labelledby="tab-passport" hidden>
+      <div class="panel-head">
+        <h1>Passport</h1>
+        <p class="muted">Pick a decade and a country. Love a track to collect that stamp.</p>
+      </div>
+      <div class="passport-layout">
+      <div class="picker">
+        <div class="field">
+          <span id="decade-label" class="label">1. Decade</span>
+          <div id="decades" class="chips" role="group" aria-labelledby="decade-label"></div>
+        </div>
+        <div class="field">
+          <label for="country-q">2. Country</label>
+          <input id="country-q" type="search" placeholder="Type to filter, e.g. Japan" autocomplete="off" aria-controls="countries">
+          <div id="countries" class="chips-groups" aria-label="Countries"></div>
+        </div>
+      </div>
+      <div class="results">
+        <div id="passport-state" class="state" aria-live="polite"></div>
+        <ul id="passport-results" class="tracks"></ul>
+      </div>
+      </div>
+      <h2>Your stamps <span id="stamp-count" class="count">0</span></h2>
+      <ul id="stamps" class="stamps"></ul>
     </section>
 
     <!-- C. Liner Notes Trail + Covers -->
-    <section id="liner" class="panel" role="tabpanel" hidden>
-      <h1>Liner Notes Trail</h1>
-      <form id="liner-search"><input id="liner-q" type="search" placeholder="Artist and song, e.g. Radiohead Creep" autocomplete="off"> <button>Search</button></form>
+    <section id="liner" class="panel" role="tabpanel" aria-labelledby="tab-liner" hidden>
+      <div class="panel-head">
+        <h1>Liner Notes</h1>
+        <p class="muted">Search a song you know, then follow the people who made it to other music.</p>
+      </div>
+      <form id="liner-search" class="search" role="search">
+        <label for="liner-q" class="sr-only">Artist and song</label>
+        <input id="liner-q" type="search" placeholder="Artist and song, e.g. Radiohead Creep" autocomplete="off">
+        <button class="primary">Search</button>
+      </form>
+      <p id="liner-examples" class="muted">Try: </p>
       <ul id="liner-hits" class="tracks"></ul>
-      <nav id="crumbs" aria-label="Trail"></nav>
-      <p id="liner-status" aria-live="polite"></p>
-      <div id="liner-subtabs" hidden>
+      <div id="trail-nav" class="trail-nav" hidden>
+        <button id="liner-back" type="button" class="ghost" aria-label="Back one step">← Back</button>
+        <nav aria-label="Trail"><ol id="crumbs" class="crumbs"></ol></nav>
+      </div>
+      <div id="liner-state" class="state" aria-live="polite"></div>
+      <div id="liner-subtabs" class="segmented" role="group" aria-label="View" hidden>
         <button type="button" data-sub="credits">Credits</button>
         <button type="button" data-sub="covers">Covers</button>
       </div>
       <div id="credits"></div>
       <div id="covers" hidden>
-        <button id="spin" type="button">Spin (random cover)</button>
+        <button id="spin" type="button" class="primary">Spin: play a random cover</button>
         <ul id="covers-list" class="tracks"></ul>
       </div>
       <h2 id="trail-title" hidden></h2>
@@ -67,16 +133,28 @@
     </section>
 
     <!-- Saved -->
-    <section id="saved" class="panel" role="tabpanel" hidden>
-      <h1>Saved</h1>
+    <section id="saved" class="panel" role="tabpanel" aria-labelledby="tab-saved" hidden>
+      <div class="panel-head">
+        <h1>Saved</h1>
+        <p class="muted">Everything you loved, newest first.</p>
+      </div>
+      <h2>Stamps <span id="saved-stamp-count" class="count">0</span></h2>
+      <ul id="saved-stamps" class="stamps"></ul>
+      <h2>Loved tracks <span id="saved-like-count" class="count">0</span></h2>
       <ul id="saved-list" class="tracks"></ul>
     </section>
   </main>
 
-  <footer>
-    <span id="now-playing"></span>
-    <audio id="audio" controls></audio>
-    <span id="toast" role="status"></span>
+  <footer class="nowbar" aria-label="Now playing">
+    <button id="np-toggle" type="button" class="np-toggle" aria-label="Play" disabled><span aria-hidden="true">▶</span></button>
+    <div class="np-meta">
+      <span id="now-playing" class="np-title">Nothing playing</span>
+      <progress id="np-progress" max="1" value="0" aria-hidden="true"></progress>
+    </div>
+    <span id="np-time" class="np-time" aria-hidden="true"></span>
+    <span id="np-like"></span>
+    <audio id="audio"></audio>
+    <span id="toast" class="toast" role="status"></span>
   </footer>
   <script src="app.js"></script>
 </body>
