@@ -44,7 +44,7 @@ async function get(url, { fresh = false } = {}) {
   let u;
   try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
   const host = u.hostname;
-  if (u.protocol !== 'https:' || !(host in GAP)) return { error: { message: 'host not allowed' } };
+  if (u.protocol !== 'https:' || !Object.hasOwn(GAP, host)) return { error: { message: 'host not allowed' } };
   if (!fresh && isFresh(cache[url], url)) return cache[url].body;
 
   for (let attempt = 0; attempt < 3; attempt++) {
