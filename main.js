@@ -21,6 +21,7 @@ function createWindow() {
   // SNAP_JS runs in the page first; SNAP_WAIT (ms) is the delay before capture.
   if (process.env.SNAP) {
     win.webContents.setAudioMuted(true);
+    win.webContents.on('console-message', (e, ...a) => console.log('[page]', e.message ?? a[1]));
     win.webContents.once('did-finish-load', async () => {
       if (process.env.SNAP_JS) await win.webContents.executeJavaScript(process.env.SNAP_JS).catch(e => console.error('SNAP_JS', e));
       setTimeout(async () => {

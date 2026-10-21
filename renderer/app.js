@@ -6,6 +6,7 @@ const btn = (text, onclick, className = '') => el('button', { type: 'button', cl
 const norm = s => String(s || '').normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const DECADES = [1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010];
+document.head.append(el('script', { src: 'features.js' })); // Sound Fingerprint math -> window.Features (no bundler, sandboxed: no require)
 
 let profile, countryNames = {};
 
@@ -204,18 +205,62 @@ $$('#intro [data-goto]').forEach(b => { b.onclick = () => showTab(b.dataset.goto
 
 // ---------- A. Blind Taste Test ----------
 const queue = [];
-let mystery = null, rated = false, n = 0, fails = 0, filling = false;
+let mystery = null, rated = false, n = 0, fails = 0, filling = false, srcTurn = 0;
+
+// Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
+const warm = () => profile.ratings.length >= 3;
+const SOURCES = ['explore', 'trail', 'explore', 'trail', 'neighbour']; // Deezer neighbours: one minor source of five
+
+// Download the preview (main process, CDN allowlist), decode, analyse ~20 s from the middle. Memoised; resolves to the vector or null.
+function fingerprint(c) {
+  c.fp ??= (async () => {
+    try {
+      const buf = await api.audio(c.previewUrl);
+      if (!buf || !buf.byteLength || !window.Features) return null;
+      const ab = await new OfflineAudioContext(1, 1, Features.SR).decodeAudioData(buf);
+      const from = Math.max(0, (ab.length >> 1) - Features.SR * 10), to = Math.min(ab.length, from + Features.SR * 20);
+      const x = new Float32Array(to - from);
+      for (let ch = 0; ch < ab.numberOfChannels; ch++) {
+        const d = ab.getChannelData(ch);
+        for (let i = from; i < to; i++) x[i - from] += d[i] / ab.numberOfChannels;
+      }
+      const f = Features.extract(x);
+      return f ? Features.vector(f) : null;
+    } catch (e) { console.warn('fingerprint failed:', e.message); return null; }
+  })().then(v => (c.vec = v));
+  return c.fp;
+}
+
+// Cold start (or pool not listened to yet): queue order, as before. Warm: best taste score; drop ones passed over 3 times.
+function nextFromQueue() {
+  const ready = queue.filter(c => c.vec);
+  if (!warm() || ready.length < 2) return queue.shift() || null;
+  const [best, ...rest] = Features.rank(ready, profile.ratings, profile.adventure);
+  rest.forEach(c => { c.passed = (c.passed || 0) + 1; });
+  const keep = queue.filter(c => c !== best && !(c.passed >= 3));
+  queue.splice(0, queue.length, ...keep);
+  return best;
+}
+
+// Reveal sentence: how it sounds next to your nearest love, plus where it came from.
+function soundReason(m, v) {
+  const names = Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${l.title}” by ${l.artist}`]));
+  const sound = v && window.Features ? Features.explain(v, profile.ratings.filter(r => r.id !== likeKey(m)), names) : '';
+  return sound && m.via ? `${sound}; found via ${m.via}` : sound || m.reason || '';
+}
 
 async function fill() {
   if (filling) return;
   filling = true;
   $('#blind-error').hidden = true;
-  while (queue.length < 3) {
+  while (queue.length < (warm() ? 6 : 3)) {
     const exclude = [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
-    const c = await call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude, adventure: profile.adventure });
+    const source = warm() ? SOURCES[srcTurn++ % SOURCES.length] : undefined;
+    const c = await call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude, adventure: profile.adventure, source });
     if (c && !isHeard(c) &&!exclude.includes(norm(c.artist))) {
       fails = 0;
       queue.push(c);
+      fingerprint(c);
       if (!mystery) showMystery();
     } else if (++fails >= 5) {
       if (!mystery) {
@@ -237,7 +282,7 @@ const playMystery = () => { const m = mystery; play(m, { label: `Mystery #${n}: 
 } }); };
 
 function showMystery() {
-  mystery = queue.shift() || null;
+  mystery = nextFromQueue();
   rated = false;
   $('#reveal').replaceChildren();
   $('#mystery-next').hidden = true;
@@ -266,6 +311,15 @@ function rate(kind) {
   addHeard(m);
   if (kind === 'love') like(m, extra);
   save();
+  const reason = el('p', { className: 'reason', textContent: m.reason || '' });
+  // Every rating (Skip and OK too) teaches the taste model, once the track has been listened to.
+  fingerprint(m).then(v => {
+    reason.textContent = soundReason(m, v);
+    if (!v) return;
+    profile.ratings = [...profile.ratings, { id: likeKey(m), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
+    save();
+    fill();
+  });
   setRateEnabled(false);
   $(`#rate [data-rate=${kind}]`).setAttribute('aria-pressed', true);
   // Artist/title enter the DOM only now, after rating.
@@ -275,7 +329,7 @@ function rate(kind) {
       el('p', { className: 'eyebrow', textContent: `You said ${{ skip: 'Skip', ok: 'OK', love: 'Love' }[kind]}. It was…` }),
       el('h3', { className: 'reveal-artist', textContent: m.artist }),
       el('p', { className: 'reveal-title', textContent: m.title }),
-      m.reason ? el('p', { className: 'reason', textContent: m.reason }) : null,
+      reason,
       loveButton(m, extra))));
   $('#mystery').classList.add('is-revealed');
   if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); }

@@ -85,4 +85,6 @@ test('explain names the nearest love and a shared trait', () => {
   assert.match(s, /~120 BPM/);
   assert.match(s, /“Tezeta” by Mulatu/);
   assert.equal(F.explain(cand, [], {}, 10), '');
+  const far = cand.map((x, i) => (i === 3 || i === 5 ? 1 - x : x));
+  assert.match(F.explain(far, [R('dz:1', 'love', loved)], {}), /^(A stretch from|The .* of|Close to) a track you loved.*(brighter|more percussive)/);
 });

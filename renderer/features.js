@@ -142,7 +142,9 @@
       Math.abs(v[5] - l[5]) > 0.1 && (v[5] > l[5] ? 'more percussive' : 'calmer'),
       Math.abs(v[4] - l[4]) > 0.1 && (v[4] > l[4] ? 'noisier' : 'cleaner'),
     ].filter(Boolean).slice(0, 3);
-    return `A stretch from ${name}${diff.length ? `: ${diff.join(', ')}` : ''}${shared.length ? `, but the same ${shared[0]}` : ''}`;
+    const but = diff.length ? ` but ${diff.join(', ')}` : '';
+    if (L.d < TMAX * 2 / 3) return shared.length ? `The ${shared[0]} of ${name},${but || ' in a new setting'}` : `Close to ${name}${but && `,${but}`}`;
+    return `A stretch from ${name}${diff.length ? `: ${diff.join(', ')}` : ''}${shared.length ? `, keeping the ${shared[0]}` : ''}`;
   }
 
   const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain };
