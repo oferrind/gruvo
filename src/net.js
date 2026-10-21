@@ -15,13 +15,13 @@ function initCache(dir) {
 }
 
 function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushCache, 2000);
+  saveTimer ??= setTimeout(flushCache, 2000); // don't restart: steady traffic would postpone the save forever
 }
 
 function flushCache() {
   if (!cacheFile) return;
   clearTimeout(saveTimer);
+  saveTimer = null;
   prune(cache);
   try { fs.writeFileSync(cacheFile + '.tmp', JSON.stringify(cache)); fs.renameSync(cacheFile + '.tmp', cacheFile); }
   catch (e) { console.error('cache save failed', e.message); }
