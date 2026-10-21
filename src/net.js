@@ -70,4 +70,30 @@ async function get(url, { fresh = false } = {}) {
   return { error: { message: 'retries exhausted' } };
 }
 
-module.exports = { get, initCache, flushCache };
+// Preview audio for the Sound Fingerprint: only the preview CDNs, https, no redirects, at most MAX_AUDIO bytes.
+const MAX_AUDIO = 2 * 1024 * 1024;
+const isAudioHost = h => h.endsWith('.dzcdn.net') || h.endsWith('.mzstatic.com') || h === 'audio-ssl.itunes.apple.com';
+
+// Returns an ArrayBuffer, or {error}. Never throws.
+async function audio(url) {
+  let u;
+  try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
+  if (u.protocol !== 'https:' || !isAudioHost(u.hostname)) return { error: { message: 'host not allowed' } };
+  try {
+    const res = await fetch(u.href, { redirect: 'error', signal: AbortSignal.timeout(15000) });
+    if (!res.ok) return { error: { status: res.status } };
+    if (Number(res.headers.get('content-length')) > MAX_AUDIO) return { error: { message: 'too large' } };
+    const chunks = [];
+    let size = 0;
+    for await (const c of res.body) {
+      if ((size += c.length) > MAX_AUDIO) return { error: { message: 'too large' } };
+      chunks.push(c);
+    }
+    const b = Buffer.concat(chunks);
+    return b.buffer.slice(b.byteOffset, b.byteOffset + b.length);
+  } catch (e) {
+    return { error: { message: e.message } };
+  }
+}
+
+module.exports = { get, audio, initCache, flushCache };

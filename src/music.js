@@ -177,7 +177,7 @@ async function exploreCandidate(get, heard, exclude, rand = Math.random) {
   for (const name of names.slice(0, 3)) {
     const t = await resolvePreview(get, name);
     if (t && !isHeard(heard, { dz: t.artistDzId, name: t.artist }) && !exclude.includes(norm(t.artist)))
-      return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${decade}s`, country: cc, decade };
+      return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${decade}s`, via: `a random trip to ${ALL_CC[cc]}, ${decade}s`, country: cc, decade };
   }
   return null;
 }
@@ -199,15 +199,39 @@ async function neighbourCandidate(get, likes, heard, exclude, adventure, rand = 
   const a = pickOne(pool, rand);
   const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
   const t = pickOne((top.data || []).filter(r => r.preview), rand);
-  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}` } : null;
+  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, via: `Deezer's related artists of ${loved.artist}` } : null;
 }
 
-async function nextCandidate(get, { likes = [], heard = [], exclude = [], adventure = 50 } = {}) {
-  if (chooseSource(adventure, likes.length) === 'neighbour') {
-    const n = await neighbourCandidate(get, likes, heard, exclude, adventure);
-    if (n) return n;
+const ROLE_WORD = { instrument: 'musician', vocal: 'singer', mix: 'mixer', 'mix-DJ': 'DJ' };
+const roleWord = role => ROLE_WORD[role.split(' ')[0]] || role.split(' ')[0];
+
+// Liner-notes trail from a loved track: its producer (or engineer, player...) -> another artist they worked with.
+// Slow (MusicBrainz, 1.5 s/request) on first use per loved track; the disk cache makes repeats cheap.
+async function trailCandidate(get, likes, heard, exclude, rand = Math.random) {
+  const loved = pickOne(likes.filter(l => l.title && l.artist), rand);
+  if (!loved) return null;
+  const c = await credits(get, loved);
+  const people = ((c && c.groups) || []).filter(g => g.role !== 'artist').flatMap(g => g.people.map(p => ({ ...p, role: roleWord(g.role) })));
+  const person = people.length ? pickOne(people.slice(0, 3), rand) : null; // groups come producer-first
+  if (!person) return null;
+  const skip = [...heard, ...exclude];
+  for (const pick of (await personTrail(get, person.id, loved.artist, skip)).slice(0, 3)) {
+    if (isHeard(skip, { mb: pick.mbid, name: pick.artist })) continue;
+    const t = await resolvePreview(get, pick.artist, pick.title);
+    if (!t || isHeard(skip, { dz: t.artistDzId, name: t.artist })) continue;
+    const on = `${person.name}, ${person.role} on “${loved.title}”`;
+    return { ...t, reason: `Via ${person.name} (${person.role} on ${loved.title})`,
+      via: norm(t.title).includes(norm(pick.title)) ? `${on}, who was also ${roleWord(pick.role)} on this one` : `${on}, who also worked with this artist` };
   }
-  return exploreCandidate(get, heard, exclude);
+  return null;
+}
+
+// source: 'explore' | 'neighbour' | 'trail'; omitted = the Adventure mix (cold start).
+async function nextCandidate(get, { likes = [], heard = [], exclude = [], adventure = 50, source } = {}) {
+  source = source || chooseSource(adventure, likes.length);
+  const n = source === 'trail' ? await trailCandidate(get, likes, heard, exclude)
+    : source === 'neighbour' ? await neighbourCandidate(get, likes, heard, exclude, adventure) : null;
+  return n || exploreCandidate(get, heard, exclude);
 }
 
 async function searchTracks(get, q) {

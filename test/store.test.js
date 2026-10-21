@@ -36,3 +36,19 @@ test('load migrates name-only heard entries of loved Deezer artists to ids (R4)'
     heard: ['nirvana', 'fela', 'dz:7', 'low'] }));
   assert.deepEqual(store.load().heard, ['dz:7', 'dz:9', 'fela', 'low']);
 });
+
+test('sound ratings survive save/load; malformed ones are dropped; capped at the newest 500', () => {
+  tmp();
+  const good = { id: 'dz:1', rating: 'love', features: [0.1, 0.5], extra: 'x' };
+  const bad = [null, { id: 1, rating: 'love', features: [1] }, { id: 'a', rating: 'meh', features: [1] },
+    { id: 'a', rating: 'ok', features: [NaN] }, { id: 'a', rating: 'ok', features: 'x' }, { id: 'a', rating: 'skip', features: [] }];
+  store.save({ likes: [], heard: [], ratings: [good, ...bad] });
+  assert.deepEqual(store.load().ratings, [{ id: 'dz:1', rating: 'love', features: [0.1, 0.5] }]);
+  const many = Array.from({ length: 520 }, (_, i) => ({ id: `dz:${i}`, rating: 'skip', features: [0] }));
+  store.save({ likes: [], heard: [], ratings: many });
+  const r = store.load().ratings;
+  assert.equal(r.length, 500);
+  assert.equal(r[0].id, 'dz:20');
+  tmp();
+  assert.deepEqual(store.load().ratings, []); // old profiles load with none
+});
