@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self'; media-src https://*.dzcdn.net https://*.apple.com; img-src https://*.dzcdn.net https://*.mzstatic.com data:">
+  <title>Music Discovery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav id="tabs" role="tablist">
+    <button role="tab" data-tab="blind" aria-selected="true">Blind Test</button>
+    <button role="tab" data-tab="passport" aria-selected="false">Passport</button>
+    <button role="tab" data-tab="liner" aria-selected="false">Liner Notes</button>
+    <button role="tab" data-tab="saved" aria-selected="false">Saved</button>
+  </nav>
+
+  <main>
+    <!-- A. Blind Taste Test -->
+    <section id="blind" class="panel" role="tabpanel">
+      <h1>Blind Taste Test</h1>
+      <label>Adventure <input id="adventure" type="range" min="0" max="100" step="1"> <output id="adventure-value"></output></label>
+      <article id="mystery" class="card">
+        <h2 id="mystery-title">Loading…</h2>
+        <button id="mystery-play" type="button">Play / Pause</button>
+        <progress id="mystery-progress" max="1" value="0"></progress>
+        <div id="rate">
+          <button type="button" data-rate="skip">1 · Skip</button>
+          <button type="button" data-rate="ok">2 · OK</button>
+          <button type="button" data-rate="love">3 · Love</button>
+        </div>
+        <div id="reveal" aria-live="polite"></div>
+        <button id="mystery-next" type="button" hidden>Next (Enter)</button>
+      </article>
+      <p id="blind-error" hidden>Can't reach music services. <button id="blind-retry" type="button">Retry</button></p>
+    </section>
+
+    <!-- B. Sonic Passport -->
+    <section id="passport" class="panel" role="tabpanel" hidden>
+      <h1>Sonic Passport</h1>
+      <label>Country <select id="country"></select></label>
+      <div id="decades"></div>
+      <p id="passport-status" aria-live="polite"></p>
+      <ul id="passport-results" class="tracks"></ul>
+      <h2>Passport stamps: <span id="stamp-count">0</span></h2>
+      <ul id="stamps"></ul>
+    </section>
+
+    <!-- C. Liner Notes Trail + Covers -->
+    <section id="liner" class="panel" role="tabpanel" hidden>
+      <h1>Liner Notes Trail</h1>
+      <form id="liner-search"><input id="liner-q" type="search" placeholder="Artist and song, e.g. Radiohead Creep" autocomplete="off"> <button>Search</button></form>
+      <ul id="liner-hits" class="tracks"></ul>
+      <nav id="crumbs" aria-label="Trail"></nav>
+      <p id="liner-status" aria-live="polite"></p>
+      <div id="liner-subtabs" hidden>
+        <button type="button" data-sub="credits">Credits</button>
+        <button type="button" data-sub="covers">Covers</button>
+      </div>
+      <div id="credits"></div>
+      <div id="covers" hidden>
+        <button id="spin" type="button">Spin (random cover)</button>
+        <ul id="covers-list" class="tracks"></ul>
+      </div>
+      <h2 id="trail-title" hidden></h2>
+      <ul id="trail" class="tracks"></ul>
+    </section>
+
+    <!-- Saved -->
+    <section id="saved" class="panel" role="tabpanel" hidden>
+      <h1>Saved</h1>
+      <ul id="saved-list" class="tracks"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <span id="now-playing"></span>
+    <audio id="audio" controls></audio>
+    <span id="toast" role="status"></span>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
