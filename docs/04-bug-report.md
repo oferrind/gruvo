@@ -49,3 +49,22 @@ Checked and found correct: MB 503 backoff (2 s, then 4 s, 3 tries), Deezer HTTP-
 - When the user switches back to the Credits sub-tab while covers are still loading, `loadCovers` keeps writing the "Finding cover previews" status line.
 - In the SNAP run, `capturePage` sometimes returns a frame from before the `SNAP_JS` actions. The console log showed the state after the actions. Screenshots taken with the hook are therefore not proof of the final state.
 - Not covered by the `isHeard` shortcut: a `dz:`-keyed artist isn't recognised when that same artist comes back only through an iTunes fallback, or as an MB trail name.
+
+## Round 3 (diff 2a70726..5c59022: redesign and Sound Fingerprint)
+
+Fixed:
+- **Loves outside the Blind Test didn't teach the taste model; unloving left the stored 'love' rating.** `like()` now upserts a `love` rating once the preview is fingerprinted (it skips the write if the track was unloved meanwhile, or if there is no preview). `unlike()` removes the love rating. Blind ratings use the same upsert (`teach()`), so the rating rows no longer duplicate. (71aca7e)
+- **A slow MusicBrainz trail held up the pool.** `fill()` now runs one trail request on the side and keeps asking the other sources. (7446b78)
+- **Undecodable candidates held pool slots forever** in warm mode, because `nextFromQueue` only ranks candidates that have a vector. Candidates whose fingerprint resolved to `null` are now dropped. (7446b78)
+
+Verified live (SNAP, `bug3-run1.png`, `bug3-run2-light-persisted.png`):
+- iTunes `.m4a` (AAC) preview from `audio-ssl.itunes.apple.com`: 1.16 MB, decodes to 30.0 s at 22050 Hz, and gives a 14-dim vector. A 404 Deezer URL and a non-allowlisted host both give `fp = null`, with no crash.
+- Theme toggle: OS default → `light`, stored in localStorage, `aria-pressed=false`. After a relaunch with the same profile, it starts in `light`.
+- `#reveal` is empty before rating. The sound reason is built only inside `rate()`.
+
+Reviewed, no change needed:
+- `api.audio`: https only, exact allowlist of CDN suffixes, `redirect: 'error'`, a 2 MB cap on both content-length and the streamed bytes, and a 15 s timeout.
+- Store `ratings`: validated on load and on save.
+- `OfflineAudioContext` has no `close()`. It and the decoded buffer are dropped after `extract`, and only the 14-number vector is kept.
+
+Not done: no unit test for the fixes above. They are in `renderer/app.js`, which has no node harness. The warm-pool path (3+ ratings) was not exercised live.
