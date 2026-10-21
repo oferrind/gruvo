@@ -51,7 +51,7 @@ async function get(url, { fresh = false } = {}) {
     await slot(host);
     let res, body;
     try {
-      res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
+      res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(15000) });
       if (host === 'musicbrainz.org' && res.status === 503 && attempt < 2) { await sleep(2000 * 2 ** attempt); continue; }
       if (!res.ok) return { error: { status: res.status } };
       body = await res.json();
