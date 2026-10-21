@@ -97,9 +97,10 @@ function renderNpLike() {
 }
 
 // ---------- likes / rows ----------
-// shortcut: heard is keyed by normalized name to match src/music.js; same-name artists still collide (R4), key on ids once src does too.
+// heard: 'dz:<artistId>' when known (R4: same-name artists stay apart), else the normalized name; matches src/music.js isHeard.
 const heardKey = name => norm(name) || String(name || '').trim().toLowerCase(); // symbol-only names ("!!!") would normalize to ''
-const addHeard = name => { const k = heardKey(name); if (k && !profile.heard.includes(k)) profile.heard.push(k); };
+const isHeard = t => (t.artistDzId != null && profile.heard.includes(`dz:${t.artistDzId}`)) || profile.heard.includes(heardKey(t.artist));
+const addHeard = t => { const k = t.artistDzId != null ? `dz:${t.artistDzId}` : heardKey(t.artist); if (k && !profile.heard.includes(k)) profile.heard.push(k); };
 const likeKey = t => `${t.source}:${t.id}`;
 const isLiked = t => profile.likes.some(l => likeKey(l) === likeKey(t));
 
@@ -109,7 +110,7 @@ function like(t, extra = {}) {
   const entry = { source, id, title, artist, artistDzId, cover, isrc, ...extra, ts: Date.now() };
   profile.likes.push(entry);
   if (entry.country && entry.decade) profile.stamps[`${entry.country}-${entry.decade}`] = (profile.stamps[`${entry.country}-${entry.decade}`] || 0) + 1;
-  addHeard(artist);
+  addHeard(t);
   save();
   afterLikeChange();
 }
@@ -205,7 +206,7 @@ async function fill() {
   while (queue.length < 3) {
     const exclude = [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
     const c = await call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude, adventure: profile.adventure });
-    if (c && !profile.heard.includes(heardKey(c.artist)) && !exclude.includes(norm(c.artist))) {
+    if (c && !isHeard(c) &&!exclude.includes(norm(c.artist))) {
       fails = 0;
       queue.push(c);
       if (!mystery) showMystery();
@@ -225,7 +226,7 @@ function setRateEnabled(on) { $$('#rate button').forEach(b => { b.disabled = !on
 
 const playMystery = () => { const m = mystery; play(m, { label: `Mystery #${n}: rate it to reveal`, onFail: () => { // preview dead: drop silently, never offer this artist again
   if (mystery !== m || rated) return;
-  addHeard(m.artist); save(); showMystery();
+  addHeard(m); save(); showMystery();
 } }); };
 
 function showMystery() {
@@ -255,7 +256,7 @@ function rate(kind) {
   rated = true;
   const m = mystery;
   const extra = m.country ? { country: m.country, decade: m.decade } : {};
-  addHeard(m.artist);
+  addHeard(m);
   if (kind === 'love') like(m, extra);
   save();
   setRateEnabled(false);

@@ -58,9 +58,14 @@ function adventureMix(adventure) {
 const chooseSource = (adventure, loveCount, r = Math.random()) =>
   loveCount >= 3 && r >= adventureMix(adventure).pExplore ? 'neighbour' : 'explore';
 
+// heard holds 'dz:<id>' / 'mb:<id>' (R4: same-name artists stay apart) or a normalized name (old profiles, iTunes-only artists).
+// shortcut: a dz-keyed artist isn't recognised by mb id or by name-only lookups (trail order, iTunes fallback); store both ids if that shows up.
+const isHeard = (heard, { dz, mb, name }) =>
+  (dz != null && heard.includes(`dz:${dz}`)) || (mb != null && heard.includes(`mb:${mb}`)) || heard.includes(norm(name));
+
 // Related Deezer artists under the fan cap that the user hasn't heard.
 const pickRelated = (artists, fanCap, heard) =>
-  (artists || []).filter(a => a.nb_fan < fanCap && !heard.includes(norm(a.name)));
+  (artists || []).filter(a => a.nb_fan < fanCap && !isHeard(heard, { dz: a.id, name: a.name }));
 
 // MB recording with the most relations.
 const bestRecording = recs => recs.filter(r => r && !r.error).sort((a, b) => (b.relations || []).length - (a.relations || []).length)[0] || null;
@@ -97,11 +102,13 @@ function trailPicks(relations, excludeArtist, heard, n = 12, rand = Math.random)
     const artist = creditName(r.recording);
     if (!artist || artistMatch(artist, excludeArtist)) continue;
     if (!byArtist.has(artist)) byArtist.set(artist, []);
-    byArtist.get(artist).push({ artist, title: r.recording.title, recId: r.recording.id, role: r.type });
+    const first = (r.recording['artist-credit'] || [])[0];
+    byArtist.get(artist).push({ artist, title: r.recording.title, recId: r.recording.id, role: r.type, mbid: first && first.artist && first.artist.id });
   }
   const groups = shuffle([...byArtist.values()], rand);
-  const fresh = groups.filter(g => !heard.includes(norm(g[0].artist)));
-  const seen = groups.filter(g => heard.includes(norm(g[0].artist)));
+  const heardG = g => isHeard(heard, { mb: g[0].mbid, name: g[0].artist });
+  const fresh = groups.filter(g => !heardG(g));
+  const seen = groups.filter(heardG);
   return [...fresh, ...seen].slice(0, n).map(g => pickOne(g, rand));
 }
 
@@ -169,7 +176,7 @@ async function exploreCandidate(get, heard, exclude, rand = Math.random) {
     .filter(n => !heard.includes(norm(n)) && !exclude.includes(norm(n)));
   for (const name of names.slice(0, 3)) {
     const t = await resolvePreview(get, name);
-    if (t && !heard.includes(norm(t.artist)) && !exclude.includes(norm(t.artist)))
+    if (t && !isHeard(heard, { dz: t.artistDzId, name: t.artist }) && !exclude.includes(norm(t.artist)))
       return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${decade}s`, country: cc, decade };
   }
   return null;
@@ -251,7 +258,7 @@ async function covers(get, workId, originalArtist) {
 }
 
 module.exports = {
-  COUNTRIES, norm, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
+  COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
   bestRecording, groupCredits, trailPicks, coverArtists, dedupe,
   flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers },
 };

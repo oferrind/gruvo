@@ -1,6 +1,7 @@
 // Profile persistence: userData/profile.json, written atomically (tmp + rename).
 const fs = require('fs');
 const path = require('path');
+const { norm } = require('./music');
 
 const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, adventure: 50 });
 let file = null;
@@ -17,9 +18,12 @@ function load() {
     return DEFAULT();
   }
   const d = DEFAULT();
+  const likes = Array.isArray(p.likes) ? p.likes : d.likes;
+  // R4 migration: a name-only heard entry of a loved Deezer artist becomes its id(s), so same-name strangers aren't hidden.
+  const ids = h => likes.filter(l => l && l.artistDzId != null && norm(l.artist) === h).map(l => `dz:${l.artistDzId}`);
   return {
-    likes: Array.isArray(p.likes) ? p.likes : d.likes,
-    heard: Array.isArray(p.heard) ? p.heard : d.heard,
+    likes,
+    heard: Array.isArray(p.heard) ? [...new Set(p.heard.flatMap(h => { const x = ids(h); return x.length ? x : [h]; }))] : d.heard,
     stamps: p.stamps && typeof p.stamps === 'object' ? p.stamps : d.stamps,
     adventure: Number.isFinite(p.adventure) ? p.adventure : d.adventure,
   };

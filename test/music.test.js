@@ -92,6 +92,28 @@ test('trail picks exclude original artist, one per artist', () => {
   assert.ok(covers.length > 5 && !covers.includes('Radiohead'));
 });
 
+test('heard is id-keyed: same-name artists stay apart, old name entries still match (R4)', async () => {
+  const rel = [{ id: 1, name: 'Nirvana', nb_fan: 10 }, { id: 2, name: 'Nirvana', nb_fan: 10 }, { id: 3, name: 'Low', nb_fan: 10 }];
+  assert.deepEqual(m.pickRelated(rel, 100, ['dz:1']).map(a => a.id), [2, 3]);
+  assert.deepEqual(m.pickRelated(rel, 100, ['low']).map(a => a.id), [1, 2]);
+  const rec = (name, id) => ({ type: 'producer', recording: { id: `r-${id}`, title: 'T', 'artist-credit': [{ name, joinphrase: '', artist: { id, name } }] } });
+  for (let s = 1; s < 6; s++) {
+    assert.equal(m.trailPicks([rec('A', 'a'), rec('B', 'b')], 'X', ['mb:a'], 12, seeded(s))[0].artist, 'B');
+    assert.equal(m.trailPicks([rec('A', 'a'), rec('B', 'b')], 'X', ['a'], 12, seeded(s))[0].artist, 'B');
+  }
+  // Blind Test: an id-only heard list still never repeats an artist.
+  const get = fakeGet({ 'musicbrainz.org/ws/2/artist?query': fx('mb_artist_query_ng'), 'api.deezer.com/search': {
+    data: fx('mb_artist_query_ng').artists.map((a, i) => ({ id: i, title: 'Song', rank: 1, preview: 'https://x.dzcdn.net/p.mp3', artist: { id: i, name: a.name }, album: {} })) } });
+  const heard = [];
+  for (let i = 0; i < 30; i++) {
+    const c = await m.flows.nextCandidate(get, { heard, likes: [], adventure: 50 });
+    if (!c) continue;
+    assert.ok(!heard.includes(`dz:${c.artistDzId}`), `repeat ${c.artist}`);
+    heard.push(`dz:${c.artistDzId}`);
+  }
+  assert.ok(heard.length >= 10);
+});
+
 test('cache expiry per host and prune', () => {
   const now = 1e12;
   assert.equal(ttlFor('https://api.deezer.com/search?q=a'), 600000);
