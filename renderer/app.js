@@ -215,7 +215,7 @@ $$('#intro [data-goto]').forEach(b => { b.onclick = () => showTab(b.dataset.goto
 
 // ---------- A. Blind Taste Test ----------
 const queue = [];
-let mystery = null, rated = false, n = 0, fails = 0, filling = false, srcTurn = 0;
+let mystery = null, rated = false, n = 0, fails = 0, filling = false, trailing = false, srcTurn = 0;
 
 // Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
 const warm = () => profile.ratings.length >= 3;
@@ -247,7 +247,7 @@ function nextFromQueue() {
   if (!warm() || ready.length < 2) return queue.shift() || null;
   const [best, ...rest] = Features.rank(ready, profile.ratings, profile.adventure);
   rest.forEach(c => { c.passed = (c.passed || 0) + 1; });
-  const keep = queue.filter(c => c !== best && !(c.passed >= 3));
+  const keep = queue.filter(c => c !== best && !(c.passed >= 3) && c.vec !== null); // vec null = preview failed to decode: can't be ranked, drop it
   queue.splice(0, queue.length, ...keep);
   return best;
 }
@@ -259,20 +259,28 @@ function soundReason(m, v) {
   return sound && m.via ? `${sound}; found via ${m.via}` : sound || m.reason || '';
 }
 
+const excluded = () => [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
+function accept(c) {
+  if (!c || isHeard(c) || excluded().includes(norm(c.artist))) return false;
+  queue.push(c);
+  fingerprint(c);
+  if (!mystery) showMystery();
+  return true;
+}
+
 async function fill() {
   if (filling) return;
   filling = true;
   $('#blind-error').hidden = true;
   while (queue.length < (warm() ? 6 : 3)) {
-    const exclude = [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
     const source = warm() ? SOURCES[srcTurn++ % SOURCES.length] : undefined;
-    const c = await call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude, adventure: profile.adventure, source });
-    if (c && !isHeard(c) &&!exclude.includes(norm(c.artist))) {
-      fails = 0;
-      queue.push(c);
-      fingerprint(c);
-      if (!mystery) showMystery();
-    } else if (++fails >= 5) {
+    const ask = () => call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude: excluded(), adventure: profile.adventure, source });
+    if (source === 'trail') { // MusicBrainz trails can take ~10 s: run one on the side so the other sources keep filling
+      if (!trailing) { trailing = true; ask().then(c => { trailing = false; if (queue.length < 6) accept(c); }); }
+      continue;
+    }
+    if (accept(await ask())) fails = 0;
+    else if (++fails >= 5) {
       if (!mystery) {
         $('#blind-error').hidden = false;
         $('#mystery-title').textContent = 'No mystery yet';
