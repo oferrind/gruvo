@@ -34,6 +34,7 @@ function createWindow() {
 }
 
 ipcMain.handle('api:get', (e, url) => net.get(String(url)));
+ipcMain.handle('api:audio', (e, url) => net.audio(String(url)));
 ipcMain.handle('api:call', async (e, name, ...args) => {
   if (!Object.hasOwn(flows, name)) throw new Error(`unknown call ${name}`);
   return flows[name](net.get, ...args);
