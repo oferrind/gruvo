@@ -546,3 +546,14 @@ function renderSaved() {
   if (!introSeen() && !profile.likes.length) openIntro();
   fill();
 })();
+
+// Theme toggle (Agent 6): follows the OS until the user picks; the choice persists in localStorage.
+{
+  const root = document.documentElement, tbtn = document.getElementById('theme-toggle'), os = matchMedia('(prefers-color-scheme: light)');
+  try { const t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') root.dataset.theme = t; } catch {}
+  const dark = () => (root.dataset.theme || (os.matches ? 'light' : 'dark')) === 'dark';
+  const sync = () => tbtn.setAttribute('aria-pressed', String(dark()));
+  tbtn.onclick = () => { root.dataset.theme = dark() ? 'light' : 'dark'; try { localStorage.setItem('theme', root.dataset.theme); } catch {} sync(); };
+  os.addEventListener('change', sync);
+  sync();
+}
