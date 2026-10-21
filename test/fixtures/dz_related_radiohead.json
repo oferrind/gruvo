@@ -1,0 +1,104 @@
+{
+ "data": [
+  {
+   "id": 664,
+   "name": "Jeff Buckley",
+   "nb_fan": 329890
+  },
+  {
+   "id": 743,
+   "name": "Blur",
+   "nb_fan": 1506312
+  },
+  {
+   "id": 193331,
+   "name": "The Smashing Pumpkins",
+   "nb_fan": 1771789
+  },
+  {
+   "id": 5806,
+   "name": "Thom Yorke",
+   "nb_fan": 164716
+  },
+  {
+   "id": 652,
+   "name": "Pixies",
+   "nb_fan": 1108180
+  },
+  {
+   "id": 630,
+   "name": "Björk",
+   "nb_fan": 868661
+  },
+  {
+   "id": 5143097,
+   "name": "The Smile",
+   "nb_fan": 44476
+  },
+  {
+   "id": 1508,
+   "name": "Blonde Redhead",
+   "nb_fan": 61381
+  },
+  {
+   "id": 1544,
+   "name": "PJ Harvey",
+   "nb_fan": 364547
+  },
+  {
+   "id": 1297,
+   "name": "The Smiths",
+   "nb_fan": 1508721
+  },
+  {
+   "id": 196,
+   "name": "The Cranberries",
+   "nb_fan": 1938683
+  },
+  {
+   "id": 1023,
+   "name": "Elliott Smith",
+   "nb_fan": 116112
+  },
+  {
+   "id": 1200,
+   "name": "John Frusciante",
+   "nb_fan": 126065
+  },
+  {
+   "id": 569,
+   "name": "The Strokes",
+   "nb_fan": 1756985
+  },
+  {
+   "id": 3629661,
+   "name": "Atoms For Peace",
+   "nb_fan": 51731
+  },
+  {
+   "id": 1851,
+   "name": "The Cardigans",
+   "nb_fan": 237602
+  },
+  {
+   "id": 8,
+   "name": "Placebo",
+   "nb_fan": 1288238
+  },
+  {
+   "id": 14,
+   "name": "Gorillaz",
+   "nb_fan": 3029432
+  },
+  {
+   "id": 705,
+   "name": "Muse",
+   "nb_fan": 5051534
+  },
+  {
+   "id": 1182,
+   "name": "Arctic Monkeys",
+   "nb_fan": 4972316
+  }
+ ]
+}

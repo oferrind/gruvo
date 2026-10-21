@@ -1,0 +1,2717 @@
+{
+ "title": "Creep",
+ "type": "Song",
+ "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+ "iswcs": [
+  "T-071.180.847-7"
+ ],
+ "language": "eng",
+ "disambiguation": "",
+ "attributes": [
+  {
+   "type": "SUISA ID",
+   "type-id": "034f35ae-d250-3749-95e7-854e606d5960",
+   "value": "001997 337 07"
+  },
+  {
+   "type": "SPAC ID",
+   "value": "3300152",
+   "type-id": "fd46ccc3-b3bb-4c5a-b40d-23b81899ef46"
+  },
+  {
+   "value": "361861",
+   "type-id": "f15e9a05-231e-415b-8b7d-8ec44c736bde",
+   "type": "SPA ID"
+  },
+  {
+   "type": "SOCAN ID",
+   "value": "12568087",
+   "type-id": "00370bc6-7388-34a1-aa5b-b0e081ccb53d"
+  },
+  {
+   "type": "SOBODAYCOM ID",
+   "value": "3300152",
+   "type-id": "3667d8d9-9fe4-4df0-873b-4dc00a886d80"
+  },
+  {
+   "type-id": "2e4f9e12-d094-4bd0-b4dd-a560cc5c4977",
+   "value": "93307008300",
+   "type": "SIAE ID"
+  },
+  {
+   "type": "SGAE ID",
+   "type-id": "6a200b13-ca08-3b32-87a9-7aaa46368d75",
+   "value": "2.720.239"
+  },
+  {
+   "type": "SGACEDOM ID",
+   "value": "3300152",
+   "type-id": "33fe1f90-d812-48ef-839f-bc151afecaca"
+  },
+  {
+   "type-id": "4439b1a5-47da-4774-9caa-8b8589129297",
+   "value": "6203709",
+   "type": "SAYCO ID"
+  },
+  {
+   "type": "SAYCE ID",
+   "type-id": "4bcbb212-a973-46ee-8160-e9f0f89ca6ef",
+   "value": "6203709"
+  },
+  {
+   "type": "SADAIC ID",
+   "value": "734803",
+   "type-id": "d8aa6512-314a-478d-bd30-e8d7411509cb"
+  },
+  {
+   "value": "2082273",
+   "type-id": "d8aa6512-314a-478d-bd30-e8d7411509cb",
+   "type": "SADAIC ID"
+  },
+  {
+   "type-id": "91064561-0c00-4574-ad18-247c7216675f",
+   "value": "2196173",
+   "type": "SACVEN ID"
+  },
+  {
+   "type-id": "91064561-0c00-4574-ad18-247c7216675f",
+   "value": "3857633",
+   "type": "SACVEN ID"
+  },
+  {
+   "value": "3300152",
+   "type-id": "43b74305-291f-4ae3-9e59-0dca457c00fe",
+   "type": "SACIM ID"
+  },
+  {
+   "type-id": "d08147e2-d167-3c2b-bbe4-af6643a194f9",
+   "value": "93 044 097 01",
+   "type": "SACEM ID"
+  },
+  {
+   "type-id": "b2e4067b-a9e4-44fb-bfcd-3c1fc41dc06d",
+   "value": "350257500",
+   "type": "SABAM ID"
+  },
+  {
+   "type": "PRS tune code",
+   "value": "2355971Q",
+   "type-id": "cd76035f-b94e-4e47-850d-aa2cd825d1a6"
+  },
+  {
+   "type": "NICAUTOR ID",
+   "value": "3300152",
+   "type-id": "5ab3cd1a-b9ad-4244-8b32-b3a958d4ede6"
+  },
+  {
+   "type": "JASRAC ID",
+   "value": "0C5-8183-7",
+   "type-id": "31048fcc-3dbb-3979-8f85-805afb933e0c"
+  },
+  {
+   "type": "GEMA ID",
+   "type-id": "01eeee67-f514-3801-bdce-279e04872f91",
+   "value": "2862546-001"
+  },
+  {
+   "value": "794315",
+   "type-id": "d37a8c27-8f83-47c7-954d-175d35759990",
+   "type": "ECAD ID"
+  },
+  {
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641",
+   "value": "9962234",
+   "type": "COMPASS ID"
+  },
+  {
+   "type": "COMPASS ID",
+   "value": "9962147",
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641"
+  },
+  {
+   "type": "COMPASS ID",
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641",
+   "value": "9915750"
+  },
+  {
+   "value": "1686538",
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641",
+   "type": "COMPASS ID"
+  },
+  {
+   "value": "W-001009579",
+   "type-id": "a6492434-b847-4f1b-9869-9184ade990ed",
+   "type": "BUMA/STEMRA ID"
+  },
+  {
+   "type-id": "a6492434-b847-4f1b-9869-9184ade990ed",
+   "value": "W-004251403",
+   "type": "BUMA/STEMRA ID"
+  },
+  {
+   "type": "ASCAP ID",
+   "type-id": "d833318c-6c6a-370e-8b16-9cb15873ba76",
+   "value": "330472529"
+  },
+  {
+   "type-id": "5e3b8fc2-3a4e-4a92-a572-6339863c1cf4",
+   "value": "4000682974",
+   "type": "ARTISJUS ID"
+  },
+  {
+   "type": "ARTISJUS ID",
+   "value": "4000375824",
+   "type-id": "5e3b8fc2-3a4e-4a92-a572-6339863c1cf4"
+  },
+  {
+   "type-id": "bdf50af8-0881-322a-8ab7-f031a4935d04",
+   "value": "GW56485649",
+   "type": "APRA ID"
+  },
+  {
+   "type": "APRA ID",
+   "value": "GW06336564",
+   "type-id": "bdf50af8-0881-322a-8ab7-f031a4935d04"
+  },
+  {
+   "type": "APDAYC ID",
+   "type-id": "b66d6f47-2a58-4bc1-ac75-b44c47a198f8",
+   "value": "2721174"
+  },
+  {
+   "value": "3102805",
+   "type-id": "b66d6f47-2a58-4bc1-ac75-b44c47a198f8",
+   "type": "APDAYC ID"
+  },
+  {
+   "type": "APA ID",
+   "type-id": "84afca1d-80dc-4d44-8d7a-e1e84e70aa65",
+   "value": "2167684"
+  },
+  {
+   "type": "AKM ID",
+   "value": "195836001",
+   "type-id": "eee68598-7f51-44a7-bd5a-fc728f1854d2"
+  },
+  {
+   "type": "AGADU ID",
+   "type-id": "27ea7f59-9f9c-4aee-b31a-61109ac03819",
+   "value": "6113489"
+  },
+  {
+   "type-id": "27ea7f59-9f9c-4aee-b31a-61109ac03819",
+   "value": "4310295",
+   "type": "AGADU ID"
+  },
+  {
+   "type": "AEI ID",
+   "type-id": "d12e548d-4579-4ddd-abb6-9ffa4fee6826",
+   "value": "3300152"
+  },
+  {
+   "type": "ACAM ID",
+   "value": "2167684",
+   "type-id": "955305a2-58ec-4c64-94f7-7fb9b209416c"
+  },
+  {
+   "type-id": "955305a2-58ec-4c64-94f7-7fb9b209416c",
+   "value": "3300152",
+   "type": "ACAM ID"
+  },
+  {
+   "value": "3300152",
+   "type-id": "a9551cb7-ee2c-4b05-87b6-18ef0e549865",
+   "type": "AACIMH ID"
+  }
+ ],
+ "languages": [
+  "eng"
+ ],
+ "id": "fa80b137-ebd1-3177-8fa4-416eb3ee52a2",
+ "relations": [
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [],
+   "recording": {
+    "id": "b8158bd4-bd38-4dd4-b215-3111f3e0a244",
+    "length": 242000,
+    "video": false,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Radiohead",
+      "artist": {
+       "type-id": null,
+       "sort-name": "Radiohead",
+       "type": null,
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "disambiguation": "",
+       "country": "GB"
+      }
+     }
+    ],
+    "disambiguation": "live, 1992-06-22: BBC Radio One session, BBC Maida Vale Studios, London, UK",
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "begin": "1992-06-22",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1992-06-22",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {},
+   "ended": true
+  },
+  {
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Radiohead",
+       "disambiguation": "",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "country": "GB"
+      },
+      "name": "Radiohead",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 1992-06-22",
+    "length": 242133,
+    "id": "4c9ce44d-1982-4ace-9189-a4a570bf8446",
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "attributes": [
+    "live"
+   ],
+   "begin": "1992-06-22",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1992-06-22",
+   "target-credit": "",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "attribute-values": {}
+  },
+  {
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {},
+   "begin": "1992-09",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1992-11",
+   "target-credit": "",
+   "attributes": [],
+   "recording": {
+    "length": 236666,
+    "id": "70595637-9310-45f2-a266-58f8de4874a7",
+    "disambiguation": "You’re so fucking special",
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "country": "GB",
+       "type-id": null,
+       "sort-name": "Radiohead",
+       "type": null
+      },
+      "name": "Radiohead",
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "length": 227000,
+    "id": "44926f7d-9316-4e15-acd6-5a4a572d0bb2",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Radiohead",
+       "type": null,
+       "type-id": null,
+       "country": "GB",
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711"
+      },
+      "name": "Radiohead",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 1992‐11‐14: University of Essex, Colchester, UK"
+   },
+   "source-credit": "",
+   "begin": "1992-11-14",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1992-11-14",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   }
+  },
+  {
+   "type": "performance",
+   "direction": "backward",
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Radiohead",
+      "artist": {
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "country": "GB",
+       "type-id": null,
+       "sort-name": "Radiohead",
+       "type": null
+      }
+     }
+    ],
+    "disambiguation": "",
+    "video": false,
+    "id": "cc2fa559-1d61-4a9d-971d-102287cb138d",
+    "length": 238000,
+    "title": "Creep (Colchester, 1992‐11‐14)"
+   },
+   "attributes": [
+    "live"
+   ],
+   "target-credit": "",
+   "end": "1992-11-14",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1992-11-14",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "attribute-values": {}
+  },
+  {
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "attribute-values": {},
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-02-23",
+   "target-credit": "",
+   "end": "1993-02-23",
+   "recording": {
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "disambiguation": "",
+       "country": "GB",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Radiohead"
+      },
+      "joinphrase": "",
+      "name": "Radiohead"
+     }
+    ],
+    "disambiguation": "live, 1993-02-23: Black Session #21: Paris, France",
+    "length": null,
+    "id": "b86988b3-6cee-475d-8caa-3ac55457ff3a",
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "attributes": [
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward"
+  },
+  {
+   "attribute-values": {},
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "end": "1993-02-23",
+   "target-credit": "",
+   "begin": "1993-02-23",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attributes": [
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "id": "c5cba6d8-bc2f-4d34-9361-220980d87006",
+    "length": 235840,
+    "video": false,
+    "artist-credit": [
+     {
+      "name": "Radiohead",
+      "joinphrase": "",
+      "artist": {
+       "sort-name": "Radiohead",
+       "type": null,
+       "type-id": null,
+       "country": "GB",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "disambiguation": ""
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "Creep (1993‐02‐23 Black session)"
+   },
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "attribute-values": {},
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-03-14",
+   "target-credit": "",
+   "end": "1993-03-14",
+   "recording": {
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Radiohead",
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "sort-name": "Radiohead",
+       "type-id": null,
+       "country": "GB",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "disambiguation": ""
+      }
+     }
+    ],
+    "video": false,
+    "length": 245893,
+    "id": "43c1be8d-cd5d-4cbb-b688-07e22a434124",
+    "title": "Creep (1993‐03‐14 London)"
+   },
+   "source-credit": "",
+   "attributes": [
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "live"
+   ],
+   "recording": {
+    "id": "5438abc8-2141-484c-96bd-0057273edccc",
+    "length": 245466,
+    "video": false,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Radiohead",
+      "artist": {
+       "type-id": null,
+       "sort-name": "Radiohead",
+       "type": null,
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "country": "GB"
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "Creep (live)"
+   },
+   "source-credit": "",
+   "begin": "1993-03-14",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1993-03-14",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   }
+  },
+  {
+   "begin": "1993-07-12",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1993-07-12",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Radiohead",
+      "artist": {
+       "type": null,
+       "sort-name": "Radiohead",
+       "type-id": null,
+       "country": "GB",
+       "disambiguation": "",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead"
+      }
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 1993-12-12: The Whiskey, Hollywood, CA, USA",
+    "length": 249826,
+    "id": "c1425e6f-e64e-415e-8995-d7e4d4cd1c4a"
+   },
+   "source-credit": ""
+  },
+  {
+   "target-credit": "",
+   "end": "1993-07-13",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-07-13",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "source-credit": "",
+   "recording": {
+    "title": "Creep (1993‐07‐13 KROQ)",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Radiohead",
+      "artist": {
+       "sort-name": "Radiohead",
+       "type": null,
+       "type-id": null,
+       "country": "GB",
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711"
+      }
+     }
+    ],
+    "video": false,
+    "disambiguation": "",
+    "length": 259346,
+    "id": "1d8fe511-50a1-4ac6-8c80-4b89cc434e08"
+   },
+   "attributes": [
+    "live"
+   ]
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-07-13",
+   "target-credit": "",
+   "end": "1993-07-13",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "live"
+   ],
+   "recording": {
+    "title": "Creep (acoustic)",
+    "id": "7cdf2e8e-f52c-4008-a493-d37b41fc1004",
+    "length": 259066,
+    "disambiguation": "live, 1993-07-13: KROQ Studios, Burbank, CA, USA",
+    "artist-credit": [
+     {
+      "name": "Radiohead",
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "sort-name": "Radiohead",
+       "type-id": null,
+       "country": "GB",
+       "disambiguation": "",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead"
+      }
+     }
+    ],
+    "video": false
+   },
+   "source-credit": ""
+  },
+  {
+   "type": "performance",
+   "direction": "backward",
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "length": 236000,
+    "id": "13fbdcf8-2d18-44e5-90bd-204649633197",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Radiohead",
+      "joinphrase": "",
+      "artist": {
+       "sort-name": "Radiohead",
+       "type": null,
+       "type-id": null,
+       "country": "GB",
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711"
+      }
+     }
+    ],
+    "video": false
+   },
+   "attributes": [
+    "live"
+   ],
+   "target-credit": "",
+   "end": "1993-07-14",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-07-14",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "attribute-values": {}
+  },
+  {
+   "end": "1993-09-16",
+   "target-credit": "",
+   "begin": "1993-09-16",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "id": "f432e39b-6af5-46cc-9d53-04f5946b73c1",
+    "length": 179000,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "country": "GB",
+       "type-id": null,
+       "sort-name": "Radiohead",
+       "type": null
+      },
+      "joinphrase": "",
+      "name": "Radiohead"
+     }
+    ],
+    "disambiguation": "live, 1993-09-16: Top of the Pops",
+    "video": true
+   },
+   "attributes": [
+    "live"
+   ]
+  },
+  {
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "end": "1993-09-23",
+   "target-credit": "",
+   "begin": "1993-09-23",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attributes": [
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "id": "c28c7417-2610-43ac-83d7-ec0e58809f01",
+    "length": null,
+    "disambiguation": "live, 1993‐09‐23: Florida Cameo Theatre, FL, USA",
+    "artist-credit": [
+     {
+      "name": "Radiohead",
+      "joinphrase": "",
+      "artist": {
+       "country": "GB",
+       "disambiguation": "",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "type": null,
+       "sort-name": "Radiohead",
+       "type-id": null
+      }
+     }
+    ],
+    "video": false,
+    "title": "Creep"
+   },
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-10-15",
+   "target-credit": "",
+   "end": "1993-10-15",
+   "attributes": [
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "disambiguation": "live, 1993‐10‐15: Riviera Theatre, Chicago, IL, USA",
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "disambiguation": "",
+       "country": "GB"
+      },
+      "name": "Radiohead",
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "id": "88978577-af5f-406c-836a-73c172a4cf01",
+    "length": null
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-11-15",
+   "target-credit": "",
+   "end": "1993-11-15",
+   "target-type": "recording",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "title": "Creep",
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Tears for Fears",
+       "id": "7c7f9c94-dee8-4903-892b-6cf44652e2de",
+       "name": "Tears for Fears",
+       "disambiguation": "",
+       "country": "GB"
+      },
+      "name": "Tears for Fears",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 1993-11-15: State Palace Theatre, New Orleans, LA, USA",
+    "video": false,
+    "length": 288466,
+    "id": "6aecf669-c93d-4beb-81b8-4c3f8ec74be4"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ]
+  },
+  {
+   "attributes": [
+    "live"
+   ],
+   "recording": {
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "disambiguation": "",
+       "country": "GB"
+      },
+      "joinphrase": "",
+      "name": "Radiohead"
+     }
+    ],
+    "disambiguation": "",
+    "length": 261000,
+    "id": "f3e6f56d-05f2-4f7e-8beb-ef6746cdcf1c",
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "begin": "1993-11-20",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "1993-11-20",
+   "target-credit": ""
+  },
+  {
+   "attributes": [
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "id": "7e3284d2-63d1-4a6e-ac99-9c50ba56cbc0",
+    "length": 261000,
+    "artist-credit": [
+     {
+      "artist": {
+       "type": null,
+       "sort-name": "Radiohead",
+       "type-id": null,
+       "country": "GB",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "disambiguation": ""
+      },
+      "name": "Radiohead",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "video": false,
+    "title": "Creep"
+   },
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "target-credit": "",
+   "end": "1993-11-22",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-11-22"
+  },
+  {
+   "recording": {
+    "title": "Creep",
+    "id": "5c37f75b-061a-4ef8-afc7-632cbd6c8d73",
+    "length": 246000,
+    "disambiguation": "live, 1993-11-24: Nulle Part Ailleurs, Canal+ Studios, Paris, France",
+    "artist-credit": [
+     {
+      "name": "Radiohead",
+      "joinphrase": "",
+      "artist": {
+       "country": "GB",
+       "disambiguation": "",
+       "name": "Radiohead",
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "sort-name": "Radiohead",
+       "type": null,
+       "type-id": null
+      }
+     }
+    ],
+    "video": false
+   },
+   "source-credit": "",
+   "attributes": [
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward",
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "attribute-values": {},
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-11-24",
+   "target-credit": "",
+   "end": "1993-11-24"
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993-11-15",
+   "target-credit": "",
+   "end": "1993-11-15",
+   "target-type": "recording",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "title": "Creep",
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Tears for Fears",
+       "id": "7c7f9c94-dee8-4903-892b-6cf44652e2de",
+       "name": "Tears for Fears",
+       "disambiguation": "",
+       "country": "GB"
+      },
+      "name": "Tears for Fears",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 1993-11-15: State Palace Theatre, New Orleans, LA, USA",
+    "video": false,
+    "length": 288466,
+    "id": "6aecf669-c93d-4beb-81b8-4c3f8ec74be4"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ]
+  },
+  {
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "id": "8260a285-ba0e-46c3-a365-0a6565d059c0",
+    "length": 189493,
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "sort-name": "J Church",
+       "type": null,
+       "disambiguation": "",
+       "name": "J Church",
+       "id": "bad96c62-50f8-4159-b155-3ffb63c698f8",
+       "country": "US"
+      },
+      "joinphrase": "",
+      "name": "J Church"
+     }
+    ],
+    "disambiguation": "",
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover"
+   ],
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1993",
+   "target-credit": "",
+   "end": "1993",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "attribute-values": {}
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "disambiguation": "live, 1995‐05‐01: Jacob Street Studios, London, UK",
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "GB",
+       "disambiguation": "English‐American rock band",
+       "id": "e9c832b0-384b-4ee6-aec0-111372784aac",
+       "name": "Pretenders",
+       "type": null,
+       "sort-name": "Pretenders",
+       "type-id": null
+      },
+      "joinphrase": "",
+      "name": "Pretenders"
+     }
+    ],
+    "video": false,
+    "length": 243213,
+    "id": "df9fef00-8652-40ea-9838-8a1513249fbb"
+   },
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "attribute-values": {},
+   "target-credit": "",
+   "end": "1995-05-01",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1995-05-01"
+  },
+  {
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "video": true,
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Pretenders",
+       "id": "e9c832b0-384b-4ee6-aec0-111372784aac",
+       "name": "Pretenders",
+       "disambiguation": "English‐American rock band",
+       "country": "GB"
+      },
+      "name": "Pretenders",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 1995‐05‐01: Jacob Street Studios, London, UK",
+    "length": null,
+    "id": "bb3c5d7a-989d-442a-9576-7bc3fb384294"
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1995-05-01",
+   "target-credit": "",
+   "end": "1995-05-01"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "length": null,
+    "id": "1b52b50c-2faa-44b1-a415-f81bcbd12f92",
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "name": "Tears for Fears",
+       "id": "7c7f9c94-dee8-4903-892b-6cf44652e2de",
+       "country": "GB",
+       "type-id": null,
+       "sort-name": "Tears for Fears",
+       "type": null
+      },
+      "name": "Tears for Fears",
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 1995-12-07: KFOG, Berkeley, CA, USA",
+    "title": "Creep"
+   },
+   "target-credit": "",
+   "end": "1995-12-07",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "1995-12-07",
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "target-type": "recording"
+  },
+  {
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "video": false,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Ursus Veritas",
+      "artist": {
+       "sort-name": "Kensrue, Dustin",
+       "type": null,
+       "type-id": null,
+       "country": "US",
+       "disambiguation": "",
+       "name": "Dustin Kensrue",
+       "id": "7f18104b-ef7e-4635-b05f-96577c79334b"
+      }
+     }
+    ],
+    "disambiguation": "",
+    "id": "d548b3f7-6d84-413b-a4e9-4f663a1b4ae6",
+    "length": 278000,
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "begin": "2004-08-20",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2004-08-20",
+   "target-credit": ""
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "video": true,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "G4",
+      "artist": {
+       "sort-name": "G4",
+       "type": null,
+       "type-id": null,
+       "country": "GB",
+       "name": "G4",
+       "id": "550837a5-6731-452c-8a64-a32efc904bf1",
+       "disambiguation": "British vocal troupe, performed on The X Factor"
+      }
+     }
+    ],
+    "disambiguation": "live, 2005-06-06: Royal Albert Hall, Kensington Gore, London SW7 2AP, UK",
+    "length": 274000,
+    "id": "8047eb4f-1cce-4898-a147-ec71a3890682"
+   },
+   "end": "2005-06-06",
+   "target-credit": "",
+   "begin": "2005-06-06",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "length": 200773,
+    "id": "cf5b2599-46c8-47ad-99a6-203eb1ef2892",
+    "artist-credit": [
+     {
+      "artist": {
+       "type": null,
+       "sort-name": "Koh, Sophie",
+       "type-id": null,
+       "country": "AU",
+       "id": "3f05175e-b208-4e9f-801b-b2112619de56",
+       "name": "Sophie Koh",
+       "disambiguation": ""
+      },
+      "joinphrase": "",
+      "name": "Sophie Koh"
+     }
+    ],
+    "disambiguation": "live, 2005-06: Triple J Studios, Sydney, Australia",
+    "video": false,
+    "title": "Creep"
+   },
+   "end": "2005-06",
+   "target-credit": "",
+   "begin": "2005-06",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording"
+  },
+  {
+   "target-credit": "",
+   "end": "2006-06-17",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2006-06-17",
+   "ordering-key": 2,
+   "attribute-values": {},
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "medley": "37da3398-5d1b-4acb-be25-df95e33e423c",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live",
+    "medley"
+   ],
+   "source-credit": "",
+   "recording": {
+    "title": "Do You Realize? / Creep",
+    "length": null,
+    "id": "ca914f3e-5fff-47ef-b05f-2b7b91c36ca2",
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "name": "Beck",
+       "id": "309c62ba-7a22-4277-9f67-4a162526d18a",
+       "disambiguation": "alt rock, multi‐instrumentalist Beck Hansen",
+       "sort-name": "Beck",
+       "type": null,
+       "type-id": null
+      },
+      "name": "Beck",
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 2006-06-17: What Stage, Bonnaroo Music Festival, Manchester, TN, USA"
+   }
+  },
+  {
+   "attribute-values": {},
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "target-credit": "",
+   "end": "2006-07-23",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2006-07-23",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "length": 252000,
+    "id": "21ee6a61-7f57-4617-b165-2643a7ecdc81",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "American country singer-songwriter",
+       "id": "baf05baf-69fb-47dd-93c2-033536b8c385",
+       "name": "Brandi Carlile",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Carlile, Brandi"
+      },
+      "joinphrase": "",
+      "name": "Brandi Carlile"
+     }
+    ],
+    "disambiguation": "live, 2006-07-23: All About the Music Festival, Wiggins Park, Camden, NJ, USA",
+    "title": "Creep"
+   },
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "f5cbdc58-8664-4c42-85d1-fdf672346236",
+       "name": "at17",
+       "disambiguation": "",
+       "country": "HK",
+       "type-id": null,
+       "type": null,
+       "sort-name": "at17"
+      },
+      "name": "at17",
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 2006-09-30: AsiaWorld‐Expo, Hong Kong",
+    "id": "2d79d9d8-59fa-4793-b335-56b75c98a1ac",
+    "length": 278466,
+    "title": "Creep"
+   },
+   "target-credit": "",
+   "end": "2006-09-30",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2006-09-30",
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "target-type": "recording"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "disambiguation": "live, 2007-02-22: The Cutting Room, New York, NY, USA",
+    "artist-credit": [
+     {
+      "artist": {
+       "type": null,
+       "sort-name": "Carlile, Brandi",
+       "type-id": null,
+       "country": "US",
+       "id": "baf05baf-69fb-47dd-93c2-033536b8c385",
+       "name": "Brandi Carlile",
+       "disambiguation": "American country singer-songwriter"
+      },
+      "joinphrase": "",
+      "name": "Brandi Carlile"
+     }
+    ],
+    "video": false,
+    "id": "0936f24a-8d7a-4212-8d4f-f275a99bbe2f",
+    "length": 296000,
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "begin": "2007-02-22",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2007-02-22",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   }
+  },
+  {
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "target-type": "recording",
+   "end": "2008-04-26",
+   "target-credit": "",
+   "begin": "2008-04-26",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Prince",
+       "type": null,
+       "type-id": null,
+       "country": "US",
+       "name": "Prince",
+       "id": "070d193a-845c-479f-980e-bef15710653e",
+       "disambiguation": "“The Artist Formerly Known as…”"
+      },
+      "name": "Prince",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 2008‐04‐26: Coachella Stage, Indio, CA, USA",
+    "video": false,
+    "length": 501000,
+    "id": "1c7f5fea-e7c7-48d7-b418-e353d3589591"
+   },
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "id": "cb2f0add-57ef-4bb6-9941-f47dfd45b9d9",
+    "length": 540000,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "“The Artist Formerly Known as…”",
+       "name": "Prince",
+       "id": "070d193a-845c-479f-980e-bef15710653e",
+       "country": "US",
+       "type-id": null,
+       "sort-name": "Prince",
+       "type": null
+      },
+      "joinphrase": "",
+      "name": "Prince"
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 2008‐04‐26: Coachella Stage, Indio, CA, USA"
+   },
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "attribute-values": {},
+   "end": "2008-04-26",
+   "target-credit": "",
+   "begin": "2008-04-26",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0"
+  },
+  {
+   "recording": {
+    "title": "The Bird / Jungle Love / Santana Medley / Controversy / Housequake / Little Red Corvette / Prince and the Band / Creep / Angel / 7 / Come Together / Coachella Various Clips I / Coachella Various Clips II",
+    "length": 3638000,
+    "id": "947ec3c2-b03b-4683-8cb7-c1303f17f449",
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "disambiguation": "“The Artist Formerly Known as…”",
+       "id": "070d193a-845c-479f-980e-bef15710653e",
+       "name": "Prince",
+       "type": null,
+       "sort-name": "Prince",
+       "type-id": null
+      },
+      "joinphrase": "",
+      "name": "Prince"
+     }
+    ],
+    "video": true,
+    "disambiguation": "live, 2008‐04‐26: Coachella Stage, Indio, CA, USA"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "attribute-values": {},
+   "ordering-key": 11,
+   "begin": "2008-04-26",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2008-04-26",
+   "target-credit": ""
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "id": "362ea1f6-dd4c-487c-a1fb-9160238bca09",
+    "length": 279000,
+    "video": false,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Amanda Palmer",
+      "artist": {
+       "disambiguation": "",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda"
+      }
+     }
+    ],
+    "disambiguation": "live, 2008-06-07: Oddville, Cutler Majestic Theater, Boston, MA, USA",
+    "title": "Creep"
+   },
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "attribute-values": {},
+   "target-credit": "",
+   "end": "2008-06-07",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2008-06-07"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "length": 268000,
+    "id": "4c821131-1296-4325-98de-5b58981d2a76",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "disambiguation": "",
+       "country": "US"
+      },
+      "joinphrase": "",
+      "name": "Amanda Palmer"
+     }
+    ],
+    "disambiguation": "live, 2008-08-04: The Troubadour, Hollywood, CA, USA"
+   },
+   "source-credit": "",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2008-08-04",
+   "target-credit": "",
+   "end": "2008-08-04",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   }
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2008-10-23",
+   "target-credit": "",
+   "end": "2008-10-23",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "disambiguation": "",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "type": null,
+       "sort-name": "Palmer, Amanda",
+       "type-id": null
+      },
+      "joinphrase": "",
+      "name": "Amanda Palmer"
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 2008-10-23: La Boule Noire, Paris, France",
+    "id": "206aee39-385c-413b-b2da-3aa702032968",
+    "length": 590000,
+    "title": "Creep"
+   },
+   "source-credit": ""
+  },
+  {
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "title": "Creep",
+    "length": 283000,
+    "id": "fceccc39-18f6-41cb-ae7f-ae3179b9f845",
+    "artist-credit": [
+     {
+      "artist": {
+       "type": null,
+       "sort-name": "Jazz Against the Machine",
+       "type-id": null,
+       "country": "DE",
+       "disambiguation": "",
+       "id": "2ccc783b-6057-439d-9d5b-5eede43e3d71",
+       "name": "Jazz Against the Machine"
+      },
+      "joinphrase": "",
+      "name": "Jazz Against the Machine"
+     }
+    ],
+    "disambiguation": "",
+    "video": false
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover"
+   ],
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2008",
+   "target-credit": "",
+   "end": "2008",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "attribute-values": {}
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "id": "d2a81d15-03c6-4361-876b-d7407588a292",
+    "length": 353000,
+    "disambiguation": "live, 2009-02-06: Le Divan du Monde, Paris, France",
+    "artist-credit": [
+     {
+      "name": "Amanda Palmer",
+      "joinphrase": "",
+      "artist": {
+       "disambiguation": "",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda"
+      }
+     }
+    ],
+    "video": false
+   },
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "type": "performance",
+   "direction": "backward",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "attribute-values": {},
+   "end": "2009-02-06",
+   "target-credit": "",
+   "begin": "2009-02-06",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0"
+  },
+  {
+   "target-credit": "",
+   "end": "2009-02-06",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2009-02-06",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "length": 350000,
+    "id": "fb4cc711-45d5-4231-a3db-b548978712b8",
+    "video": false,
+    "artist-credit": [
+     {
+      "name": "Amanda Palmer",
+      "joinphrase": "",
+      "artist": {
+       "disambiguation": "",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda"
+      }
+     }
+    ],
+    "disambiguation": "live, 2009-02-06: Le Divan du Monde, Paris, France (retracked)"
+   },
+   "attributes": [
+    "cover",
+    "live"
+   ]
+  },
+  {
+   "begin": "2009-02-11",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2009-02-11",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "artist-credit": [
+     {
+      "name": "Amanda Palmer",
+      "joinphrase": "",
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "disambiguation": "",
+       "country": "US"
+      }
+     }
+    ],
+    "disambiguation": "live, 2009-02-11: Le Bikini, Ramonville-Saint-Agne, France",
+    "video": false,
+    "id": "e3b9adf6-e828-441f-a885-a1a9d5cddd20",
+    "length": 306000
+   },
+   "source-credit": ""
+  },
+  {
+   "begin": "2009-03-28",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2009-03-28",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "length": 369026,
+    "id": "bdb1a66c-4048-4106-9dba-4fd5b4f42d49",
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Palmer, Amanda",
+       "type": null,
+       "type-id": null,
+       "country": "US",
+       "disambiguation": "",
+       "name": "Amanda Palmer",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da"
+      },
+      "joinphrase": " feat. ",
+      "name": "Amanda Palmer"
+     },
+     {
+      "joinphrase": "",
+      "name": "Vermillion Lies",
+      "artist": {
+       "sort-name": "Vermillion Lies",
+       "type": null,
+       "type-id": null,
+       "country": null,
+       "disambiguation": "",
+       "name": "Vermillion Lies",
+       "id": "45b4e7b5-0449-4ed8-b671-0096c3dc82ab"
+      }
+     }
+    ],
+    "disambiguation": "live, 2009-03-28: Culture Room, Fort Lauderdale, FL, USA",
+    "video": false
+   },
+   "source-credit": ""
+  },
+  {
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "length": 281000,
+    "id": "3a19454f-0324-4797-8d39-f485207ef06d",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "disambiguation": "",
+       "type": null,
+       "sort-name": "Palmer, Amanda",
+       "type-id": null
+      },
+      "joinphrase": "",
+      "name": "Amanda Palmer"
+     }
+    ],
+    "disambiguation": "",
+    "title": "Creep (hungover at soundcheck in Berlin)"
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2010-05-01",
+   "target-credit": "",
+   "end": "2010-05-01"
+  },
+  {
+   "end": "2010-05-05",
+   "target-credit": "",
+   "begin": "2010-05-05",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording",
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "disambiguation": "",
+       "type": null,
+       "sort-name": "Palmer, Amanda",
+       "type-id": null
+      },
+      "name": "Amanda Palmer",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "live, 2010‐05‐05: Palác Akropolis, Praha, Czechia",
+    "video": false,
+    "length": 317000,
+    "id": "0a621a97-84e8-4ec0-a489-d153a66405b5",
+    "title": "Creep"
+   }
+  },
+  {
+   "attributes": [
+    "cover",
+    "instrumental"
+   ],
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Bob Reynolds",
+      "joinphrase": "",
+      "artist": {
+       "type-id": null,
+       "type": null,
+       "sort-name": "Reynolds, Bob",
+       "disambiguation": "Saxophonist",
+       "id": "0b531831-9493-4712-8d1e-fbece895402c",
+       "name": "Bob Reynolds",
+       "country": "US"
+      }
+     }
+    ],
+    "video": false,
+    "disambiguation": "",
+    "length": 324134,
+    "id": "bc70fce8-3bda-4ba6-82ce-0bc3c6162295",
+    "title": "Creep"
+   },
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "attribute-ids": {
+    "instrumental": "c031ed4f-c9bb-4394-8cf5-e8ce4db512ae",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "target-credit": "",
+   "end": "2011-12",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2011-12"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "length": 201000,
+    "id": "f5ecaf84-c0bf-4fc0-a048-14a1253cb63f",
+    "disambiguation": "live, 2012-05-09: The Howard Stern Show, New York, NY, USA",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Macy Gray",
+      "artist": {
+       "sort-name": "Gray, Macy",
+       "type": null,
+       "type-id": null,
+       "country": "US",
+       "name": "Macy Gray",
+       "id": "48772747-4cda-4ba8-b470-cfd5a32e05f7",
+       "disambiguation": "American singer and actor"
+      }
+     }
+    ],
+    "video": false,
+    "title": "Creep"
+   },
+   "target-credit": "",
+   "end": "2012-05-09",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2012-05-09",
+   "attribute-values": {},
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "target-type": "recording"
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2013-04-13",
+   "target-credit": "",
+   "end": "2013-04-13",
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Palmer, Amanda",
+       "type": null,
+       "type-id": null,
+       "country": "US",
+       "disambiguation": "",
+       "name": "Amanda Palmer",
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da"
+      },
+      "joinphrase": "",
+      "name": "Amanda Palmer"
+     }
+    ],
+    "disambiguation": "live, 2013-04-13: Humanity Festival, Foss Hill, Wesleyan University, Middletown, CT, USA",
+    "video": false,
+    "id": "ee5b8ee6-294b-48eb-8c28-740c216f6d1d",
+    "length": 344618,
+    "title": "Creep"
+   },
+   "source-credit": ""
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2013-07-04",
+   "target-credit": "",
+   "end": "2013-07-04",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "length": 279186,
+    "id": "d0d682aa-a78a-4a2f-861c-1480994c4613",
+    "artist-credit": [
+     {
+      "name": "Amanda Palmer & The Grand Theft Orchestra",
+      "joinphrase": "",
+      "artist": {
+       "id": "32e55b31-6a0a-492d-bfc0-6c07662a5f60",
+       "name": "Amanda Palmer & The Grand Theft Orchestra",
+       "disambiguation": "",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda & The Grand Theft Orchestra"
+      }
+     }
+    ],
+    "disambiguation": "live, 2013-07-04: P.P.C., Graz, Austria",
+    "video": false,
+    "title": "Creep"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ]
+  },
+  {
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Creep",
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "3c0eb318-d2ba-45aa-9077-b83746cc56da",
+       "name": "Amanda Palmer",
+       "disambiguation": "",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Palmer, Amanda"
+      },
+      "joinphrase": "",
+      "name": "Amanda Palmer"
+     }
+    ],
+    "video": false,
+    "disambiguation": "live, 2013-07-05: Sommer Arena, Vienna, Austria",
+    "length": 426382,
+    "id": "51c2cd74-0fcb-47e4-9346-1d7d63ca3ea5"
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "begin": "2013-07-05",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2013-07-05",
+   "target-credit": ""
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "title": "Creep",
+    "disambiguation": "live, 2015-04-03: The Boulder Theatre, Boulder, CO, USA",
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "disambiguation": "",
+       "name": "Richard Cheese",
+       "id": "858db18f-1e09-4f0d-96d3-c15d28762c15",
+       "sort-name": "Cheese, Richard",
+       "type": null,
+       "type-id": null
+      },
+      "name": "Richard Cheese & Lounge Against The Machine",
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "id": "a48e45fa-9938-4815-96b3-7e58ccd7411a",
+    "length": 218763
+   },
+   "end": "2015-04-03",
+   "target-credit": "",
+   "begin": "2015-04-03",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "attribute-values": {},
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "target-type": "recording"
+  },
+  {
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "source-credit": "",
+   "recording": {
+    "title": "Creep (Radiohead cover)",
+    "video": false,
+    "artist-credit": [
+     {
+      "name": "Tears for Fears",
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "sort-name": "Tears for Fears",
+       "type-id": null,
+       "country": "GB",
+       "id": "7c7f9c94-dee8-4903-892b-6cf44652e2de",
+       "name": "Tears for Fears",
+       "disambiguation": ""
+      }
+     }
+    ],
+    "disambiguation": "live, 2015-06-12: Bonnaroo Music and Arts Festival, Manchester, TN, USA",
+    "id": "4914aa0c-bc93-4930-8203-e6c259672cca",
+    "length": 293110
+   },
+   "direction": "backward",
+   "type": "performance",
+   "attribute-values": {},
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "end": "2015-06-12",
+   "target-credit": "",
+   "begin": "2015-06-12",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0"
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2015",
+   "target-credit": "",
+   "end": "2015",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "karaoke": "3d984f6e-bbe2-4620-9425-5f32e945b60d",
+    "instrumental": "c031ed4f-c9bb-4394-8cf5-e8ce4db512ae"
+   },
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "id": "5f5d68dd-285a-4f06-9099-84eb3f85c65f",
+       "name": "Postmodern Jukebox",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Postmodern Jukebox"
+      },
+      "name": "Scott Bradlee’s Postmodern Jukebox",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "video": false,
+    "length": 283000,
+    "id": "c7d8328d-6706-41c6-bad0-ac6fdf529ee6",
+    "title": "Creep (karaoke version)"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "instrumental",
+    "karaoke"
+   ]
+  },
+  {
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2016-01",
+   "target-credit": "",
+   "end": "2016-01",
+   "target-type": "recording",
+   "attribute-ids": {
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a",
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "title": "Creep",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "name": "Max Mutzke",
+       "id": "6f2bfbc7-187a-4b02-8fde-77635d95e099",
+       "country": "DE",
+       "type-id": null,
+       "sort-name": "Mutzke, Max",
+       "type": null
+      },
+      "joinphrase": "",
+      "name": "Max Mutzke"
+     }
+    ],
+    "disambiguation": "live, 2016-01: Großer Sendesaal, Hanover, Germany",
+    "length": 361000,
+    "id": "6b07d200-9e7e-4cf1-bf3d-ecf8084fa268"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ]
+  },
+  {
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "attribute-values": {},
+   "begin": "2020",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2020",
+   "target-credit": "",
+   "recording": {
+    "title": "Creep",
+    "length": 242935,
+    "id": "3d43c478-41ec-49e8-beb0-6c0d1915c092",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "id": "d39a0f4b-6e72-4b7b-8055-1ffcbfc5f02c",
+       "name": "Astrophysics",
+       "country": "BR",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Astrophysics"
+      },
+      "name": "Astrophysics",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": ""
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover"
+   ],
+   "type": "performance",
+   "direction": "backward"
+  },
+  {
+   "direction": "backward",
+   "type": "performance",
+   "attributes": [
+    "cover"
+   ],
+   "recording": {
+    "title": "Creep in 13 Styles",
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "97c4b5c8-d9f7-43f7-b66b-7793b6997135",
+       "name": "Anthony Vincent",
+       "disambiguation": "Ten Second Songs",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Vincent, Anthony"
+      },
+      "joinphrase": "",
+      "name": "Anthony Vincent"
+     }
+    ],
+    "disambiguation": "",
+    "video": false,
+    "id": "e12276d8-8a8d-4190-b208-d1938e0a9e82",
+    "length": 223692
+   },
+   "source-credit": "",
+   "begin": "2020",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2020",
+   "target-credit": "",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true
+  },
+  {
+   "attribute-values": {},
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113"
+   },
+   "ended": true,
+   "target-type": "recording",
+   "target-credit": "",
+   "end": "2020",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2020",
+   "attributes": [
+    "cover"
+   ],
+   "source-credit": "",
+   "recording": {
+    "id": "e4b1c90d-065b-4a62-b5e7-7f19c0c5508f",
+    "length": 333134,
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "Ten Second Songs",
+       "id": "97c4b5c8-d9f7-43f7-b66b-7793b6997135",
+       "name": "Anthony Vincent",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Vincent, Anthony"
+      },
+      "joinphrase": "",
+      "name": "Anthony Vincent"
+     }
+    ],
+    "disambiguation": "",
+    "title": "Creep in the style of Deftones"
+   },
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "attribute-values": {},
+   "target-type": "recording",
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "ended": true,
+   "begin": "2021-06-20",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2021-06-20",
+   "target-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Creep (Radiohead cover)",
+    "video": false,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Foo Fighters",
+      "artist": {
+       "id": "67f66c07-6e61-4026-ade5-7e782fad3a5d",
+       "name": "Foo Fighters",
+       "disambiguation": "",
+       "country": "US",
+       "type-id": null,
+       "type": null,
+       "sort-name": "Foo Fighters"
+      }
+     }
+    ],
+    "disambiguation": "live, 2021-06-20: Madison Square Garden, New York, NY, USA",
+    "id": "bfbba932-335a-43a7-a024-f221a809894c",
+    "length": 341000
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance"
+  },
+  {
+   "ordering-key": 9,
+   "begin": "2021-08-12",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "end": "2021-08-12",
+   "target-credit": "",
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "attribute-values": {},
+   "type": "performance",
+   "direction": "backward",
+   "recording": {
+    "video": false,
+    "artist-credit": [
+     {
+      "name": "Tears for Fears",
+      "joinphrase": "",
+      "artist": {
+       "sort-name": "Tears for Fears",
+       "type": null,
+       "type-id": null,
+       "country": "GB",
+       "name": "Tears for Fears",
+       "id": "7c7f9c94-dee8-4903-892b-6cf44652e2de",
+       "disambiguation": ""
+      }
+     }
+    ],
+    "disambiguation": "live, 2017-10-26: Radio 2 in Concert, BBC Radio Theatre, London, England",
+    "length": 4122325,
+    "id": "873c1535-5087-4977-8c71-b56ea33a7b7b",
+    "title": "Radio 2 in Concert at BBC Radio Theatre"
+   },
+   "source-credit": "",
+   "attributes": [
+    "cover",
+    "live"
+   ]
+  },
+  {
+   "attribute-values": {},
+   "target-type": "recording",
+   "ended": true,
+   "attribute-ids": {
+    "cover": "1e8536bd-6eda-3822-8e78-1c0f4d3d2113",
+    "live": "70007db6-a8bc-46d7-a770-80e6a0bb551a"
+   },
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "begin": "2022-04-05",
+   "target-credit": "",
+   "end": "2022-04-05",
+   "attributes": [
+    "cover",
+    "live"
+   ],
+   "recording": {
+    "title": "Gawr Gura sings \"Creep\" by Radiohead",
+    "length": null,
+    "id": "9950dc65-5552-44d5-8bb7-310e9ed8325f",
+    "video": true,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Gawr Gura",
+      "artist": {
+       "type": null,
+       "sort-name": "Gawr, Gura",
+       "type-id": null,
+       "country": null,
+       "id": "d9eee634-11fa-41f8-bfd9-4040a14a7fa5",
+       "name": "Gawr Gura",
+       "disambiguation": "virtual YouTuber, hololive EN"
+      }
+     }
+    ],
+    "disambiguation": ""
+   },
+   "source-credit": "",
+   "direction": "backward",
+   "type": "performance"
+  }
+ ]
+}

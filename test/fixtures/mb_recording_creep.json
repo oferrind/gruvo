@@ -1,0 +1,382 @@
+{
+ "first-release-date": "1992-09-21",
+ "id": "70595637-9310-45f2-a266-58f8de4874a7",
+ "length": 236666,
+ "artist-credit": [
+  {
+   "artist": {
+    "type": "Group",
+    "name": "Radiohead",
+    "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+    "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+    "country": "GB",
+    "disambiguation": "",
+    "sort-name": "Radiohead"
+   },
+   "name": "Radiohead",
+   "joinphrase": ""
+  }
+ ],
+ "disambiguation": "You’re so fucking special",
+ "title": "Creep",
+ "video": false,
+ "relations": [
+  {
+   "begin": null,
+   "attribute-values": {},
+   "direction": "backward",
+   "attributes": [],
+   "target-type": "artist",
+   "artist": {
+    "country": "US",
+    "disambiguation": "",
+    "sort-name": "Kolderie, Paul Q.",
+    "name": "Paul Q. Kolderie",
+    "type": "Person",
+    "id": "61dd40ed-2d5f-46dc-b3f1-da0f1f76041c",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+   },
+   "target-credit": "",
+   "ended": false,
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "end": null,
+   "type": "engineer",
+   "attribute-ids": {},
+   "source-credit": ""
+  },
+  {
+   "source-credit": "",
+   "type": "engineer",
+   "attribute-ids": {},
+   "end": null,
+   "ended": false,
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-credit": "",
+   "artist": {
+    "sort-name": "Slade, Sean",
+    "disambiguation": "",
+    "country": "US",
+    "id": "b1c389fb-ee52-4280-878c-636cbc0948a7",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "name": "Sean Slade",
+    "type": "Person"
+   },
+   "target-type": "artist",
+   "attributes": [],
+   "direction": "backward",
+   "attribute-values": {},
+   "begin": null
+  },
+  {
+   "begin": "1992-09",
+   "attribute-values": {},
+   "direction": "backward",
+   "target-type": "artist",
+   "artist": {
+    "country": "GB",
+    "disambiguation": "English bassist in Radiohead",
+    "sort-name": "Greenwood, Colin",
+    "type": "Person",
+    "name": "Colin Greenwood",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "f23074f4-2c06-477a-bf1d-12fa66e087ee"
+   },
+   "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+   "type": "instrument",
+   "attributes": [
+    "bass guitar"
+   ],
+   "target-credit": "",
+   "attribute-credits": {},
+   "end": "1992-11",
+   "ended": true,
+   "source-credit": "",
+   "attribute-ids": {
+    "bass guitar": "17f9f065-2312-4a24-8309-6f6dd63e2e33"
+   }
+  },
+  {
+   "attributes": [
+    "guitar",
+    "organ",
+    "piano"
+   ],
+   "target-credit": "",
+   "attribute-credits": {},
+   "attribute-ids": {
+    "piano": "b3eac5f9-7859-4416-ac39-7154e2e8d348",
+    "guitar": "63021302-86cd-4aee-80df-2270d54f4978",
+    "organ": "55a37f4f-39a4-45a7-851d-586569985519"
+   },
+   "source-credit": "",
+   "ended": true,
+   "end": "1992-11",
+   "attribute-values": {},
+   "begin": "1992-09",
+   "target-type": "artist",
+   "direction": "backward",
+   "artist": {
+    "country": "GB",
+    "disambiguation": "English musician and score composer",
+    "sort-name": "Greenwood, Jonny",
+    "name": "Jonny Greenwood",
+    "type": "Person",
+    "id": "e9fcfbbf-1743-4f73-8744-ada8da7394ea",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+   },
+   "type": "instrument",
+   "type-id": "59054b12-01ac-43ee-a618-285fd397e461"
+  },
+  {
+   "target-credit": "",
+   "attribute-credits": {},
+   "source-credit": "",
+   "attribute-ids": {
+    "guitar": "63021302-86cd-4aee-80df-2270d54f4978"
+   },
+   "end": "1992-11",
+   "ended": true,
+   "attributes": [
+    "guitar"
+   ],
+   "artist": {
+    "disambiguation": "guitarist & songwriter in Radiohead",
+    "country": "GB",
+    "sort-name": "O’Brien, Ed",
+    "type": "Person",
+    "name": "Ed O’Brien",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "309d9809-cf74-493a-b56b-1378258f20fd"
+   },
+   "type": "instrument",
+   "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+   "attribute-values": {},
+   "begin": "1992-09",
+   "target-type": "artist",
+   "direction": "backward"
+  },
+  {
+   "type": "instrument",
+   "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+   "artist": {
+    "sort-name": "Selway, Philip",
+    "country": "GB",
+    "disambiguation": "drummer in Radiohead",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "4ab74d13-d1eb-4895-b874-6da5d8b1aac3",
+    "type": "Person",
+    "name": "Philip Selway"
+   },
+   "target-type": "artist",
+   "direction": "backward",
+   "attribute-values": {},
+   "begin": "1992-09",
+   "attribute-ids": {
+    "drums (drum set)": "12092505-6ee1-46af-a15a-b5b468b6b155"
+   },
+   "source-credit": "",
+   "ended": true,
+   "end": "1992-11",
+   "target-credit": "",
+   "attribute-credits": {},
+   "attributes": [
+    "drums (drum set)"
+   ]
+  },
+  {
+   "ended": true,
+   "end": "1992-11",
+   "attribute-ids": {
+    "guitar": "63021302-86cd-4aee-80df-2270d54f4978"
+   },
+   "source-credit": "",
+   "attribute-credits": {},
+   "target-credit": "",
+   "attributes": [
+    "guitar"
+   ],
+   "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+   "type": "instrument",
+   "artist": {
+    "type": "Person",
+    "name": "Thom Yorke",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "8ed2e0b3-aa4c-4e13-bec3-dc7393ed4d6b",
+    "country": "GB",
+    "disambiguation": "",
+    "sort-name": "Yorke, Thom"
+   },
+   "direction": "backward",
+   "target-type": "artist",
+   "begin": "1992-09",
+   "attribute-values": {}
+  },
+  {
+   "begin": null,
+   "attribute-values": {},
+   "direction": "backward",
+   "target-type": "artist",
+   "attributes": [],
+   "artist": {
+    "id": "61dd40ed-2d5f-46dc-b3f1-da0f1f76041c",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "name": "Paul Q. Kolderie",
+    "type": "Person",
+    "sort-name": "Kolderie, Paul Q.",
+    "disambiguation": "",
+    "country": "US"
+   },
+   "target-credit": "",
+   "ended": false,
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "end": null,
+   "type": "mix",
+   "attribute-ids": {},
+   "source-credit": ""
+  },
+  {
+   "attributes": [],
+   "target-type": "artist",
+   "direction": "backward",
+   "attribute-values": {},
+   "begin": null,
+   "source-credit": "",
+   "type": "mix",
+   "attribute-ids": {},
+   "end": null,
+   "ended": false,
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-credit": "",
+   "artist": {
+    "sort-name": "Slade, Sean",
+    "disambiguation": "",
+    "country": "US",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "b1c389fb-ee52-4280-878c-636cbc0948a7",
+    "type": "Person",
+    "name": "Sean Slade"
+   }
+  },
+  {
+   "attribute-ids": {},
+   "type": "producer",
+   "source-credit": "",
+   "ended": false,
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "end": null,
+   "target-credit": "",
+   "artist": {
+    "disambiguation": "",
+    "country": "US",
+    "sort-name": "Kolderie, Paul Q.",
+    "name": "Paul Q. Kolderie",
+    "type": "Person",
+    "id": "61dd40ed-2d5f-46dc-b3f1-da0f1f76041c",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+   },
+   "attributes": [],
+   "target-type": "artist",
+   "direction": "backward",
+   "attribute-values": {},
+   "begin": null
+  },
+  {
+   "artist": {
+    "sort-name": "Slade, Sean",
+    "disambiguation": "",
+    "country": "US",
+    "id": "b1c389fb-ee52-4280-878c-636cbc0948a7",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "name": "Sean Slade",
+    "type": "Person"
+   },
+   "target-credit": "",
+   "ended": false,
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "end": null,
+   "type": "producer",
+   "attribute-ids": {},
+   "source-credit": "",
+   "begin": null,
+   "attribute-values": {},
+   "direction": "backward",
+   "attributes": [],
+   "target-type": "artist"
+  },
+  {
+   "begin": "1992-09",
+   "attribute-values": {},
+   "direction": "backward",
+   "target-type": "artist",
+   "attributes": [],
+   "artist": {
+    "sort-name": "O’Brien, Ed",
+    "country": "GB",
+    "disambiguation": "guitarist & songwriter in Radiohead",
+    "id": "309d9809-cf74-493a-b56b-1378258f20fd",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "name": "Ed O’Brien",
+    "type": "Person"
+   },
+   "target-credit": "",
+   "ended": true,
+   "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+   "end": "1992-11",
+   "attribute-ids": {},
+   "type": "vocal",
+   "source-credit": ""
+  },
+  {
+   "begin": "1992-09",
+   "attribute-values": {},
+   "direction": "backward",
+   "attributes": [],
+   "target-type": "artist",
+   "artist": {
+    "type": "Person",
+    "name": "Thom Yorke",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "8ed2e0b3-aa4c-4e13-bec3-dc7393ed4d6b",
+    "disambiguation": "",
+    "country": "GB",
+    "sort-name": "Yorke, Thom"
+   },
+   "target-credit": "",
+   "end": "1992-11",
+   "ended": true,
+   "type-id": "0fdbe3c6-7700-4a31-ae54-b53f06ae1cfa",
+   "source-credit": "",
+   "attribute-ids": {},
+   "type": "vocal"
+  },
+  {
+   "begin": "1992-09",
+   "attribute-values": {},
+   "direction": "forward",
+   "target-type": "work",
+   "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+   "type": "performance",
+   "work": {
+    "iswcs": [
+     "T-071.180.847-7"
+    ],
+    "attributes": [],
+    "id": "fa80b137-ebd1-3177-8fa4-416eb3ee52a2",
+    "language": "eng",
+    "type": "Song",
+    "languages": [
+     "eng"
+    ],
+    "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+    "disambiguation": "",
+    "title": "Creep"
+   },
+   "attributes": [],
+   "target-credit": "",
+   "end": "1992-11",
+   "ended": true,
+   "source-credit": "",
+   "attribute-ids": {}
+  }
+ ]
+}

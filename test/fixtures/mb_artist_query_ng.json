@@ -1,0 +1,311 @@
+{
+ "created": "2026-10-21T15:02:44.615Z",
+ "count": 76,
+ "offset": 0,
+ "artists": [
+  {
+   "name": "Femi Kuti",
+   "id": "702d2b90-eef0-4354-b2c4-6366eba92b7f"
+  },
+  {
+   "name": "Africa 70",
+   "id": "dc45f2dc-ef36-4a7a-aa52-97495fca8ced"
+  },
+  {
+   "name": "Keziah Jones",
+   "id": "754932cb-a3df-43c5-99ab-c1a69190e4bc"
+  },
+  {
+   "name": "Eddy Wata",
+   "id": "5044ed56-e1ef-442b-b398-6cbe31afbb26"
+  },
+  {
+   "name": "BLO",
+   "id": "2b90d4c2-34f6-4e65-bcf3-917b18a88c57"
+  },
+  {
+   "name": "P Tee Money",
+   "id": "2516feb1-35d5-4c85-bb85-fca7d4a2b18f"
+  },
+  {
+   "name": "Timaya",
+   "id": "f483e8a0-baca-427a-b1c3-b06752ab88cf"
+  },
+  {
+   "name": "Lijadu Sisters",
+   "id": "9c5c0632-dbef-4674-a90c-af04412a1508"
+  },
+  {
+   "name": "Christy Essien Igbokwe",
+   "id": "cbd2fc31-e1ee-492c-a36e-659ff4ccf42e"
+  },
+  {
+   "name": "2Baba",
+   "id": "c53f316f-fc07-4d41-9314-80fc4d6b071f"
+  },
+  {
+   "name": "Majek Fashek",
+   "id": "ce1e63df-5d87-4618-8ad0-61aff87290e6"
+  },
+  {
+   "name": "Egypt 80",
+   "id": "b1196ced-08e8-4f1b-9e36-cac421d532ca"
+  },
+  {
+   "name": "Winning Jah",
+   "id": "0e68006a-7644-403e-874e-3d378f8551a8"
+  },
+  {
+   "name": "Jerome Sydenham",
+   "id": "6ba7b079-28b2-4421-af3c-27340802c85b"
+  },
+  {
+   "name": "Sinach",
+   "id": "495b5c7e-5dd1-4ed3-8b60-d5f3ad1ebeaa"
+  },
+  {
+   "name": "Monomono",
+   "id": "cae5f279-e420-4f62-99a4-6849f2078862"
+  },
+  {
+   "name": "J. Martins",
+   "id": "86efcbcd-cb33-4609-988c-8e409fe3c4a6"
+  },
+  {
+   "name": "JJC",
+   "id": "4b59362f-fb23-4296-aaf9-d12da3a6768e"
+  },
+  {
+   "name": "David Oyelowo",
+   "id": "91fe0301-fdb5-48d2-95b5-656731286657"
+  },
+  {
+   "name": "Olumireggae",
+   "id": "4f9e6e42-c6a3-4c6f-8dd9-f5f6681dcfa3"
+  },
+  {
+   "name": "Ikenga Super Stars of Africa",
+   "id": "8b89fc93-73ba-45a8-80cb-c8b4ce02192c"
+  },
+  {
+   "name": "Steve Monite",
+   "id": "53c7987c-25f8-4d1a-9c64-248355de1bcc"
+  },
+  {
+   "name": "Chimamanda Ngozi Adichie",
+   "id": "012fd9c9-1e34-4dc2-a8b8-da1136786771"
+  },
+  {
+   "name": "Yinka Davies",
+   "id": "bfee49fe-faf4-47f2-a678-d43e0d41e70b"
+  },
+  {
+   "name": "N’Draman Blintch",
+   "id": "7931ea1f-199b-4755-88e9-00955ac6f149"
+  },
+  {
+   "name": "Kingsley Chinweike Okonkwo",
+   "id": "58019c23-d7f3-4932-b87f-5351df1ccc79"
+  },
+  {
+   "name": "Johnson Rays",
+   "id": "441211ee-98a4-4631-b28f-80fb8c1ddfb4"
+  },
+  {
+   "name": "Sikiru Adepoju",
+   "id": "1f0e32ae-cc53-44ac-b7f6-977bbab09352"
+  },
+  {
+   "name": "Dqueen",
+   "id": "c34ea418-15cf-4219-b621-f1851ee6a27e"
+  },
+  {
+   "name": "King Wadada",
+   "id": "56209d47-f5ae-4f41-acb2-ddc73f285b9c"
+  },
+  {
+   "name": "Segun Adewale",
+   "id": "efd61a05-7d07-4ded-a58c-39849e7e56ee"
+  },
+  {
+   "name": "Grotto",
+   "id": "301719a5-6ee4-4ad2-b6c4-edaa669ecc22"
+  },
+  {
+   "name": "Prince Nico Mbarga",
+   "id": "2d12a36d-3913-49bc-a738-7a055e980d45"
+  },
+  {
+   "name": "Adewale Ayuba",
+   "id": "f50702ea-21c5-43de-884a-5c516726eba0"
+  },
+  {
+   "name": "Abiodun",
+   "id": "b4acea3f-4ba7-4d65-bf5e-f28fea595086"
+  },
+  {
+   "name": "TY Bello",
+   "id": "f0aad82f-e36d-4ae1-bdfe-a4895bc6b42b"
+  },
+  {
+   "name": "Wrinkar Experience",
+   "id": "f4b34587-c97c-4feb-bd3e-29b628527a94"
+  },
+  {
+   "name": "Kenneth Okulolo",
+   "id": "58e688b7-2008-4c45-acbb-b9325f47df63"
+  },
+  {
+   "name": "elDee",
+   "id": "d70a35a5-9883-4694-9ba0-b78c9f98a905"
+  },
+  {
+   "name": "Weird MC",
+   "id": "8740661f-e60a-4b79-99d9-dfa5ace9c4ef"
+  },
+  {
+   "name": "Basketmouth",
+   "id": "548522a6-3aea-427f-8da6-0bfe32dbc862"
+  },
+  {
+   "name": "Sir Shina Peters",
+   "id": "39bf7244-a3c3-42a4-83f7-ba8302a860de"
+  },
+  {
+   "name": "Femi Temowo",
+   "id": "2507e709-58e0-48ac-9df0-2b4c9b203685"
+  },
+  {
+   "name": "Jude Thomas Dawam",
+   "id": "22c42532-b4d8-4c7c-9e05-8c4d375cf89f"
+  },
+  {
+   "name": "Daddy Fresh",
+   "id": "df411cd8-0424-4188-860e-f4c5defabcdd"
+  },
+  {
+   "name": "Godson Egungwu",
+   "id": "14e3fc49-14f0-4d9d-a591-2cad71d3b990"
+  },
+  {
+   "name": "Saheed Osupa",
+   "id": "24136bf8-705e-43ea-9172-77ccffba1773"
+  },
+  {
+   "name": "K1 De Ultimate",
+   "id": "637d7628-b079-4663-97c1-fd46aaa5458c"
+  },
+  {
+   "name": "Osayomore Joseph",
+   "id": "c5ac4a4a-879a-4c64-b6a5-6c4e55912dad"
+  },
+  {
+   "name": "Sound Sultan",
+   "id": "ac5ddc32-2a45-4c63-bf6c-ba53fce6fa61"
+  },
+  {
+   "name": "DJ Jimmy Jatt",
+   "id": "7d9ccf7b-c5f9-44bb-b0e5-b799bd5e5968"
+  },
+  {
+   "name": "Tom Yom's",
+   "id": "60bc14e9-e518-4006-bde6-77ae1ec83160"
+  },
+  {
+   "name": "Muma Gee",
+   "id": "aac7551a-d320-439a-94ad-0e9036d9bd81"
+  },
+  {
+   "name": "Fela Durotoye",
+   "id": "61015619-30eb-4314-9a02-8a2d06802fb0"
+  },
+  {
+   "name": "Bovi",
+   "id": "5a4f4c39-861a-47c5-aeb5-f01a4598c09e"
+  },
+  {
+   "name": "Bright Chimezie",
+   "id": "37196c23-ba77-4830-87de-e0eb40b42a16"
+  },
+  {
+   "name": "Eben",
+   "id": "cf821909-fc70-4e0f-bc0b-1e6958c14de1"
+  },
+  {
+   "name": "Ras Kimono",
+   "id": "05f3f9b7-672a-4ae6-b349-4f3ac48d5d5c"
+  },
+  {
+   "name": "Bankulli",
+   "id": "a5246b01-e29e-4287-a6b3-8c9f3851cf51"
+  },
+  {
+   "name": "Obiwon",
+   "id": "b303cdda-6d6e-4041-9569-8274197a62fb"
+  },
+  {
+   "name": "PAZAI",
+   "id": "60a5ffc7-b7dc-460c-a553-c7a9dee270c3"
+  },
+  {
+   "name": "Donald Duke",
+   "id": "32cae2b6-df78-4e43-9b49-d06bba3f747e"
+  },
+  {
+   "name": "Stella Damasus",
+   "id": "bd8b9a0f-c063-48d5-996c-8b1cada8a778"
+  },
+  {
+   "name": "Jude Akuwudike",
+   "id": "41b6c447-c941-4e06-bf14-67183641fc34"
+  },
+  {
+   "name": "Kirsty Lang",
+   "id": "8350c429-0e97-4ad9-9749-62ee83546366"
+  },
+  {
+   "name": "Olusoladegbin Anikapulo-Kuti",
+   "id": "ce102494-3ac0-4c61-88a3-d425ec77c45e"
+  },
+  {
+   "name": "Yeni Anikulapo-Kuti",
+   "id": "b109c0fe-15ab-4bf8-9575-22658fdef4dc"
+  },
+  {
+   "name": "Zeeno Foster",
+   "id": "86f30d20-7922-40d2-a003-65301689593f"
+  },
+  {
+   "name": "Christine Okosun",
+   "id": "c59738a5-69d5-41b1-998a-df668fbf8e05"
+  },
+  {
+   "name": "Osunfisan Brothers & Sisters",
+   "id": "80cf5fdb-2172-400e-9cb9-6c58025cca07"
+  },
+  {
+   "name": "Samsong",
+   "id": "f9d3fce2-213e-4fd1-b724-cbf99b97e1bb"
+  },
+  {
+   "name": "Ngozika Brothers Dance Band",
+   "id": "c4047c90-4b34-49de-91f4-a63d3f4c3d17"
+  },
+  {
+   "name": "Olabode Oluwafemi",
+   "id": "e2da80cf-d04a-4185-a45f-32f616aac948"
+  },
+  {
+   "name": "Chioma Jesus",
+   "id": "1603b634-e943-4ce5-a901-fb90d38855f1"
+  },
+  {
+   "name": "Ara",
+   "id": "db4e4120-a612-479b-8c54-c4e3cb9fa1f9"
+  },
+  {
+   "name": "Dgenerus",
+   "id": "5c4fa23c-8585-41a2-9843-4b1c7cdea102"
+  }
+ ]
+}

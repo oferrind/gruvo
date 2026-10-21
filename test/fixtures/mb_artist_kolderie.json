@@ -1,0 +1,2855 @@
+{
+ "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+ "name": "Paul Q. Kolderie",
+ "relations": [
+  {
+   "source-credit": "Paul Kolderie",
+   "recording": {
+    "id": "a254ee4c-b540-4763-a94d-a9366328bbff",
+    "video": false,
+    "length": 192800,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "country": "US",
+       "disambiguation": "",
+       "type": null,
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "sort-name": "Mighty Mighty Bosstones, The"
+      },
+      "name": "The Mighty Mighty Bosstones"
+     }
+    ],
+    "disambiguation": "live, 1997‐12: The Middle East, Cambridge, MA, USA",
+    "title": "1-2-8"
+   },
+   "type": "engineer",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-type": "recording",
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null
+  },
+  {
+   "type": "engineer",
+   "recording": {
+    "length": 150760,
+    "id": "ece75407-c9e6-4023-a77b-987d123eff8e",
+    "video": false,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Blake Babies",
+      "artist": {
+       "type": null,
+       "disambiguation": "",
+       "country": "US",
+       "sort-name": "Blake Babies",
+       "name": "Blake Babies",
+       "type-id": null,
+       "id": "0a362a52-39f1-42b2-bb17-1618c71d229f"
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "Alright"
+   },
+   "source-credit": "",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "recording": {
+    "length": 168626,
+    "id": "0b868482-0d3f-4a98-a9c5-1fe1a217ebef",
+    "video": false,
+    "disambiguation": "",
+    "title": "Before I Break",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "country": "US",
+       "disambiguation": "",
+       "type": null,
+       "id": "95c043f1-0bdd-403a-b714-663908d7e4fc",
+       "name": "Uncle Tupelo",
+       "type-id": null,
+       "sort-name": "Uncle Tupelo"
+      },
+      "name": "Uncle Tupelo"
+     }
+    ]
+   },
+   "type": "engineer",
+   "source-credit": "",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907"
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Pixies",
+      "artist": {
+       "id": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+       "sort-name": "Pixies",
+       "type-id": null,
+       "name": "Pixies",
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Caribou",
+    "id": "f171bc77-3a44-4cef-ba2e-ded91b9b83ee",
+    "video": false,
+    "length": 194333
+   },
+   "type": "engineer",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-type": "recording",
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false
+  },
+  {
+   "recording": {
+    "disambiguation": "",
+    "title": "Dancing the Manta Ray",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Pixies",
+      "artist": {
+       "id": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+       "type-id": null,
+       "name": "Pixies",
+       "sort-name": "Pixies",
+       "country": "US",
+       "disambiguation": "",
+       "type": null
+      }
+     }
+    ],
+    "id": "9bb14659-2bc3-4943-ac41-2986696b825a",
+    "video": false,
+    "length": 134000
+   },
+   "type": "engineer",
+   "source-credit": "Paul Kolderie",
+   "attribute-ids": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907"
+  },
+  {
+   "recording": {
+    "length": 341106,
+    "id": "b64ebe57-8f1f-4493-910e-b91a7fc872e1",
+    "video": false,
+    "disambiguation": "",
+    "title": "Don’t",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "country": "US",
+       "disambiguation": "US rock band",
+       "type": null,
+       "id": "77c167d2-4965-4421-830a-9815e4956475",
+       "type-id": null,
+       "name": "Dinosaur Jr.",
+       "sort-name": "Dinosaur Jr."
+      },
+      "name": "Dinosaur Jr."
+     }
+    ]
+   },
+   "type": "engineer",
+   "source-credit": "",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907"
+  },
+  {
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-ids": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "source-credit": "",
+   "recording": {
+    "video": false,
+    "id": "3940d9a6-6f3a-4644-a8b2-f0fc03a3d929",
+    "length": 150000,
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+       "sort-name": "Pixies",
+       "name": "Pixies",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      },
+      "name": "Pixies",
+      "joinphrase": ""
+     }
+    ],
+    "title": "Ed Is Dead",
+    "disambiguation": ""
+   },
+   "type": "engineer"
+  },
+  {
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-type": "recording",
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "type": "engineer",
+   "recording": {
+    "id": "bf133010-423b-4f38-9b7e-777df4d5f1bf",
+    "video": false,
+    "length": 217040,
+    "disambiguation": "",
+    "title": "Freak Scene",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Dinosaur Jr.",
+      "artist": {
+       "country": "US",
+       "disambiguation": "US rock band",
+       "type": null,
+       "id": "77c167d2-4965-4421-830a-9815e4956475",
+       "type-id": null,
+       "name": "Dinosaur Jr.",
+       "sort-name": "Dinosaur Jr."
+      }
+     }
+    ]
+   },
+   "source-credit": ""
+  },
+  {
+   "type": "engineer",
+   "recording": {
+    "disambiguation": "",
+    "title": "Graveyard Shift",
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Uncle Tupelo",
+       "name": "Uncle Tupelo",
+       "type-id": null,
+       "id": "95c043f1-0bdd-403a-b714-663908d7e4fc",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      },
+      "name": "Uncle Tupelo",
+      "joinphrase": ""
+     }
+    ],
+    "length": 283960,
+    "id": "e5b1d5d3-1ffd-41dd-828d-0a26836399e4",
+    "video": false
+   },
+   "source-credit": "",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-type": "recording",
+   "recording": {
+    "video": false,
+    "id": "45cd51d5-c1d8-4698-8cee-087a8e4b6a18",
+    "length": 219088,
+    "artist-credit": [
+     {
+      "name": "Blood Oranges",
+      "artist": {
+       "id": "16236de9-401e-46ba-852c-8fe9ac578320",
+       "type-id": null,
+       "name": "Blood Oranges",
+       "sort-name": "Blood Oranges",
+       "country": "US",
+       "disambiguation": "US alt-country",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "High on a Mountaintop",
+    "disambiguation": ""
+   },
+   "type": "engineer",
+   "source-credit": ""
+  },
+  {
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "source-credit": "",
+   "type": "engineer",
+   "recording": {
+    "video": false,
+    "id": "a492255d-8938-45f7-ac11-4d81d88371a8",
+    "length": 229400,
+    "artist-credit": [
+     {
+      "artist": {
+       "type-id": null,
+       "name": "Christmas",
+       "sort-name": "Christmas",
+       "id": "85198f92-baf4-48fa-8faf-3f54ffc8ef28",
+       "type": null,
+       "country": "US",
+       "disambiguation": "80s Boston indie rock band"
+      },
+      "name": "Christmas",
+      "joinphrase": ""
+     }
+    ],
+    "title": "Human Chain",
+    "disambiguation": ""
+   }
+  },
+  {
+   "type": "engineer",
+   "recording": {
+    "title": "I’ll Slow You Down",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Warren Zevon",
+      "artist": {
+       "name": "Warren Zevon",
+       "type-id": null,
+       "sort-name": "Zevon, Warren",
+       "id": "970fb29f-e288-403e-a388-d2a7889bfa47",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      },
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "id": "6f80f4f5-7a5a-4e03-8afd-b2b097031119",
+    "length": 193333
+   },
+   "source-credit": "",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-type": "recording",
+   "recording": {
+    "length": 171000,
+    "id": "48af6c6d-a6a6-4c0e-a74b-47964919475d",
+    "video": false,
+    "disambiguation": "",
+    "title": "Keep the Glove",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "disambiguation": "US rock band",
+       "country": "US",
+       "sort-name": "Dinosaur Jr.",
+       "name": "Dinosaur Jr.",
+       "type-id": null,
+       "id": "77c167d2-4965-4421-830a-9815e4956475"
+      },
+      "name": "Dinosaur Jr."
+     }
+    ]
+   },
+   "type": "engineer",
+   "source-credit": ""
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "length": 157240,
+    "id": "c3cb3d62-45d2-42cf-b6c9-50358ce8eab6",
+    "video": false,
+    "disambiguation": "",
+    "title": "Levitate Me",
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Pixies",
+       "name": "Pixies",
+       "type-id": null,
+       "id": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      },
+      "name": "Pixies",
+      "joinphrase": ""
+     }
+    ]
+   },
+   "type": "engineer",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-type": "recording",
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "video": false,
+    "id": "ff86cfed-2a85-4495-8957-319a7ee3f853",
+    "length": 179000,
+    "artist-credit": [
+     {
+      "name": "Blameless",
+      "artist": {
+       "id": "6cc069ac-0deb-4b0e-adba-c843530500ae",
+       "name": "Blameless",
+       "type-id": null,
+       "sort-name": "Blameless",
+       "country": "GB",
+       "disambiguation": "",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "More Than I",
+    "disambiguation": ""
+   },
+   "type": "engineer",
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": []
+  },
+  {
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording",
+   "type": "engineer",
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "disambiguation": "US rock band",
+       "type": null,
+       "id": "77c167d2-4965-4421-830a-9815e4956475",
+       "type-id": null,
+       "name": "Dinosaur Jr.",
+       "sort-name": "Dinosaur Jr."
+      },
+      "name": "Dinosaur Jr.",
+      "joinphrase": ""
+     }
+    ],
+    "title": "No Bones",
+    "disambiguation": "",
+    "length": 223173,
+    "video": false,
+    "id": "1a9a643c-efad-4b61-9fd2-eee0bb02528e"
+   },
+   "source-credit": ""
+  },
+  {
+   "target-type": "recording",
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "source-credit": "",
+   "type": "engineer",
+   "recording": {
+    "id": "dfa1c1bd-1deb-427b-8533-4fd73433338f",
+    "video": false,
+    "length": 168733,
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Uncle Tupelo",
+       "name": "Uncle Tupelo",
+       "type-id": null,
+       "id": "95c043f1-0bdd-403a-b714-663908d7e4fc",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      },
+      "name": "Uncle Tupelo",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Outdone"
+   }
+  },
+  {
+   "type": "engineer",
+   "recording": {
+    "disambiguation": "",
+    "title": "Punch and Judy",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "disambiguation": "80s Boston indie rock band",
+       "country": "US",
+       "type": null,
+       "id": "85198f92-baf4-48fa-8faf-3f54ffc8ef28",
+       "sort-name": "Christmas",
+       "type-id": null,
+       "name": "Christmas"
+      },
+      "name": "Christmas"
+     }
+    ],
+    "length": 123573,
+    "id": "e8d0f3d7-3a3e-4dac-89ee-76aec0e5a446",
+    "video": false
+   },
+   "source-credit": "",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "source-credit": "Paul Kolderie",
+   "recording": {
+    "length": 153333,
+    "video": false,
+    "id": "4fc718e3-c51e-4474-be5e-1ef1d3358c3b",
+    "title": "Royal Oil",
+    "disambiguation": "live, 1997‐12: The Middle East, Cambridge, MA, USA",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "country": "US",
+       "disambiguation": "",
+       "type": null,
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "type-id": null,
+       "name": "The Mighty Mighty Bosstones",
+       "sort-name": "Mighty Mighty Bosstones, The"
+      },
+      "name": "The Mighty Mighty Bosstones"
+     }
+    ]
+   },
+   "type": "engineer",
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "attributes": [],
+   "end": null
+  },
+  {
+   "source-credit": "",
+   "type": "engineer",
+   "recording": {
+    "length": 189906,
+    "video": false,
+    "id": "b78f7e82-45f4-404f-8b70-7a8b133a51ed",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "The Mighty Mighty Bosstones",
+      "artist": {
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "country": "US",
+       "disambiguation": "",
+       "type": null
+      }
+     }
+    ],
+    "title": "So Sad to Say",
+    "disambiguation": ""
+   },
+   "target-type": "recording",
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward"
+  },
+  {
+   "source-credit": "",
+   "type": "engineer",
+   "recording": {
+    "length": 85000,
+    "id": "01a36811-ef34-402e-9e0e-b2b31446f1eb",
+    "video": false,
+    "disambiguation": "demo",
+    "title": "Take Your Head Off My Shoulder",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Blake Babies",
+      "artist": {
+       "id": "0a362a52-39f1-42b2-bb17-1618c71d229f",
+       "sort-name": "Blake Babies",
+       "name": "Blake Babies",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      }
+     }
+    ]
+   },
+   "target-type": "recording",
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward"
+  },
+  {
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "target-type": "recording",
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Dinosaur Jr.",
+      "artist": {
+       "name": "Dinosaur Jr.",
+       "type-id": null,
+       "sort-name": "Dinosaur Jr.",
+       "id": "77c167d2-4965-4421-830a-9815e4956475",
+       "type": null,
+       "country": "US",
+       "disambiguation": "US rock band"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "The Post",
+    "id": "eb9436f6-63e4-4a9a-b0a0-0beef50c229b",
+    "video": false,
+    "length": 218133
+   },
+   "type": "engineer"
+  },
+  {
+   "attribute-ids": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "recording": {
+    "id": "4c872e54-8af5-48cc-a688-ce2cbd89b5be",
+    "video": false,
+    "length": 195066,
+    "artist-credit": [
+     {
+      "name": "Christmas",
+      "artist": {
+       "id": "85198f92-baf4-48fa-8faf-3f54ffc8ef28",
+       "sort-name": "Christmas",
+       "name": "Christmas",
+       "type-id": null,
+       "disambiguation": "80s Boston indie rock band",
+       "country": "US",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "This Is Not a Test"
+   },
+   "type": "engineer",
+   "source-credit": ""
+  },
+  {
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "target-type": "recording",
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "type": "engineer",
+   "recording": {
+    "id": "13f000d0-5147-4f6f-8ef4-8bd4a8383e9f",
+    "video": false,
+    "length": 119173,
+    "disambiguation": "",
+    "title": "Weird at My School",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "name": "Pixies",
+       "type-id": null,
+       "sort-name": "Pixies",
+       "id": "b6b2bb8d-54a9-491f-9607-7b546023b433",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      },
+      "name": "Pixies"
+     }
+    ]
+   },
+   "source-credit": "Paul Kolderie"
+  },
+  {
+   "type": "engineer",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Morphine",
+      "artist": {
+       "type-id": null,
+       "name": "Morphine",
+       "sort-name": "Morphine",
+       "id": "42689657-cbec-4f66-a9ed-80f939ea23ed",
+       "type": null,
+       "country": "US",
+       "disambiguation": "rock band"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Whisper",
+    "disambiguation": "",
+    "length": 208800,
+    "video": false,
+    "id": "64485ba7-a5c6-4dcb-b2d3-f47994e326a4"
+   },
+   "source-credit": "",
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "type-id": "5dcc52af-7064-4051-8d62-7d80f4c3c907",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "source-credit": "Paul Kolderie",
+   "type": "instrument",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Staff of Fort Apache",
+      "artist": {
+       "sort-name": "Staff of Fort Apache",
+       "name": "Staff of Fort Apache",
+       "type-id": null,
+       "id": "700272bd-da91-43e7-a696-3a0db39f758c",
+       "type": null,
+       "disambiguation": "",
+       "country": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Hair",
+    "disambiguation": "",
+    "video": false,
+    "id": "d3a07e1a-73fb-49c0-ad15-929da3dfd4fc",
+    "length": 326138
+   },
+   "type-id": "59054b12-01ac-43ee-a618-285fd397e461",
+   "attribute-credits": {},
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [
+    "bass"
+   ],
+   "end": null,
+   "direction": "forward",
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {
+    "bass": "6505f98c-f698-4406-8bf4-8ca43d05c36f"
+   }
+  },
+  {
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-type": "recording",
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "source-credit": "",
+   "recording": {
+    "length": 209333,
+    "id": "bc20fb23-de1a-4ec6-8103-32e0de274d88",
+    "video": false,
+    "disambiguation": "LP edit",
+    "title": "500",
+    "artist-credit": [
+     {
+      "name": "Lush",
+      "artist": {
+       "id": "697801d1-68b2-4413-a7e4-0ef507d21cc1",
+       "sort-name": "Lush",
+       "name": "Lush",
+       "type-id": null,
+       "disambiguation": "UK shoegaze band",
+       "country": "GB",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ]
+   },
+   "type": "mix"
+  },
+  {
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-type": "recording",
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "type": "mix",
+   "recording": {
+    "id": "84cb2d77-854d-4e98-b63d-e27a765da692",
+    "video": false,
+    "length": 340973,
+    "disambiguation": "",
+    "title": "American Beer",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "5e2e050f-7280-464e-b251-0a1272c43300",
+       "type-id": null,
+       "name": "Six by Seven",
+       "sort-name": "Six by Seven",
+       "country": "GB",
+       "disambiguation": "",
+       "type": null
+      },
+      "name": "Six by Seven"
+     }
+    ]
+   },
+   "source-credit": ""
+  },
+  {
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-type": "recording",
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "source-credit": "",
+   "recording": {
+    "length": 203524,
+    "video": false,
+    "id": "854ed494-0420-4aee-9a76-74edf22d7665",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "The Jayhawks",
+      "artist": {
+       "id": "24ed5b09-02b1-47fe-bd83-6fa5270039b0",
+       "sort-name": "Jayhawks, The",
+       "name": "The Jayhawks",
+       "type-id": null,
+       "disambiguation": "alternative country/country rock",
+       "country": "US",
+       "type": null
+      }
+     }
+    ],
+    "title": "Bitter Pill",
+    "disambiguation": ""
+   },
+   "type": "mix"
+  },
+  {
+   "type": "mix",
+   "recording": {
+    "video": false,
+    "id": "dd6358cb-6878-46c1-ac08-b7259c85f523",
+    "length": 184000,
+    "title": "Bones (live)",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "sort-name": "Radiohead",
+       "name": "Radiohead",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "GB",
+       "type": null
+      },
+      "name": "Radiohead",
+      "joinphrase": ""
+     }
+    ]
+   },
+   "source-credit": "",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "title": "Cafeteria Rats",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "5e2e050f-7280-464e-b251-0a1272c43300",
+       "sort-name": "Six by Seven",
+       "name": "Six by Seven",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "GB",
+       "type": null
+      },
+      "name": "Six by Seven",
+      "joinphrase": ""
+     }
+    ],
+    "length": 237640,
+    "video": false,
+    "id": "1518b8a2-7262-4392-8fe0-e19dfb35a1cf"
+   },
+   "type": "mix",
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "attributes": [],
+   "end": null
+  },
+  {
+   "source-credit": "",
+   "type": "mix",
+   "recording": {
+    "video": false,
+    "id": "4336a4e7-81db-43c4-8c51-2a8119007564",
+    "length": 195933,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Dropkick Murphys",
+      "artist": {
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04",
+       "sort-name": "Dropkick Murphys",
+       "type-id": null,
+       "name": "Dropkick Murphys",
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      }
+     }
+    ],
+    "title": "Curse of a Fallen Soul",
+    "disambiguation": ""
+   },
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {}
+  },
+  {
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-type": "recording",
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "type": "mix",
+   "recording": {
+    "length": 409266,
+    "video": false,
+    "id": "dcdf8e84-797e-4871-a24b-24e8ca3c7e2c",
+    "artist-credit": [
+     {
+      "name": "The Boo Radleys",
+      "artist": {
+       "country": "GB",
+       "disambiguation": "",
+       "type": null,
+       "id": "1b5189d8-28fd-4c97-a04a-37c49b1ccfa6",
+       "name": "The Boo Radleys",
+       "type-id": null,
+       "sort-name": "Boo Radleys, The"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Everything Is Sorrow",
+    "disambiguation": ""
+   },
+   "source-credit": ""
+  },
+  {
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04",
+       "sort-name": "Dropkick Murphys",
+       "type-id": null,
+       "name": "Dropkick Murphys",
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      },
+      "name": "Dropkick Murphys",
+      "joinphrase": ""
+     }
+    ],
+    "title": "Fortunate Son",
+    "disambiguation": "",
+    "video": false,
+    "id": "fb6878bb-3436-473a-a170-908be6fc4ca6",
+    "length": 203120
+   },
+   "type": "mix",
+   "source-credit": "",
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-type": "recording"
+  },
+  {
+   "source-credit": "",
+   "type": "mix",
+   "recording": {
+    "id": "e77a8635-a915-456d-aecf-a27f0e65dbd7",
+    "video": false,
+    "length": 514454,
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Either/Orchestra",
+       "name": "Either/Orchestra",
+       "type-id": null,
+       "id": "d5f17400-d4b8-4dc7-bec0-55ec4069c109",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      },
+      "name": "Either/Orchestra",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Heavily Amplified Hairpiece"
+   },
+   "target-type": "recording",
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward"
+  },
+  {
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "source-credit": "",
+   "recording": {
+    "title": "I Live for That Look",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Dinosaur Jr.",
+      "artist": {
+       "type": null,
+       "disambiguation": "US rock band",
+       "country": "US",
+       "sort-name": "Dinosaur Jr.",
+       "name": "Dinosaur Jr.",
+       "type-id": null,
+       "id": "77c167d2-4965-4421-830a-9815e4956475"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "id": "62e0a724-71f6-4141-88df-18746debb609",
+    "length": 116133
+   },
+   "type": "mix"
+  },
+  {
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-type": "recording",
+   "type": "mix",
+   "recording": {
+    "title": "Just",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "a74b1b7f-71a5-4011-9441-d0b5e4122711",
+       "name": "Radiohead",
+       "type-id": null,
+       "sort-name": "Radiohead",
+       "country": "GB",
+       "disambiguation": "",
+       "type": null
+      },
+      "name": "Radiohead"
+     }
+    ],
+    "video": false,
+    "id": "e234705a-d068-43d5-a122-cef8f056588e",
+    "length": 234093
+   },
+   "source-credit": "Paul Q. Kolderee"
+  },
+  {
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-type": "recording",
+   "recording": {
+    "id": "a1708208-6bb6-4558-a53a-71157bb78dca",
+    "video": false,
+    "length": 190706,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Tanya Donelly",
+      "artist": {
+       "id": "478e2b34-bda3-48c8-81e4-77efac91f3ec",
+       "sort-name": "Donelly, Tanya",
+       "name": "Tanya Donelly",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "Lantern"
+   },
+   "type": "mix",
+   "source-credit": ""
+  },
+  {
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "recording": {
+    "title": "Los Olvidados",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Either/Orchestra",
+      "artist": {
+       "type": null,
+       "disambiguation": "",
+       "country": "US",
+       "sort-name": "Either/Orchestra",
+       "name": "Either/Orchestra",
+       "type-id": null,
+       "id": "d5f17400-d4b8-4dc7-bec0-55ec4069c109"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "id": "0cd1d6a5-a2a9-4933-adb1-2c818606c31f",
+    "length": 445293
+   },
+   "type": "mix",
+   "source-credit": ""
+  },
+  {
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-type": "recording",
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "source-credit": "",
+   "recording": {
+    "video": false,
+    "id": "00db359e-93f8-4b65-bac5-f84bcdcfb785",
+    "length": 211463,
+    "title": "Moment of Weakness",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Big D and the Kids Table",
+      "artist": {
+       "id": "acb31795-164b-49b5-b50e-1422bbf13898",
+       "name": "Big D and the Kids Table",
+       "type-id": null,
+       "sort-name": "Big D and the Kids Table",
+       "country": "US",
+       "disambiguation": "",
+       "type": null
+      }
+     }
+    ]
+   },
+   "type": "mix"
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "video": false,
+    "id": "c819a941-1cce-4493-9d20-84aff8164c05",
+    "length": 303293,
+    "title": "Olympia",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "697801d1-68b2-4413-a7e4-0ef507d21cc1",
+       "type-id": null,
+       "name": "Lush",
+       "sort-name": "Lush",
+       "country": "GB",
+       "disambiguation": "UK shoegaze band",
+       "type": null
+      },
+      "name": "Lush",
+      "joinphrase": ""
+     }
+    ]
+   },
+   "type": "mix",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "target-type": "recording",
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false
+  },
+  {
+   "recording": {
+    "id": "41d69e6f-790a-4c03-8797-48a108c3c31a",
+    "video": false,
+    "length": 233026,
+    "disambiguation": "single version",
+    "title": "Pretty Deep",
+    "artist-credit": [
+     {
+      "name": "Tanya Donelly",
+      "artist": {
+       "sort-name": "Donelly, Tanya",
+       "type-id": null,
+       "name": "Tanya Donelly",
+       "id": "478e2b34-bda3-48c8-81e4-77efac91f3ec",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      },
+      "joinphrase": ""
+     }
+    ]
+   },
+   "type": "mix",
+   "source-credit": "",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe"
+  },
+  {
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "source-credit": "",
+   "type": "mix",
+   "recording": {
+    "disambiguation": "",
+    "title": "Rocky Road to Dublin",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "disambiguation": "",
+       "country": "US",
+       "sort-name": "Dropkick Murphys",
+       "type-id": null,
+       "name": "Dropkick Murphys",
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04"
+      },
+      "name": "Dropkick Murphys"
+     }
+    ],
+    "length": 155826,
+    "id": "bdf7db80-4709-4c3f-9cfa-4b4399a6cdc6",
+    "video": false
+   }
+  },
+  {
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "source-credit": "",
+   "recording": {
+    "id": "5a27a561-d24e-4e17-9c2b-e383d296afae",
+    "video": false,
+    "length": 278826,
+    "disambiguation": "",
+    "title": "So Close",
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "5e2e050f-7280-464e-b251-0a1272c43300",
+       "sort-name": "Six by Seven",
+       "name": "Six by Seven",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "GB",
+       "type": null
+      },
+      "name": "Six by Seven",
+      "joinphrase": ""
+     }
+    ]
+   },
+   "type": "mix"
+  },
+  {
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "source-credit": "",
+   "recording": {
+    "title": "Steady Riot",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "disambiguation": "",
+       "country": "US",
+       "sort-name": "Big D and the Kids Table",
+       "type-id": null,
+       "name": "Big D and the Kids Table",
+       "id": "acb31795-164b-49b5-b50e-1422bbf13898"
+      },
+      "name": "Big D and the Kids Table"
+     }
+    ],
+    "length": 158493,
+    "video": false,
+    "id": "e5ecaa67-cffa-4369-8d61-5da1c1cd6f36"
+   },
+   "type": "mix"
+  },
+  {
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-type": "recording",
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "source-credit": "",
+   "type": "mix",
+   "recording": {
+    "length": 197226,
+    "id": "677af00f-d005-4be6-bef2-d8465e88d338",
+    "video": false,
+    "disambiguation": "",
+    "title": "The Childcatcher",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Lush",
+      "artist": {
+       "country": "GB",
+       "disambiguation": "UK shoegaze band",
+       "type": null,
+       "id": "697801d1-68b2-4413-a7e4-0ef507d21cc1",
+       "type-id": null,
+       "name": "Lush",
+       "sort-name": "Lush"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "target-type": "recording",
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "source-credit": "",
+   "type": "mix",
+   "recording": {
+    "id": "5aaf0281-458f-4b23-b6d7-cd9f9a26b615",
+    "video": false,
+    "length": 226630,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "The Jayhawks",
+      "artist": {
+       "id": "24ed5b09-02b1-47fe-bd83-6fa5270039b0",
+       "sort-name": "Jayhawks, The",
+       "name": "The Jayhawks",
+       "type-id": null,
+       "disambiguation": "alternative country/country rock",
+       "country": "US",
+       "type": null
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "This Forgotten Town"
+   }
+  },
+  {
+   "type": "mix",
+   "recording": {
+    "id": "af541aae-fa2b-49e4-9156-7e84ac7d57cd",
+    "video": false,
+    "length": 169280,
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Dropkick Murphys",
+      "artist": {
+       "sort-name": "Dropkick Murphys",
+       "name": "Dropkick Murphys",
+       "type-id": null,
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "Upstarts & Broken Hearts"
+   },
+   "source-credit": "",
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-values": {},
+   "target-type": "recording"
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "42689657-cbec-4f66-a9ed-80f939ea23ed",
+       "sort-name": "Morphine",
+       "type-id": null,
+       "name": "Morphine",
+       "disambiguation": "rock band",
+       "country": "US",
+       "type": null
+      },
+      "name": "Morphine"
+     }
+    ],
+    "disambiguation": "",
+    "title": "Whisper",
+    "id": "64485ba7-a5c6-4dcb-b2d3-f47994e326a4",
+    "video": false,
+    "length": 208800
+   },
+   "type": "mix",
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+   "attribute-ids": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": []
+  },
+  {
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "403bc4cd-602c-4b59-8379-05cb24f66aa6",
+       "name": "Piebald",
+       "type-id": null,
+       "sort-name": "Piebald",
+       "country": "US",
+       "disambiguation": "US | rock",
+       "type": null
+      },
+      "name": "Piebald"
+     }
+    ],
+    "disambiguation": "",
+    "title": "It's Going to Get Worse Before It Gets Better",
+    "id": "8113de33-20a1-4944-a7a2-83bb69fa51a3",
+    "video": false,
+    "length": 226066
+   },
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "end": "2001-10-30",
+   "attributes": [],
+   "direction": "forward",
+   "begin": "2001-10-01",
+   "target-credit": "",
+   "ended": true,
+   "attribute-ids": {}
+  },
+  {
+   "recording": {
+    "disambiguation": "",
+    "title": "The Stalker",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "403bc4cd-602c-4b59-8379-05cb24f66aa6",
+       "name": "Piebald",
+       "type-id": null,
+       "sort-name": "Piebald",
+       "country": "US",
+       "disambiguation": "US | rock",
+       "type": null
+      },
+      "name": "Piebald"
+     }
+    ],
+    "id": "b030b4af-93d9-4b88-a891-f975b2614c38",
+    "video": false,
+    "length": 168120
+   },
+   "type": "producer",
+   "source-credit": "",
+   "direction": "forward",
+   "end": "2001-10-30",
+   "attributes": [],
+   "attribute-ids": {},
+   "ended": true,
+   "target-credit": "",
+   "begin": "2001-10-01",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "target-type": "recording"
+  },
+  {
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "length": 114080,
+    "video": false,
+    "id": "da991532-ba48-4d5a-b098-a3466c7f244e",
+    "title": "Alcohol",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Dropkick Murphys",
+      "artist": {
+       "name": "Dropkick Murphys",
+       "type-id": null,
+       "sort-name": "Dropkick Murphys",
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      }
+     }
+    ]
+   },
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {}
+  },
+  {
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Dropkick Murphys",
+      "artist": {
+       "type-id": null,
+       "name": "Dropkick Murphys",
+       "sort-name": "Dropkick Murphys",
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      },
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Amazing Grace",
+    "id": "8cb2a17f-4ed8-4958-9ebc-e22d8e5ef8c1",
+    "video": false,
+    "length": 147826
+   },
+   "type": "producer",
+   "source-credit": "",
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0"
+  },
+  {
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "target-type": "recording",
+   "recording": {
+    "length": 213626,
+    "id": "54753b5b-e87d-4eb3-a566-c4c69ecc695a",
+    "video": false,
+    "disambiguation": "",
+    "title": "Bad News and Bad Breaks",
+    "artist-credit": [
+     {
+      "artist": {
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "type": null,
+       "disambiguation": "",
+       "country": "US"
+      },
+      "name": "The Mighty Mighty Bosstones",
+      "joinphrase": ""
+     }
+    ]
+   },
+   "type": "producer",
+   "source-credit": ""
+  },
+  {
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "type": "producer",
+   "recording": {
+    "length": 242773,
+    "video": false,
+    "id": "e8cb4cac-87c4-49b0-81fc-5bcbe7c76d99",
+    "artist-credit": [
+     {
+      "name": "Belly",
+      "artist": {
+       "type": null,
+       "disambiguation": "US pop-rock band",
+       "country": "US",
+       "sort-name": "Belly",
+       "type-id": null,
+       "name": "Belly",
+       "id": "c118bc97-11a7-41dc-a55e-48c3bcf22ac2"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Broken",
+    "disambiguation": ""
+   },
+   "source-credit": ""
+  },
+  {
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "title": "Cowboy Coffee",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "country": "US",
+       "disambiguation": "",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b"
+      },
+      "name": "The Mighty Mighty Bosstones"
+     }
+    ],
+    "video": false,
+    "id": "bc8cdc3a-3308-47cb-b619-cd573b0d5609",
+    "length": 115973
+   },
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {}
+  },
+  {
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "length": 191373,
+    "id": "819790ef-4458-4530-8f68-f0e1f172e4fd",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "country": "US",
+       "disambiguation": "",
+       "type": null,
+       "id": "970fb29f-e288-403e-a388-d2a7889bfa47",
+       "type-id": null,
+       "name": "Warren Zevon",
+       "sort-name": "Zevon, Warren"
+      },
+      "name": "Warren Zevon",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Dirty Little Religion"
+   }
+  },
+  {
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "target-type": "recording",
+   "recording": {
+    "length": 193906,
+    "video": false,
+    "id": "1bb3511a-0fef-4c3e-987a-9d643c4575bd",
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "",
+       "country": "US",
+       "type": null,
+       "id": "95c043f1-0bdd-403a-b714-663908d7e4fc",
+       "sort-name": "Uncle Tupelo",
+       "type-id": null,
+       "name": "Uncle Tupelo"
+      },
+      "name": "Uncle Tupelo",
+      "joinphrase": ""
+     }
+    ],
+    "title": "Factory Belt",
+    "disambiguation": ""
+   },
+   "type": "producer",
+   "source-credit": ""
+  },
+  {
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "source-credit": "",
+   "recording": {
+    "video": false,
+    "id": "fb6878bb-3436-473a-a170-908be6fc4ca6",
+    "length": 203120,
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "e8374874-4178-4869-b92e-fef6bf30dc04",
+       "sort-name": "Dropkick Murphys",
+       "name": "Dropkick Murphys",
+       "type-id": null,
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      },
+      "name": "Dropkick Murphys",
+      "joinphrase": ""
+     }
+    ],
+    "title": "Fortunate Son",
+    "disambiguation": ""
+   },
+   "type": "producer"
+  },
+  {
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "recording": {
+    "title": "Guns and the Young",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "type-id": null,
+       "name": "The Mighty Mighty Bosstones",
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "country": "US",
+       "disambiguation": "",
+       "type": null
+      },
+      "name": "The Mighty Mighty Bosstones"
+     }
+    ],
+    "video": false,
+    "id": "b90bcbaa-c5df-4f98-a311-1d96e25b08aa",
+    "length": 142733
+   },
+   "type": "producer",
+   "source-credit": ""
+  },
+  {
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "type": "producer",
+   "recording": {
+    "length": 172093,
+    "video": false,
+    "id": "f6b3f5ba-88d6-4df7-ba97-f269e5f4dff4",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "The Mighty Mighty Bosstones",
+      "artist": {
+       "disambiguation": "",
+       "country": "US",
+       "type": null,
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null
+      }
+     }
+    ],
+    "title": "High School Dance",
+    "disambiguation": ""
+   },
+   "source-credit": ""
+  },
+  {
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "attribute-ids": {},
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "title": "I Had My Chance",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Morphine",
+      "artist": {
+       "disambiguation": "rock band",
+       "country": "US",
+       "type": null,
+       "id": "42689657-cbec-4f66-a9ed-80f939ea23ed",
+       "sort-name": "Morphine",
+       "name": "Morphine",
+       "type-id": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "video": false,
+    "id": "f81afa06-3510-4c7e-95dc-9b694c358bfd",
+    "length": 185000
+   }
+  },
+  {
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "target-type": "recording",
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "source-credit": "",
+   "recording": {
+    "title": "Jennifer’s Body",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "Hole",
+      "artist": {
+       "id": "1dcc8968-f2cd-441c-beda-6270f70f2863",
+       "sort-name": "Hole",
+       "name": "Hole",
+       "type-id": null,
+       "disambiguation": "American alternative rock band",
+       "country": "US",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "length": 221400,
+    "video": false,
+    "id": "d1823f31-624c-4291-a1f5-2e4f2ef3ae47"
+   },
+   "type": "producer"
+  },
+  {
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "type": "producer",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Uncle Tupelo",
+      "artist": {
+       "name": "Uncle Tupelo",
+       "type-id": null,
+       "sort-name": "Uncle Tupelo",
+       "id": "95c043f1-0bdd-403a-b714-663908d7e4fc",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Left in the Dark",
+    "disambiguation": "",
+    "length": 190000,
+    "video": false,
+    "id": "294f167a-4bef-4337-8502-31f1211db79b"
+   },
+   "source-credit": ""
+  },
+  {
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "type": "producer",
+   "recording": {
+    "length": 197693,
+    "id": "cbc7458a-e140-4084-a03c-3c5b29bb854a",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "disambiguation": "f/k/a Tely",
+       "country": "US",
+       "type": null,
+       "id": "83237b6a-be97-4fdb-ba53-bc979721987f",
+       "sort-name": "Abandoned Pools",
+       "type-id": null,
+       "name": "Abandoned Pools"
+      },
+      "name": "Abandoned Pools",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Mercy Kiss"
+   },
+   "source-credit": ""
+  },
+  {
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "recording": {
+    "video": false,
+    "id": "a5f06c1c-2382-4be9-ac5e-fdd09a7e97d3",
+    "length": 59733,
+    "title": "New Boston Interlude",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "403bc4cd-602c-4b59-8379-05cb24f66aa6",
+       "sort-name": "Piebald",
+       "type-id": null,
+       "name": "Piebald",
+       "disambiguation": "US | rock",
+       "country": "US",
+       "type": null
+      },
+      "name": "Piebald"
+     }
+    ]
+   },
+   "type": "producer",
+   "source-credit": ""
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "length": 168733,
+    "video": false,
+    "id": "dfa1c1bd-1deb-427b-8533-4fd73433338f",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "type": null,
+       "country": "US",
+       "disambiguation": "",
+       "name": "Uncle Tupelo",
+       "type-id": null,
+       "sort-name": "Uncle Tupelo",
+       "id": "95c043f1-0bdd-403a-b714-663908d7e4fc"
+      },
+      "name": "Uncle Tupelo"
+     }
+    ],
+    "title": "Outdone",
+    "disambiguation": ""
+   },
+   "type": "producer",
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": []
+  },
+  {
+   "source-credit": "",
+   "recording": {
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Blood Oranges",
+      "artist": {
+       "disambiguation": "US alt-country",
+       "country": "US",
+       "type": null,
+       "id": "16236de9-401e-46ba-852c-8fe9ac578320",
+       "sort-name": "Blood Oranges",
+       "type-id": null,
+       "name": "Blood Oranges"
+      }
+     }
+    ],
+    "disambiguation": "",
+    "title": "Racehorse",
+    "id": "e1e14596-a57a-429b-80c6-98f9c162a084",
+    "video": false,
+    "length": 162951
+   },
+   "type": "producer",
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "direction": "forward",
+   "end": null,
+   "attributes": []
+  },
+  {
+   "attribute-ids": {},
+   "target-credit": "",
+   "ended": false,
+   "begin": null,
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Abandoned Pools",
+      "artist": {
+       "sort-name": "Abandoned Pools",
+       "type-id": null,
+       "name": "Abandoned Pools",
+       "id": "83237b6a-be97-4fdb-ba53-bc979721987f",
+       "type": null,
+       "disambiguation": "f/k/a Tely",
+       "country": "US"
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Seed",
+    "disambiguation": "",
+    "video": false,
+    "id": "3829b26e-f210-4262-abfd-7e0ac488b86c",
+    "length": 212400
+   },
+   "type": "producer",
+   "source-credit": ""
+  },
+  {
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "video": false,
+    "id": "b78f7e82-45f4-404f-8b70-7a8b133a51ed",
+    "length": 189906,
+    "title": "So Sad to Say",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "country": "US",
+       "disambiguation": "",
+       "type": null
+      },
+      "name": "The Mighty Mighty Bosstones"
+     }
+    ]
+   },
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward"
+  },
+  {
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "artist-credit": [
+     {
+      "name": "Abandoned Pools",
+      "artist": {
+       "id": "83237b6a-be97-4fdb-ba53-bc979721987f",
+       "name": "Abandoned Pools",
+       "type-id": null,
+       "sort-name": "Abandoned Pools",
+       "country": "US",
+       "disambiguation": "f/k/a Tely",
+       "type": null
+      },
+      "joinphrase": ""
+     }
+    ],
+    "title": "Suburban Muse",
+    "disambiguation": "",
+    "length": 232280,
+    "video": false,
+    "id": "ea7582c6-a283-4f13-a7ab-7c097dcfe142"
+   }
+  },
+  {
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "id": "cc1561ed-a396-4297-ab97-b28181995afe",
+    "video": false,
+    "length": 204453,
+    "disambiguation": "",
+    "title": "The Day He Didn’t Die",
+    "artist-credit": [
+     {
+      "artist": {
+       "type": null,
+       "country": "US",
+       "disambiguation": "",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b"
+      },
+      "name": "The Mighty Mighty Bosstones",
+      "joinphrase": ""
+     }
+    ]
+   }
+  },
+  {
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "end": null,
+   "attributes": [],
+   "direction": "forward",
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "video": false,
+    "id": "b73deece-ddd0-4e3f-9c34-b79da326a180",
+    "length": 180466,
+    "title": "The Skeleton Song",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "name": "The Mighty Mighty Bosstones",
+      "artist": {
+       "type-id": null,
+       "name": "The Mighty Mighty Bosstones",
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      },
+      "joinphrase": ""
+     }
+    ]
+   }
+  },
+  {
+   "recording": {
+    "length": 205906,
+    "id": "b0f00346-96ac-4b28-ad19-e3e0cbd04477",
+    "video": false,
+    "disambiguation": "",
+    "title": "Universal Heart‐Beat",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "type-id": null,
+       "name": "Juliana Hatfield",
+       "sort-name": "Hatfield, Juliana",
+       "id": "f8bf63aa-9bc9-4c03-8673-396cfd5d3cab",
+       "type": null,
+       "country": "US",
+       "disambiguation": ""
+      },
+      "name": "Juliana Hatfield"
+     }
+    ]
+   },
+   "type": "producer",
+   "source-credit": "",
+   "attribute-ids": {},
+   "target-credit": "",
+   "begin": null,
+   "ended": false,
+   "direction": "forward",
+   "end": null,
+   "attributes": [],
+   "target-type": "recording",
+   "attribute-values": {},
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0"
+  },
+  {
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "artist-credit": [
+     {
+      "artist": {
+       "type": null,
+       "disambiguation": "",
+       "country": "US",
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "name": "The Mighty Mighty Bosstones",
+       "type-id": null,
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b"
+      },
+      "name": "The Mighty Mighty Bosstones",
+      "joinphrase": ""
+     }
+    ],
+    "title": "What’s at Stake",
+    "disambiguation": "",
+    "length": 173466,
+    "video": false,
+    "id": "a08366b3-fed9-4675-8336-e44593286e0d"
+   },
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "target-type": "recording",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {}
+  },
+  {
+   "target-type": "recording",
+   "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+   "attribute-values": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-ids": {},
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "source-credit": "",
+   "type": "producer",
+   "recording": {
+    "length": 120706,
+    "video": false,
+    "id": "d5747bc6-732b-49ff-a353-985c0618d0a6",
+    "title": "Yes",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "artist": {
+       "sort-name": "Morphine",
+       "type-id": null,
+       "name": "Morphine",
+       "id": "42689657-cbec-4f66-a9ed-80f939ea23ed",
+       "type": null,
+       "disambiguation": "rock band",
+       "country": "US"
+      },
+      "name": "Morphine"
+     }
+    ]
+   }
+  },
+  {
+   "direction": "forward",
+   "attributes": [],
+   "end": null,
+   "attribute-ids": {},
+   "ended": false,
+   "target-credit": "",
+   "begin": null,
+   "attribute-values": {},
+   "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+   "target-type": "recording",
+   "recording": {
+    "length": 147866,
+    "id": "f4660f75-801b-4c5d-a3c4-3a0d948e5702",
+    "video": false,
+    "artist-credit": [
+     {
+      "artist": {
+       "id": "779353f3-6401-4cda-a8a2-6fd3ec9bc11b",
+       "sort-name": "Mighty Mighty Bosstones, The",
+       "type-id": null,
+       "name": "The Mighty Mighty Bosstones",
+       "disambiguation": "",
+       "country": "US",
+       "type": null
+      },
+      "name": "The Mighty Mighty Bosstones",
+      "joinphrase": ""
+     }
+    ],
+    "disambiguation": "",
+    "title": "Bronzing the Garbage"
+   },
+   "type": "recording",
+   "source-credit": ""
+  },
+  {
+   "type": "recording",
+   "recording": {
+    "video": false,
+    "id": "c09b05b1-8547-4fb4-b6ee-c74dcc6f7388",
+    "length": 102000,
+    "title": "Ride the Darker Wave",
+    "disambiguation": "",
+    "artist-credit": [
+     {
+      "joinphrase": "",
+      "name": "Sebadoh",
+      "artist": {
+       "country": "US",
+       "disambiguation": "US indie rock band",
+       "type": null,
+       "id": "d98c8149-0c01-4151-93e1-48fdc3d5027f",
+       "name": "Sebadoh",
+       "type-id": null,
+       "sort-name": "Sebadoh"
+      }
+     }
+    ]
+   },
+   "source-credit": "",
+   "attributes": [],
+   "end": null,
+   "direction": "forward",
+   "begin": null,
+   "target-credit": "",
+   "ended": false,
+   "attribute-ids": {},
+   "type-id": "a01ee869-80a8-45ef-9447-c59e91aa7926",
+   "attribute-values": {},
+   "target-type": "recording"
+  }
+ ],
+ "gender-id": "36d3d30a-839d-3eda-8cb3-29be4384e4a9",
+ "area": {
+  "disambiguation": "",
+  "type": null,
+  "id": "489ce91b-6658-3307-9877-795b68554c98",
+  "sort-name": "United States",
+  "type-id": null,
+  "name": "United States",
+  "iso-3166-1-codes": [
+   "US"
+  ]
+ },
+ "end-area": null,
+ "gender": "Male",
+ "disambiguation": "",
+ "begin-area": {
+  "disambiguation": "",
+  "id": "3e80aaa7-9b71-450f-8147-0ecf101d8f1a",
+  "sort-name": "Minneapolis",
+  "name": "Minneapolis",
+  "type": null,
+  "type-id": null
+ },
+ "sort-name": "Kolderie, Paul Q.",
+ "ipis": [],
+ "id": "61dd40ed-2d5f-46dc-b3f1-da0f1f76041c",
+ "type": "Person",
+ "country": "US",
+ "isnis": [
+  "0000000047261196"
+ ],
+ "life-span": {
+  "ended": false,
+  "begin": null,
+  "end": null
+ }
+}

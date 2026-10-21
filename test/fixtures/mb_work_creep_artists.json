@@ -1,0 +1,417 @@
+{
+ "type": "Song",
+ "iswcs": [
+  "T-071.180.847-7"
+ ],
+ "attributes": [
+  {
+   "type-id": "034f35ae-d250-3749-95e7-854e606d5960",
+   "value": "001997 337 07",
+   "type": "SUISA ID"
+  },
+  {
+   "type-id": "fd46ccc3-b3bb-4c5a-b40d-23b81899ef46",
+   "type": "SPAC ID",
+   "value": "3300152"
+  },
+  {
+   "type-id": "f15e9a05-231e-415b-8b7d-8ec44c736bde",
+   "value": "361861",
+   "type": "SPA ID"
+  },
+  {
+   "type-id": "00370bc6-7388-34a1-aa5b-b0e081ccb53d",
+   "type": "SOCAN ID",
+   "value": "12568087"
+  },
+  {
+   "value": "3300152",
+   "type": "SOBODAYCOM ID",
+   "type-id": "3667d8d9-9fe4-4df0-873b-4dc00a886d80"
+  },
+  {
+   "type-id": "2e4f9e12-d094-4bd0-b4dd-a560cc5c4977",
+   "value": "93307008300",
+   "type": "SIAE ID"
+  },
+  {
+   "type-id": "6a200b13-ca08-3b32-87a9-7aaa46368d75",
+   "type": "SGAE ID",
+   "value": "2.720.239"
+  },
+  {
+   "value": "3300152",
+   "type": "SGACEDOM ID",
+   "type-id": "33fe1f90-d812-48ef-839f-bc151afecaca"
+  },
+  {
+   "type-id": "4439b1a5-47da-4774-9caa-8b8589129297",
+   "type": "SAYCO ID",
+   "value": "6203709"
+  },
+  {
+   "value": "6203709",
+   "type": "SAYCE ID",
+   "type-id": "4bcbb212-a973-46ee-8160-e9f0f89ca6ef"
+  },
+  {
+   "type-id": "d8aa6512-314a-478d-bd30-e8d7411509cb",
+   "value": "734803",
+   "type": "SADAIC ID"
+  },
+  {
+   "value": "2082273",
+   "type": "SADAIC ID",
+   "type-id": "d8aa6512-314a-478d-bd30-e8d7411509cb"
+  },
+  {
+   "type-id": "91064561-0c00-4574-ad18-247c7216675f",
+   "type": "SACVEN ID",
+   "value": "2196173"
+  },
+  {
+   "type": "SACVEN ID",
+   "value": "3857633",
+   "type-id": "91064561-0c00-4574-ad18-247c7216675f"
+  },
+  {
+   "value": "3300152",
+   "type": "SACIM ID",
+   "type-id": "43b74305-291f-4ae3-9e59-0dca457c00fe"
+  },
+  {
+   "type-id": "d08147e2-d167-3c2b-bbe4-af6643a194f9",
+   "type": "SACEM ID",
+   "value": "93 044 097 01"
+  },
+  {
+   "type-id": "b2e4067b-a9e4-44fb-bfcd-3c1fc41dc06d",
+   "value": "350257500",
+   "type": "SABAM ID"
+  },
+  {
+   "value": "2355971Q",
+   "type": "PRS tune code",
+   "type-id": "cd76035f-b94e-4e47-850d-aa2cd825d1a6"
+  },
+  {
+   "type-id": "5ab3cd1a-b9ad-4244-8b32-b3a958d4ede6",
+   "type": "NICAUTOR ID",
+   "value": "3300152"
+  },
+  {
+   "type-id": "31048fcc-3dbb-3979-8f85-805afb933e0c",
+   "value": "0C5-8183-7",
+   "type": "JASRAC ID"
+  },
+  {
+   "value": "2862546-001",
+   "type": "GEMA ID",
+   "type-id": "01eeee67-f514-3801-bdce-279e04872f91"
+  },
+  {
+   "type-id": "d37a8c27-8f83-47c7-954d-175d35759990",
+   "type": "ECAD ID",
+   "value": "794315"
+  },
+  {
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641",
+   "value": "9962234",
+   "type": "COMPASS ID"
+  },
+  {
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641",
+   "value": "9962147",
+   "type": "COMPASS ID"
+  },
+  {
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641",
+   "type": "COMPASS ID",
+   "value": "9915750"
+  },
+  {
+   "type": "COMPASS ID",
+   "value": "1686538",
+   "type-id": "5ea37343-be89-4cd0-8a37-f471738df641"
+  },
+  {
+   "type-id": "a6492434-b847-4f1b-9869-9184ade990ed",
+   "value": "W-001009579",
+   "type": "BUMA/STEMRA ID"
+  },
+  {
+   "type-id": "a6492434-b847-4f1b-9869-9184ade990ed",
+   "value": "W-004251403",
+   "type": "BUMA/STEMRA ID"
+  },
+  {
+   "type-id": "d833318c-6c6a-370e-8b16-9cb15873ba76",
+   "value": "330472529",
+   "type": "ASCAP ID"
+  },
+  {
+   "type-id": "5e3b8fc2-3a4e-4a92-a572-6339863c1cf4",
+   "value": "4000682974",
+   "type": "ARTISJUS ID"
+  },
+  {
+   "value": "4000375824",
+   "type": "ARTISJUS ID",
+   "type-id": "5e3b8fc2-3a4e-4a92-a572-6339863c1cf4"
+  },
+  {
+   "type-id": "bdf50af8-0881-322a-8ab7-f031a4935d04",
+   "type": "APRA ID",
+   "value": "GW56485649"
+  },
+  {
+   "type-id": "bdf50af8-0881-322a-8ab7-f031a4935d04",
+   "value": "GW06336564",
+   "type": "APRA ID"
+  },
+  {
+   "type-id": "b66d6f47-2a58-4bc1-ac75-b44c47a198f8",
+   "type": "APDAYC ID",
+   "value": "2721174"
+  },
+  {
+   "value": "3102805",
+   "type": "APDAYC ID",
+   "type-id": "b66d6f47-2a58-4bc1-ac75-b44c47a198f8"
+  },
+  {
+   "type-id": "84afca1d-80dc-4d44-8d7a-e1e84e70aa65",
+   "type": "APA ID",
+   "value": "2167684"
+  },
+  {
+   "type": "AKM ID",
+   "value": "195836001",
+   "type-id": "eee68598-7f51-44a7-bd5a-fc728f1854d2"
+  },
+  {
+   "value": "6113489",
+   "type": "AGADU ID",
+   "type-id": "27ea7f59-9f9c-4aee-b31a-61109ac03819"
+  },
+  {
+   "type-id": "27ea7f59-9f9c-4aee-b31a-61109ac03819",
+   "value": "4310295",
+   "type": "AGADU ID"
+  },
+  {
+   "value": "3300152",
+   "type": "AEI ID",
+   "type-id": "d12e548d-4579-4ddd-abb6-9ffa4fee6826"
+  },
+  {
+   "type-id": "955305a2-58ec-4c64-94f7-7fb9b209416c",
+   "type": "ACAM ID",
+   "value": "2167684"
+  },
+  {
+   "type": "ACAM ID",
+   "value": "3300152",
+   "type-id": "955305a2-58ec-4c64-94f7-7fb9b209416c"
+  },
+  {
+   "type": "AACIMH ID",
+   "value": "3300152",
+   "type-id": "a9551cb7-ee2c-4b05-87b6-18ef0e549865"
+  }
+ ],
+ "id": "fa80b137-ebd1-3177-8fa4-416eb3ee52a2",
+ "disambiguation": "",
+ "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+ "language": "eng",
+ "languages": [
+  "eng"
+ ],
+ "title": "Creep",
+ "relations": [
+  {
+   "attribute-values": {},
+   "type": "composer",
+   "ended": false,
+   "artist": {
+    "disambiguation": "English bassist in Radiohead",
+    "id": "f23074f4-2c06-477a-bf1d-12fa66e087ee",
+    "sort-name": "Greenwood, Colin",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "name": "Colin Greenwood",
+    "type": "Person"
+   },
+   "attributes": [],
+   "attribute-ids": {},
+   "source-credit": "",
+   "target-credit": "",
+   "direction": "backward",
+   "target-type": "artist",
+   "begin": null,
+   "end": null,
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f"
+  },
+  {
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+   "target-type": "artist",
+   "end": null,
+   "begin": null,
+   "direction": "backward",
+   "target-credit": "",
+   "attributes": [],
+   "attribute-ids": {},
+   "source-credit": "",
+   "ended": false,
+   "artist": {
+    "disambiguation": "English musician and score composer",
+    "id": "e9fcfbbf-1743-4f73-8744-ada8da7394ea",
+    "sort-name": "Greenwood, Jonny",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "country": "GB",
+    "type": "Person",
+    "name": "Jonny Greenwood"
+   },
+   "attribute-values": {},
+   "type": "composer"
+  },
+  {
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+   "target-type": "artist",
+   "begin": null,
+   "end": null,
+   "direction": "backward",
+   "target-credit": "",
+   "source-credit": "",
+   "attributes": [],
+   "attribute-ids": {},
+   "artist": {
+    "name": "Albert Hammond",
+    "type": "Person",
+    "id": "364f3cef-442b-4182-ae78-4e7e79683c24",
+    "disambiguation": "",
+    "sort-name": "Hammond, Albert",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df"
+   },
+   "ended": false,
+   "type": "composer",
+   "attribute-values": {}
+  },
+  {
+   "attribute-values": {},
+   "type": "composer",
+   "ended": false,
+   "artist": {
+    "disambiguation": "",
+    "id": "9b581a9b-3bf0-4d93-b09e-96ccc9387795",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "sort-name": "Hazlewood, Mike",
+    "type": "Person",
+    "name": "Mike Hazlewood"
+   },
+   "attribute-ids": {},
+   "attributes": [],
+   "source-credit": "",
+   "target-credit": "",
+   "direction": "backward",
+   "end": null,
+   "begin": null,
+   "target-type": "artist",
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f"
+  },
+  {
+   "target-credit": "",
+   "source-credit": "",
+   "attributes": [],
+   "attribute-ids": {},
+   "artist": {
+    "type": "Person",
+    "name": "Ed O’Brien",
+    "sort-name": "O’Brien, Ed",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "id": "309d9809-cf74-493a-b56b-1378258f20fd",
+    "disambiguation": "guitarist & songwriter in Radiohead"
+   },
+   "ended": false,
+   "type": "composer",
+   "attribute-values": {},
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+   "end": null,
+   "begin": null,
+   "target-type": "artist",
+   "direction": "backward"
+  },
+  {
+   "direction": "backward",
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+   "target-type": "artist",
+   "end": null,
+   "begin": null,
+   "ended": false,
+   "artist": {
+    "type": "Person",
+    "name": "Philip Selway",
+    "disambiguation": "drummer in Radiohead",
+    "id": "4ab74d13-d1eb-4895-b874-6da5d8b1aac3",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "sort-name": "Selway, Philip"
+   },
+   "attribute-values": {},
+   "type": "composer",
+   "target-credit": "",
+   "attributes": [],
+   "attribute-ids": {},
+   "source-credit": ""
+  },
+  {
+   "direction": "backward",
+   "end": null,
+   "begin": null,
+   "target-type": "artist",
+   "type-id": "d59d99ea-23d4-4a80-b066-edca32ee158f",
+   "type": "composer",
+   "attribute-values": {},
+   "artist": {
+    "disambiguation": "",
+    "id": "8ed2e0b3-aa4c-4e13-bec3-dc7393ed4d6b",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "sort-name": "Yorke, Thom",
+    "name": "Thom Yorke",
+    "type": "Person"
+   },
+   "ended": false,
+   "source-credit": "",
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": ""
+  },
+  {
+   "direction": "backward",
+   "target-type": "artist",
+   "end": null,
+   "begin": null,
+   "type-id": "3e48faba-ec01-47fd-8e89-30e81161661c",
+   "type": "lyricist",
+   "attribute-values": {},
+   "artist": {
+    "name": "Thom Yorke",
+    "type": "Person",
+    "id": "8ed2e0b3-aa4c-4e13-bec3-dc7393ed4d6b",
+    "disambiguation": "",
+    "country": "GB",
+    "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+    "sort-name": "Yorke, Thom"
+   },
+   "ended": false,
+   "source-credit": "",
+   "attributes": [],
+   "attribute-ids": {},
+   "target-credit": ""
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "music-discovery",
+  "version": "0.1.0",
+  "description": "Desktop music discovery: Blind Taste Test, Sonic Passport, Liner Notes Trail",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^45.0.0"
+  }
+}
