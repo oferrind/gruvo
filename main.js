@@ -21,6 +21,8 @@ function createWindow() {
     win.webContents.once('did-finish-load', async () => {
       if (process.env.SNAP_JS) await win.webContents.executeJavaScript(process.env.SNAP_JS).catch(e => console.error('SNAP_JS', e));
       setTimeout(async () => {
+        win.webContents.invalidate(); // occluded windows stop painting; force a fresh frame
+        await new Promise(r => setTimeout(r, 500));
         fs.writeFileSync(process.env.SNAP, (await win.webContents.capturePage()).toPNG());
         app.quit();
       }, Number(process.env.SNAP_WAIT) || 2500);

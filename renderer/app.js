@@ -156,7 +156,7 @@ $('#mystery-play').onclick = () => { if (current !== mystery) return; audio.paus
 $('#blind-retry').onclick = () => { fails = 0; fill(); };
 audio.addEventListener('timeupdate', () => { if (current === mystery && audio.duration) $('#mystery-progress').value = audio.currentTime / audio.duration; });
 document.addEventListener('keydown', e => {
-  if ($('#blind').hidden || e.target.matches('input, select, textarea')) return;
+  if ($('#blind').hidden || e.target.matches?.('input, select, textarea')) return;
   if (e.key in { 1: 1, 2: 1, 3: 1 }) rate(['skip', 'ok', 'love'][e.key - 1]);
   else if (e.key === 'Enter' && rated && e.target === document.body) showMystery();
 });

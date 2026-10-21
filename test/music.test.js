@@ -75,7 +75,8 @@ test('candidate selection never repeats a heard artist', async () => {
 
 test('credits grouping for Creep', () => {
   const g = m.groupCredits(fx('mb_recording_creep'), fx('mb_work_creep_artists'));
-  const producers = g.find(x => x.role === 'producer').people.map(p => p.name);
+  assert.equal(g[0].role, 'producer');
+  const producers = g[0].people.map(p => p.name);
   assert.deepEqual(producers.sort(), ['Paul Q. Kolderie', 'Sean Slade']);
   assert.ok(g.find(x => x.role === 'composer'));
   assert.equal(g[g.length - 1].role, 'artist');

@@ -65,6 +65,8 @@ const pickRelated = (artists, fanCap, heard) =>
 // MB recording with the most relations.
 const bestRecording = recs => recs.filter(r => r && !r.error).sort((a, b) => (b.relations || []).length - (a.relations || []).length)[0] || null;
 
+const ROLE_ORDER = ['producer', 'engineer', 'mix', 'instrument', 'vocal', 'composer', 'lyricist', 'writer'];
+
 // Recording (+ optional work) relations -> [{role, people:[{id,name}]}], credited artists last.
 function groupCredits(rec, work) {
   const groups = new Map();
@@ -78,7 +80,8 @@ function groupCredits(rec, work) {
     add(r.attributes && r.attributes.length ? `${r.type} (${r.attributes.join(', ')})` : r.type, r.artist);
   }
   for (const r of (work && work.relations) || []) if (r['target-type'] === 'artist' && r.artist) add(r.type, r.artist);
-  const out = [...groups].map(([role, people]) => ({ role, people }));
+  const rank = role => { const i = ROLE_ORDER.indexOf(role.split(' ')[0]); return i < 0 ? ROLE_ORDER.length : i; };
+  const out = [...groups].map(([role, people]) => ({ role, people })).sort((a, b) => rank(a.role) - rank(b.role));
   const credited = (rec['artist-credit'] || []).map(c => c.artist).filter(Boolean);
   if (credited.length) out.push({ role: 'artist', people: credited.map(a => ({ id: a.id, name: a.name })) });
   return out;
