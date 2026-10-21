@@ -114,12 +114,22 @@ function like(t, extra = {}) {
   addHeard(t);
   save();
   afterLikeChange();
+  teach(t, 'love');
+}
+// Upsert this track's taste-model rating once its fingerprint is known (no preview / decode failure: nothing learned).
+function teach(t, kind) {
+  fingerprint(t).then(v => {
+    if (!v || (kind === 'love' && !isLiked(t))) return; // unloved while we were listening
+    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
+    save();
+  });
 }
 function unlike(t) {
   const old = profile.likes.find(l => likeKey(l) === likeKey(t));
   const sk = old && old.country && old.decade && `${old.country}-${old.decade}`;
   if (sk && profile.stamps[sk] && !--profile.stamps[sk]) delete profile.stamps[sk]; // R2: unloving undoes its stamp
   profile.likes = profile.likes.filter(l => likeKey(l) !== likeKey(t));
+  profile.ratings = profile.ratings.filter(r => r.id !== likeKey(t) || r.rating !== 'love');
   save();
   afterLikeChange();
 }
@@ -309,16 +319,12 @@ function rate(kind) {
   const m = mystery;
   const extra = m.country ? { country: m.country, decade: m.decade } : {};
   addHeard(m);
-  if (kind === 'love') like(m, extra);
+  if (kind === 'love') like(m, extra); else teach(m, kind); // every rating (Skip and OK too) teaches the taste model
   save();
   const reason = el('p', { className: 'reason', textContent: m.reason || '' });
-  // Every rating (Skip and OK too) teaches the taste model, once the track has been listened to.
   fingerprint(m).then(v => {
     reason.textContent = soundReason(m, v);
-    if (!v) return;
-    profile.ratings = [...profile.ratings, { id: likeKey(m), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
-    save();
-    fill();
+    if (v) fill();
   });
   setRateEnabled(false);
   $(`#rate [data-rate=${kind}]`).setAttribute('aria-pressed', true);
