@@ -409,12 +409,13 @@ $('#liner-search').addEventListener('submit', async e => {
   e.preventDefault();
   const q = $('#liner-q').value.trim();
   if (!q) return $('#liner-q').focus();
-  lnRun++;
+  const run = ++lnRun;
   crumbs = []; renderCrumbs();
   for (const id of ['#credits', '#trail', '#covers-list']) $(id).replaceChildren();
   $('#trail-title').hidden = true; $('#liner-subtabs').hidden = true;
   lnState('loading', `Searching for "${q}"…`);
   const hits = await call('searchTracks', q);
+  if (run !== lnRun) return; // a newer search or an opened track took over
   if (!hits) return lnState('error', "Couldn't reach Deezer. Check your connection.", { actions: [btn('Try again', () => $('#liner-search').requestSubmit(), 'primary')] });
   lnState(hits.length ? 'done' : 'empty', hits.length ? 'Pick the right song to see who made it.' : `No songs found for "${q}". Try artist and title, e.g. "Radiohead Creep".`);
   $('#liner-hits').replaceChildren(...hits.map(t => trackRow(t, { onOpen: () => { crumbs = []; $('#liner-hits').replaceChildren(); openTrack(t); } })));
