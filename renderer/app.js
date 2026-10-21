@@ -152,7 +152,10 @@ function rate(kind) {
 
 $('#rate').addEventListener('click', e => { if (e.target.dataset.rate) rate(e.target.dataset.rate); });
 $('#mystery-next').onclick = () => showMystery();
-$('#mystery-play').onclick = () => { if (current !== mystery) return; audio.paused ? audio.play().catch(() => {}) : audio.pause(); };
+$('#mystery-play').onclick = () => {
+  if (!mystery) return;
+  if (current !== mystery) return play(mystery, rated ? null : `Mystery #${n}`); // resume after playing something else
+  audio.paused ? audio.play().catch(() => {}) : audio.pause(); };
 $('#blind-retry').onclick = () => { fails = 0; fill(); };
 audio.addEventListener('timeupdate', () => { if (current === mystery && audio.duration) $('#mystery-progress').value = audio.currentTime / audio.duration; });
 document.addEventListener('keydown', e => {
