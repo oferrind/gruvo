@@ -78,21 +78,25 @@
     <section id="passport" class="panel" role="tabpanel" aria-labelledby="tab-passport" hidden>
       <div class="panel-head">
         <h1>Passport</h1>
-        <p class="muted">Pick a country and a decade. Love a track to collect that stamp.</p>
+        <p class="muted">Pick a decade and a country. Love a track to collect that stamp.</p>
       </div>
+      <div class="passport-layout">
       <div class="picker">
         <div class="field">
-          <label for="country-q">1. Country</label>
+          <span id="decade-label" class="label">1. Decade</span>
+          <div id="decades" class="chips" role="group" aria-labelledby="decade-label"></div>
+        </div>
+        <div class="field">
+          <label for="country-q">2. Country</label>
           <input id="country-q" type="search" placeholder="Type to filter, e.g. Japan" autocomplete="off" aria-controls="countries">
           <div id="countries" class="chips-groups" aria-label="Countries"></div>
         </div>
-        <div class="field">
-          <span id="decade-label" class="label">2. Decade</span>
-          <div id="decades" class="chips" role="group" aria-labelledby="decade-label"></div>
-        </div>
       </div>
-      <div id="passport-state" class="state" aria-live="polite"></div>
-      <ul id="passport-results" class="tracks"></ul>
+      <div class="results">
+        <div id="passport-state" class="state" aria-live="polite"></div>
+        <ul id="passport-results" class="tracks"></ul>
+      </div>
+      </div>
       <h2>Your stamps <span id="stamp-count" class="count">0</span></h2>
       <ul id="stamps" class="stamps"></ul>
     </section>

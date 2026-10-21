@@ -21,10 +21,10 @@ const call = (name, ...args) => api.call(name, ...args).catch(e => { console.err
 function setState(box, kind, msg, { actions = [], progress } = {}) {
   box.className = `state ${kind}`;
   box.setAttribute('aria-busy', kind === 'loading');
-  box.replaceChildren(
+  box.replaceChildren(...[
     msg ? el('p', {}, kind === 'loading' ? el('span', { className: 'spinner', ariaHidden: 'true' }) : null, msg) : null,
     progress ? el('progress', { max: progress[1], value: progress[0], ariaLabel: 'Progress' }) : null,
-    actions.length ? el('div', { className: 'row' }, ...actions) : null);
+    actions.length ? el('div', { className: 'row' }, ...actions) : null].filter(Boolean));
 }
 
 // ---------- player (one <audio> for the whole app) ----------
@@ -97,6 +97,9 @@ function renderNpLike() {
 }
 
 // ---------- likes / rows ----------
+// shortcut: heard is keyed by normalized name to match src/music.js; same-name artists still collide (R4), key on ids once src does too.
+const heardKey = name => norm(name) || String(name || '').trim().toLowerCase(); // symbol-only names ("!!!") would normalize to ''
+const addHeard = name => { const k = heardKey(name); if (k && !profile.heard.includes(k)) profile.heard.push(k); };
 const likeKey = t => `${t.source}:${t.id}`;
 const isLiked = t => profile.likes.some(l => likeKey(l) === likeKey(t));
 
@@ -106,11 +109,14 @@ function like(t, extra = {}) {
   const entry = { source, id, title, artist, artistDzId, cover, isrc, ...extra, ts: Date.now() };
   profile.likes.push(entry);
   if (entry.country && entry.decade) profile.stamps[`${entry.country}-${entry.decade}`] = (profile.stamps[`${entry.country}-${entry.decade}`] || 0) + 1;
-  if (!profile.heard.includes(norm(artist))) profile.heard.push(norm(artist));
+  addHeard(artist);
   save();
   afterLikeChange();
 }
 function unlike(t) {
+  const old = profile.likes.find(l => likeKey(l) === likeKey(t));
+  const sk = old && old.country && old.decade && `${old.country}-${old.decade}`;
+  if (sk && profile.stamps[sk] && !--profile.stamps[sk]) delete profile.stamps[sk]; // R2: unloving undoes its stamp
   profile.likes = profile.likes.filter(l => likeKey(l) !== likeKey(t));
   save();
   afterLikeChange();
@@ -119,6 +125,7 @@ function afterLikeChange() {
   $$('.love').forEach(b => b.sync && b.sync());
   $('#saved-count').textContent = profile.likes.length || '';
   renderStamps();
+  if (!$('#saved').hidden) renderSaved(); // R3: Saved reflects unloves immediately
 }
 
 function loveButton(t, extra) {
@@ -198,7 +205,7 @@ async function fill() {
   while (queue.length < 3) {
     const exclude = [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
     const c = await call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude, adventure: profile.adventure });
-    if (c && !profile.heard.includes(norm(c.artist)) && !exclude.includes(norm(c.artist))) {
+    if (c && !profile.heard.includes(heardKey(c.artist)) && !exclude.includes(norm(c.artist))) {
       fails = 0;
       queue.push(c);
       if (!mystery) showMystery();
@@ -218,7 +225,7 @@ function setRateEnabled(on) { $$('#rate button').forEach(b => { b.disabled = !on
 
 const playMystery = () => { const m = mystery; play(m, { label: `Mystery #${n}: rate it to reveal`, onFail: () => { // preview dead: drop silently, never offer this artist again
   if (mystery !== m || rated) return;
-  profile.heard.push(norm(m.artist)); save(); showMystery();
+  addHeard(m.artist); save(); showMystery();
 } }); };
 
 function showMystery() {
@@ -238,7 +245,7 @@ function showMystery() {
   $('#mystery').setAttribute('aria-busy', false);
   $('#mystery-title').textContent = `Mystery #${n}`;
   $('#mystery-play').disabled = false; setRateEnabled(true);
-  if (!introOpen) playMystery(); // first launch: wait until the user has read the intro
+  if (!$('#blind').hidden) playMystery(); // autoplay only where the user is looking (not over the intro or another tab)
   syncPlayState();
   fill();
 }
@@ -248,7 +255,7 @@ function rate(kind) {
   rated = true;
   const m = mystery;
   const extra = m.country ? { country: m.country, decade: m.decade } : {};
-  if (!profile.heard.includes(norm(m.artist))) profile.heard.push(norm(m.artist));
+  addHeard(m.artist);
   if (kind === 'love') like(m, extra);
   save();
   setRateEnabled(false);
@@ -320,7 +327,7 @@ function syncPicker() {
 function passportIdle() {
   const ideas = [['NG', 1970], ['JP', 1980], ['BR', 1960]];
   setState($('#passport-state'), 'empty', ppCountry ? `${countryNames[ppCountry]} selected. Now pick a decade.`
-    : ppDecade ? `${ppDecade}s selected. Now pick a country.` : 'Pick a country and a decade, or try one of these:',
+    : ppDecade ? `${ppDecade}s selected. Now pick a country.` : 'Pick a decade and a country, or try one of these:',
   { actions: ppCountry || ppDecade ? [] : ideas.map(([cc, d]) => btn(`${countryNames[cc]} · ${d}s`, () => runPassport(cc, d), 'chip')) });
 }
 function pickCountry(cc) { ppCountry = cc; syncPicker(); ppDecade ? runPassport(cc, ppDecade) : passportIdle(); }
