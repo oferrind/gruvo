@@ -15,13 +15,13 @@ function initCache(dir) {
 }
 
 function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushCache, 2000);
+  saveTimer ??= setTimeout(flushCache, 2000); // don't restart: steady traffic would postpone the save forever
 }
 
 function flushCache() {
   if (!cacheFile) return;
   clearTimeout(saveTimer);
+  saveTimer = null;
   prune(cache);
   try { fs.writeFileSync(cacheFile + '.tmp', JSON.stringify(cache)); fs.renameSync(cacheFile + '.tmp', cacheFile); }
   catch (e) { console.error('cache save failed', e.message); }
@@ -44,14 +44,14 @@ async function get(url, { fresh = false } = {}) {
   let u;
   try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
   const host = u.hostname;
-  if (u.protocol !== 'https:' || !(host in GAP)) return { error: { message: 'host not allowed' } };
+  if (u.protocol !== 'https:' || !Object.hasOwn(GAP, host)) return { error: { message: 'host not allowed' } };
   if (!fresh && isFresh(cache[url], url)) return cache[url].body;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     await slot(host);
     let res, body;
     try {
-      res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' } });
+      res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(15000) });
       if (host === 'musicbrainz.org' && res.status === 503 && attempt < 2) { await sleep(2000 * 2 ** attempt); continue; }
       if (!res.ok) return { error: { status: res.status } };
       body = await res.json();

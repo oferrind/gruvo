@@ -13,6 +13,9 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  // Never leave the app page: a remote page in this window would get window.api / window.store.
+  win.webContents.on('will-navigate', e => e.preventDefault());
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   // shortcut: test-only screenshot hook, active only when SNAP is set.
   // SNAP_JS runs in the page first; SNAP_WAIT (ms) is the delay before capture.

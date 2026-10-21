@@ -5,11 +5,15 @@ const TTL = { 'musicbrainz.org': 30 * DAY, 'itunes.apple.com': DAY, 'api.deezer.
 const ttlFor = url => TTL[new URL(url).hostname] ?? 0;
 const isFresh = (entry, url, now = Date.now()) => !!entry && now - entry.t < ttlFor(url);
 
-// Drops the oldest entries until the cache holds at most `cap`.
-function prune(cache, cap = 5000) {
-  const keys = Object.keys(cache);
-  if (keys.length <= cap) return cache;
-  keys.sort((a, b) => cache[a].t - cache[b].t).slice(0, keys.length - cap).forEach(k => delete cache[k]);
+// Drops expired entries (never served again), then the oldest until within `cap` entries and ~`maxBytes`.
+// MB artist/work bodies run 30-100 KB each, so an entry cap alone let the file reach tens of MB.
+function prune(cache, cap = 5000, maxBytes = 20e6, now = Date.now()) {
+  for (const k of Object.keys(cache)) if (!isFresh(cache[k], k, now)) delete cache[k];
+  let bytes = 0;
+  Object.keys(cache).sort((a, b) => cache[b].t - cache[a].t).forEach((k, i) => {
+    bytes += k.length + JSON.stringify(cache[k]).length;
+    if (i >= cap || bytes > maxBytes) delete cache[k];
+  });
   return cache;
 }
 
