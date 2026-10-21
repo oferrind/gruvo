@@ -25,3 +25,27 @@ Checked and found correct: MB 503 backoff (2 s, then 4 s, 3 tries), Deezer HTTP-
 - In-flight requests are not deduplicated. If two tabs ask for the same uncached MusicBrainz URL at once, both go through the 1.5 s queue. Also, Blind Test's background `fill()` shares the MusicBrainz queue with Liner Notes, so a credits lookup can wait behind a few explore queries (about 1.5 s each). I didn't measure this in practice.
 - `api:get` (preload) lets the renderer request any path on the three allowed hosts. The renderer doesn't use it today, so it could be removed to shrink the IPC surface, but the spec lists it, so I left it in.
 - `store.save` writes without fsync. On power loss a zero-length `profile.json` is possible. With fix 4 it is now moved aside rather than overwritten, but the likes would still be lost.
+
+# Round 2 (review of Agent 5's renderer diff, 68b35e9..7570f40)
+
+## Fixed
+
+1. **R4, heard keyed on ids.** `src/music.js` has `isHeard(heard, {dz, mb, name})`. It matches `dz:<id>` / `mb:<id>` entries and falls back to the normalized name, and it's used by `pickRelated`, `trailPicks` (picks now carry `mbid`) and `exploreCandidate`. The renderer stores `dz:<artistDzId>` when it knows the id, otherwise the name. `store.load` migrates old name-only entries of loved Deezer artists to their `dz:` ids. Other name entries keep working as before. Tests: music + store.
+2. **Saved focus loss.** After unloving a row, focus moves to the next row's Love button. If the list is now empty, it moves to the "Loved tracks" heading. Verified live.
+3. **Stale Liner search.** A slow `searchTracks` response could overwrite a newer search, or a track the user had opened in the meantime. It's now guarded by `lnRun`.
+4. **Lost stamp on re-love.** If you played a Saved track, unloved it, then pressed Love again in the now-playing bar, the track was saved without its country/decade and the Passport stamp was lost. Saved rows now pass `extra`.
+
+## Checked, no bug found
+
+- Listener leaks: rows use `onclick` properties, and the global listeners are attached once.
+- Shortcuts while typing: `#country-q` and `#liner-q` are inputs and are ignored.
+- localStorage: both accesses are in try/catch.
+- Autoplay: only fires when Blind is visible.
+- Passport and covers runs are guarded.
+- Stamp count goes back down on unlove (verified live).
+
+## Suspected, not confirmed
+
+- When the user switches back to the Credits sub-tab while covers are still loading, `loadCovers` keeps writing the "Finding cover previews" status line.
+- In the SNAP run, `capturePage` sometimes returns a frame from before the `SNAP_JS` actions. The console log showed the state after the actions. Screenshots taken with the hook are therefore not proof of the final state.
+- Not covered by the `isHeard` shortcut: a `dz:`-keyed artist isn't recognised when that same artist comes back only through an iTunes fallback, or as an MB trail name.
