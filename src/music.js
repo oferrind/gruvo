@@ -169,9 +169,26 @@ async function passportArtists(get, cc, decade, offset = 0) {
   return shuffle(dedupe(names));
 }
 
-async function exploreCandidate(get, heard, exclude, rand = Math.random) {
-  const cc = pickOne(Object.keys(ALL_CC), rand);
-  const decade = 1950 + 10 * Math.floor(rand() * 7);
+// Random-trip target. With chosen regions/decades, each axis follows them TRIP_BIAS of the time; the rest stays pure chance so discovery survives.
+const TRIP_BIAS = 0.7;
+function pickTrip(prefs = {}, rand = Math.random) {
+  const regions = (prefs.regions || []).filter(r => Object.hasOwn(COUNTRIES, r));
+  const decades = prefs.decades || [];
+  const ccs = regions.length && rand() < TRIP_BIAS ? regions.flatMap(r => Object.keys(COUNTRIES[r])) : Object.keys(ALL_CC);
+  const decade = decades.length && rand() < TRIP_BIAS ? pickOne(decades, rand) : 1950 + 10 * Math.floor(rand() * 7);
+  return { cc: pickOne(ccs, rand), decade };
+}
+
+// Artists the user listed in their preferences: never recommended (they know them already).
+const prefHeard = (prefs = {}) => (prefs.artists || []).flatMap(a => [`dz:${a.dzId}`, norm(a.name)]);
+
+// Deezer artist search rows -> exact name matches first, then by fans.
+const rankArtists = (rows, q) => (rows || []).filter(a => a && a.id != null && a.name)
+  .map(a => ({ dzId: a.id, name: a.name, fans: a.nb_fan || 0, exact: norm(a.name) === norm(q) }))
+  .sort((a, b) => b.exact - a.exact || b.fans - a.fans);
+
+async function exploreCandidate(get, heard, exclude, prefs, rand = Math.random) {
+  const { cc, decade } = pickTrip(prefs, rand);
   const names = (await passportArtists(get, cc, decade, Math.floor(rand() * 21)))
     .filter(n => !heard.includes(norm(n)) && !exclude.includes(norm(n)));
   for (const name of names.slice(0, 3)) {
@@ -226,12 +243,50 @@ async function trailCandidate(get, likes, heard, exclude, rand = Math.random) {
   return null;
 }
 
-// source: 'explore' | 'neighbour' | 'trail'; omitted = the Adventure mix (cold start).
-async function nextCandidate(get, { likes = [], heard = [], exclude = [], adventure = 50, source } = {}) {
-  source = source || chooseSource(adventure, likes.length);
-  const n = source === 'trail' ? await trailCandidate(get, likes, heard, exclude)
-    : source === 'neighbour' ? await neighbourCandidate(get, likes, heard, exclude, adventure) : null;
-  return n || exploreCandidate(get, heard, exclude);
+// A top track by one of Deezer's artists for a genre the user picked.
+async function genreCandidate(get, genres, heard, exclude, rand = Math.random) {
+  const g = pickOne(genres, rand);
+  if (!g) return null;
+  const skip = [...heard, ...exclude];
+  const res = await get(`${DZ}/genre/${enc(g.id)}/artists`);
+  const a = pickOne((res.data || []).filter(x => !isHeard(skip, { dz: x.id, name: x.name })), rand);
+  if (!a) return null;
+  const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
+  const t = pickOne((top.data || []).filter(r => r.preview), rand);
+  return t ? { ...fromDeezer(t), reason: `From the ${g.name} shelf`, via: `Deezer's ${g.name} artists, a genre you picked` } : null;
+}
+
+// source: 'explore' | 'neighbour' | 'trail' | 'genre'; omitted = the Adventure mix (cold start).
+// prefs: listed artists are never returned but feed the neighbour source; genres add a source; regions/decades bias random trips.
+async function nextCandidate(get, { likes = [], heard = [], exclude = [], adventure = 50, source, prefs = {} } = {}, rand = Math.random) {
+  heard = [...heard, ...prefHeard(prefs)];
+  const genres = prefs.genres || [];
+  const near = [...likes, ...(prefs.artists || []).map(a => ({ artist: a.name, artistDzId: a.dzId }))];
+  source = source || (genres.length && rand() < 0.25 ? 'genre' : chooseSource(adventure, near.length, rand()));
+  const n = source === 'trail' ? await trailCandidate(get, likes, heard, exclude, rand)
+    : source === 'neighbour' ? await neighbourCandidate(get, near, heard, exclude, adventure, rand)
+    : source === 'genre' ? await genreCandidate(get, genres, heard, exclude, rand) : null;
+  return n || exploreCandidate(get, heard, exclude, prefs, rand);
+}
+
+// Preferences step: Deezer genres (minus "All") and artist search.
+async function genres(get) {
+  const res = await get(`${DZ}/genre`);
+  return (res.data || []).filter(g => g.id > 0 && g.name).map(g => ({ id: g.id, name: g.name }));
+}
+async function searchArtists(get, q) {
+  const res = await get(`${DZ}/search/artist?q=${enc(q)}&limit=8`);
+  return rankArtists(res.data, q);
+}
+
+// Seed taste: a couple of top tracks per listed artist, to fingerprint as "love" seeds.
+async function seedTracks(get, artists, n = 2) {
+  const out = [];
+  for (const a of artists || []) {
+    const top = await get(`${DZ}/artist/${enc(a.dzId)}/top?limit=${n + 3}`);
+    out.push(...(top.data || []).filter(r => r.preview).slice(0, n).map(r => ({ ...fromDeezer(r), seedId: `seed:${a.dzId}:${r.id}` })));
+  }
+  return out;
 }
 
 async function searchTracks(get, q) {
@@ -283,6 +338,6 @@ async function covers(get, workId, originalArtist) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, coverArtists, dedupe,
-  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers },
+  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks },
 };

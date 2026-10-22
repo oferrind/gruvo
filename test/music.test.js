@@ -73,6 +73,50 @@ test('candidate selection never repeats a heard artist', async () => {
   assert.ok(heard.length >= 25);
 });
 
+test('random trips lean toward chosen regions/decades but keep pure randomness', () => {
+  const rand = seeded(7), prefs = { regions: ['Africa'], decades: [1970] };
+  const africa = Object.keys(m.COUNTRIES.Africa);
+  const trips = Array.from({ length: 2000 }, () => m.pickTrip(prefs, rand));
+  const inRegion = trips.filter(t => africa.includes(t.cc)).length / trips.length;
+  const inDecade = trips.filter(t => t.decade === 1970).length / trips.length;
+  assert.ok(inRegion > 0.65 && inRegion < 0.9, `region share ${inRegion}`); // ~0.7 + a little chance on the random branch
+  assert.ok(inDecade > 0.7 && inDecade < 0.85, `decade share ${inDecade}`);
+  assert.ok(trips.some(t => !africa.includes(t.cc)) && trips.some(t => t.decade !== 1970));
+  const free = Array.from({ length: 500 }, () => m.pickTrip({}, rand));
+  assert.ok(free.filter(t => africa.includes(t.cc)).length < 0.35 * 500); // no prefs: no bias
+});
+
+test('artists listed in preferences are never recommended; they seed the neighbour source', async () => {
+  const listed = { dzId: 27, name: 'Daft Punk' };
+  const urls = [];
+  const top = id => ({ data: [{ id: id * 10, title: 'T', preview: 'https://x.dzcdn.net/p.mp3', artist: { id, name: `A${id}` }, album: {} }] });
+  const get = async url => {
+    urls.push(url);
+    if (url.includes('/artist/27/related')) return { data: [{ id: 27, name: 'Daft Punk', nb_fan: 10 }, { id: 5, name: 'A5', nb_fan: 10 }] };
+    if (url.includes('/genre/152/artists')) return { data: [{ id: 27, name: 'Daft Punk' }, { id: 6, name: 'A6' }] };
+    const t = url.match(/\/artist\/(\d+)\/top/);
+    if (t) return t[1] === '27' ? { data: [{ id: 1, title: 'X', preview: 'https://x.dzcdn.net/p.mp3', artist: listed, album: {} }] } : top(Number(t[1]));
+    return { error: { message: 'no fixture' } };
+  };
+  const prefs = { artists: [listed], genres: [{ id: 152, name: 'Rock' }] };
+  for (const source of ['neighbour', 'genre']) for (let i = 0; i < 10; i++) {
+    const c = await m.flows.nextCandidate(get, { likes: [], heard: [], adventure: 0, source, prefs });
+    assert.ok(c && c.artistDzId !== 27 && c.artist !== 'Daft Punk', `${source} returned ${c && c.artist}`);
+  }
+  assert.ok(urls.some(u => u.includes('/artist/27/related')), 'listed artist used as a neighbour source');
+  assert.deepEqual(m.prefHeard(prefs), ['dz:27', 'daftpunk']);
+});
+
+test('artist search ranks exact name matches first, then by fans; seeds take top tracks with previews', async () => {
+  const rows = [{ id: 1, name: 'Daft Punk Tribute', nb_fan: 900 }, { id: 2, name: 'Daft Punk', nb_fan: 50 }, { id: 3, name: 'daft punk', nb_fan: 400 }];
+  assert.deepEqual(m.rankArtists(rows, 'Daft Punk').map(a => a.dzId), [3, 2, 1]);
+  const get = async () => ({ data: [{ id: 9, title: 'a', artist: { id: 2, name: 'B' }, album: {} },
+    { id: 10, title: 'b', preview: 'https://x.dzcdn.net/1.mp3', artist: { id: 2, name: 'B' }, album: {} },
+    { id: 11, title: 'c', preview: 'https://x.dzcdn.net/2.mp3', artist: { id: 2, name: 'B' }, album: {} },
+    { id: 12, title: 'd', preview: 'https://x.dzcdn.net/3.mp3', artist: { id: 2, name: 'B' }, album: {} }] });
+  assert.deepEqual((await m.flows.seedTracks(get, [{ dzId: 2, name: 'B' }])).map(t => t.seedId), ['seed:2:10', 'seed:2:11']);
+});
+
 test('trail source: producer of a loved track -> another artist they worked with, never a heard one', async () => {
   const urls = [];
   const get = async url => {
