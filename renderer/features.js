@@ -120,10 +120,10 @@
   const rank = (cands, ratings, adventure) =>
     cands.map(c => [score(c.vec, ratings, adventure), c]).sort((x, y) => y[0] - x[0]).map(x => x[1]);
 
-  // Human sentence comparing a track to its nearest love. names: rating id -> display name.
-  function explain(v, ratings, names) {
+  // Human sentence comparing a track to its nearest love. names: rating id -> display name. close: '' when the match is weak.
+  function explain(v, ratings, names, { close } = {}) {
     const L = nearest(v, ratings, 'love');
-    if (!L) return '';
+    if (!L || (close && L.d >= TMAX * 2 / 3)) return '';
     const l = L.r.features, name = names[L.r.id] || 'a track you loved';
     const both = (i, lo, hi) => (v[i] < lo && l[i] < lo) || (v[i] > hi && l[i] > hi);
     const bass = u => (u[6] + u[7]) / 2;
@@ -149,7 +149,23 @@
     return `A stretch from ${name}${diff.length ? `: ${diff.join(', ')}` : ''}${shared.length ? `, keeping the ${shared[0]}` : ''}`;
   }
 
-  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain };
+  // "Why you got this": a few phrasings per source, never the same one twice in a row. Returns [text, key]; pass key back as prev.
+  const WHY = {
+    trip: w => [`A random trip to ${w.place}`, `Picked at random from ${w.place}`, `A pin dropped on ${w.place}`, `A blind pick from ${w.place}`],
+    near: w => [`Because you loved ${w.artist}`, `A neighbour of ${w.artist}`, `In ${w.artist}’s orbit`, `One step from ${w.artist}`],
+    trail: w => [`${w.person}, ${w.role} on “${w.loved}”, ${w.also ? 'is on this one too' : 'worked with them'}`,
+      `Followed ${w.person} from “${w.loved}”`, `A thread from “${w.loved}”: its ${w.role}, ${w.person}`],
+    genre: w => [`From the ${w.genre} shelf`, `${w.genre}, a genre you picked`, `Pulled from your ${w.genre} picks`],
+  };
+  function whyLine(why, sound, prev, rand = Math.random) {
+    const all = WHY[why && why.kind] ? WHY[why.kind](why) : [];
+    const keys = all.map((_, i) => `${why.kind}:${i}`).filter(k => k !== prev);
+    const key = keys[Math.floor(rand() * keys.length)];
+    const head = key && all[key.split(':')[1]];
+    return [head && sound ? `${head} · ${sound[0].toLowerCase()}${sound.slice(1)}` : head || sound || '', key || prev];
+  }
+
+  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.Features = api;
 })(this);

@@ -107,8 +107,8 @@ const isLiked = t => profile.likes.some(l => likeKey(l) === likeKey(t));
 
 function like(t, extra = {}) {
   if (isLiked(t)) return;
-  const { source, id, title, artist, artistDzId, cover, isrc } = t;
-  const entry = { source, id, title, artist, artistDzId, cover, isrc, ...extra, ts: Date.now() };
+  const { source, id, title, artist, artistDzId, albumId, cover, isrc } = t;
+  const entry = { source, id, title, artist, artistDzId, albumId, cover, isrc, ...extra, ts: Date.now() };
   profile.likes.push(entry);
   if (entry.country && entry.decade) profile.stamps[`${entry.country}-${entry.decade}`] = (profile.stamps[`${entry.country}-${entry.decade}`] || 0) + 1;
   addHeard(t);
@@ -178,7 +178,7 @@ function trackRow(t, { extra, reason, onOpen, full } = {}) {
     t.cover ? el('img', { src: t.cover, alt: '', width: 48, height: 48 }) : el('span', { className: 'cover-ph', ariaHidden: 'true' }),
     playBtn,
     el('div', { className: 'meta' }, title, el('span', { className: 'artist', textContent: t.artist }),
-      reason ? el('small', { className: 'reason', textContent: reason }) : null, full ? fullSong(t) : null),
+      reason ? el('small', { className: 'reason', textContent: reason }) : null, full ? fullSong(t) : null, full ? aboutDetails(t) : null),
     loveButton(t, extra));
   row.dataset.key = likeKey(t);
   if (current && likeKey(current) === row.dataset.key) row.classList.add('is-playing');
@@ -264,11 +264,39 @@ function nextFromQueue() {
   return best;
 }
 
-// Reveal sentence: how it sounds next to your nearest love, plus where it came from.
+// "Why you got this": where it came from, plus the sound match only when it is close. Phrasing rotates between reveals.
+let lastWhy;
 function soundReason(m, v) {
   const names = { ...seedNames(), ...Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${l.title}” by ${l.artist}`])) };
-  const sound = v && window.Features ? Features.explain(v, profile.ratings.filter(r => r.id !== likeKey(m)), names) : '';
-  return sound && m.via ? `${sound}; found via ${m.via}` : sound || m.reason || '';
+  const sound = v && window.Features ? Features.explain(v, profile.ratings.filter(r => r.id !== likeKey(m)), names, { close: true }) : '';
+  if (!m.why) return sound || m.reason || '';
+  const [text, key] = Features.whyLine(m.why, sound, lastWhy);
+  lastWhy = key;
+  return text;
+}
+
+// About text (Wikipedia or a fact line) per track, fetched once: prefetched while the mystery plays, shown only after rating.
+const abouts = new Map();
+const aboutOf = t => abouts.get(likeKey(t)) || abouts.set(likeKey(t), call('about', plain(t)).then(a => a || { facts: {} })).get(likeKey(t));
+
+// Fills `box` with the about text, facts chips and source link; a skeleton line until it arrives.
+function aboutBlock(t) {
+  const box = el('div', { className: 'about', ariaBusy: 'true' }, el('p', { className: 'about-text is-loading', textContent: '…' }));
+  aboutOf(t).then(({ text, url, facts = {} }) => {
+    box.setAttribute('aria-busy', 'false');
+    const chips = [facts.album, facts.year, facts.label, facts.genre].filter(Boolean).map(f => el('li', { textContent: f }));
+    box.replaceChildren(...[
+      text && el('p', { className: 'about-text' }, text, ' ', url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'Wikipedia',
+        ariaLabel: 'Read more on Wikipedia (opens your browser)', onclick: () => api.open(url).catch(() => toast('Could not open the browser')) }) : null),
+      chips.length && el('ul', { className: 'facts', ariaLabel: 'Release details' }, ...chips)].filter(Boolean));
+  });
+  return box;
+}
+// Saved rows: the same About, fetched only when opened.
+function aboutDetails(t) {
+  const d = el('details', { className: 'about-more' }, el('summary', { textContent: 'About' }));
+  d.ontoggle = () => { if (d.open && d.children.length === 1) d.append(aboutBlock(t)); };
+  return d;
 }
 
 const excluded = () => [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
@@ -327,6 +355,7 @@ function showMystery() {
   $('#mystery').setAttribute('aria-busy', false);
   $('#mystery-title').textContent = 'Mystery track';
   $('#mystery-play').disabled = false; setRateEnabled(true);
+  aboutOf(mystery); // prefetch only; nothing reaches the DOM before the rating
   if (!$('#blind').hidden) playMystery(); // autoplay only where the user is looking (not over the intro or another tab)
   syncPlayState();
   fill();
@@ -340,7 +369,7 @@ function rate(kind) {
   addHeard(m);
   if (kind === 'love') like(m, extra); else teach(m, kind); // every rating (Skip and OK too) teaches the taste model
   save();
-  const reason = el('p', { className: 'reason', textContent: m.reason || '' });
+  const reason = el('p', { className: 'reason' });
   fingerprint(m).then(v => {
     reason.textContent = soundReason(m, v);
     if (v) fill();
@@ -354,6 +383,7 @@ function rate(kind) {
       el('p', { className: 'eyebrow', textContent: `You said ${{ skip: 'Skip', ok: 'OK', love: 'Love' }[kind]}. It was…` }),
       el('h3', { className: 'reveal-artist', textContent: m.artist }),
       el('p', { className: 'reveal-title', textContent: m.title }),
+      aboutBlock(m),
       reason,
       loveButton(m, extra), fullSong(m))));
   $('#mystery').classList.add('is-revealed');
