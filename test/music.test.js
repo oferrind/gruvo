@@ -124,7 +124,7 @@ test('artists listed in preferences are never recommended; they seed the neighbo
   for (const source of ['neighbour', 'genre']) for (let i = 0; i < 10; i++) {
     const c = await m.flows.nextCandidate(get, { likes: [], heard: [], adventure: 0, source, prefs });
     assert.ok(c && c.artistDzId !== 27 && c.artist !== 'Daft Punk', `${source} returned ${c && c.artist}`);
-    assert.doesNotMatch(`${c.reason} ${c.via}`, /Deezer|MusicBrainz|iTunes/, 'reason text never names the data source');
+    assert.doesNotMatch(`${c.reason} ${JSON.stringify(c.why)}`, /Deezer|MusicBrainz|iTunes|Wikipedia/, 'reason text never names the data source');
   }
   assert.ok(urls.some(u => u.includes('/artist/27/related')), 'listed artist used as a neighbour source');
   assert.deepEqual(m.prefHeard(prefs), ['dz:27', 'daftpunk']);
@@ -158,7 +158,9 @@ test('trail source: producer of a loved track -> another artist they worked with
   const likes = [{ recId: '70595637-9310-45f2-a266-58f8de4874a7', title: 'Creep', artist: 'Radiohead' }];
   const c = await m.flows.nextCandidate(get, { likes, heard: [], adventure: 50, source: 'trail' });
   assert.ok(c && !m.artistMatch(c.artist, 'Radiohead'));
-  assert.match(c.via, /^(Paul Q\. Kolderie|Sean Slade), (producer|engineer) on “Creep”, who /);
+  assert.match(c.why.person, /^(Paul Q\. Kolderie|Sean Slade)$/);
+  assert.match(c.why.role, /^(producer|engineer)$/);
+  assert.equal(c.why.loved, 'Creep');
   assert.ok(!urls.some(u => u.includes('itunes')));
   const again = await m.flows.nextCandidate(get, { likes, heard: [m.norm(c.artist)], adventure: 50, source: 'trail' });
   assert.ok(!again || m.norm(again.artist) !== m.norm(c.artist));

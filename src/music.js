@@ -4,6 +4,7 @@ const COUNTRIES = require('./countries');
 const DZ = 'https://api.deezer.com';
 const IT = 'https://itunes.apple.com';
 const MB = 'https://musicbrainz.org/ws/2';
+const WP = 'https://en.wikipedia.org';
 const enc = encodeURIComponent;
 const ALL_CC = Object.assign({}, ...Object.values(COUNTRIES));
 
@@ -53,7 +54,7 @@ function pickItunes(rows, artist, title, requireTitle = false) {
 }
 
 const fromDeezer = r => ({ source: 'dz', id: r.id, title: r.title, artist: r.artist.name, artistDzId: r.artist.id,
-  cover: r.album && r.album.cover_medium, isrc: r.isrc, previewUrl: r.preview });
+  cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, isrc: r.isrc, previewUrl: r.preview });
 const fromItunes = r => ({ source: 'it', id: r.trackId, title: r.trackName, artist: r.artistName,
   cover: r.artworkUrl100, previewUrl: r.previewUrl });
 
@@ -204,7 +205,7 @@ async function exploreCandidate(get, heard, exclude, prefs, rand = Math.random) 
     if (!t || isHeard(heard, { dz: t.artistDzId, name: t.artist }) || exclude.includes(norm(t.artist))) continue;
     // The MB query is on the artist's birth/formation year and the track is their top one from any year: claim no song decade.
     const who = `an artist born or formed ${decade - 20}–${decade + 9}`;
-    return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${who}`, via: `a random trip to ${ALL_CC[cc]} (${who})`, country: cc, decade };
+    return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${who}`, why: { kind: 'trip', place: ALL_CC[cc] }, country: cc, decade };
   }
   return null;
 }
@@ -226,7 +227,7 @@ async function neighbourCandidate(get, likes, heard, exclude, adventure, rand = 
   const a = pickOne(pool, rand);
   const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
   const t = pickOne((top.data || []).filter(r => r.preview), rand);
-  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, via: `artists related to ${loved.artist}` } : null;
+  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, why: { kind: 'near', artist: loved.artist } } : null;
 }
 
 const ROLE_WORD = { instrument: 'musician', vocal: 'singer', mix: 'mixer', 'mix-DJ': 'DJ' };
@@ -246,9 +247,8 @@ async function trailCandidate(get, likes, heard, exclude, rand = Math.random) {
     if (isHeard(skip, { mb: pick.mbid, name: pick.artist })) continue;
     const t = await resolvePreview(get, pick.artist, pick.title);
     if (!t || isHeard(skip, { dz: t.artistDzId, name: t.artist })) continue;
-    const on = `${person.name}, ${person.role} on “${loved.title}”`;
     return { ...t, reason: `Via ${person.name} (${person.role} on ${loved.title})`,
-      via: norm(t.title).includes(norm(pick.title)) ? `${on}, who was also ${roleWord(pick.role)} on this one` : `${on}, who also worked with this artist` };
+      why: { kind: 'trail', person: person.name, role: person.role, loved: loved.title, also: norm(t.title).includes(norm(pick.title)) ? roleWord(pick.role) : '' } };
   }
   return null;
 }
@@ -263,7 +263,7 @@ async function genreCandidate(get, genres, heard, exclude, rand = Math.random) {
   if (!a) return null;
   const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
   const t = pickOne((top.data || []).filter(r => r.preview), rand);
-  return t ? { ...fromDeezer(t), reason: `From the ${g.name} shelf`, via: `${g.name} artists, a genre you picked` } : null;
+  return t ? { ...fromDeezer(t), reason: `From the ${g.name} shelf`, why: { kind: 'genre', genre: g.name } } : null;
 }
 
 // source: 'explore' | 'neighbour' | 'trail' | 'genre'; omitted = the Adventure mix (cold start).
@@ -373,8 +373,91 @@ async function covers(get, workId, originalArtist) {
   return coverArtists(res.relations, originalArtist);
 }
 
+// ---------- About (reveal description) ----------
+
+const MUSIC = /\b(singer|band|musician|rapper|group|dj|composer|producer|songwriter|duo|trio|vocalist|guitarist|pianist|drummer|orchestra|ensemble|song|single|album)s?\b/i;
+const ABBR = /(?:\b(?:Mr|Mrs|Ms|Dr|St|Jr|Sr|vs|No|Vol|feat|ft|Bros|Inc|Ltd|Co)|\b[A-Z])\.$/;
+
+// First n sentences, cut at a sentence end ("Jr." / "St." / initials are not ends), at most ~max chars when n > 1.
+function trimSentences(text, n = 2, max = 320) {
+  const parts = String(text || '').replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s+(?=["“(]?[A-Z0-9])/);
+  const out = [];
+  for (const p of parts) {
+    if (out.length && ABBR.test(out[out.length - 1])) { out[out.length - 1] += ' ' + p; continue; }
+    if (out.length >= n || (out.length && (out.join(' ') + ' ' + p).length > max)) break;
+    out.push(p);
+  }
+  return out.join(' ');
+}
+
+// A Wikipedia REST summary counts only if it is plainly about music and names the artist (and, for a song page, the title).
+function wikiAccept(s, artist, title) {
+  if (!s || s.error || s.type === 'disambiguation' || !s.extract) return false;
+  const what = s.description || trimSentences(s.extract, 1);
+  const shown = norm(`${s.description || ''} ${trimSentences(s.extract)}`); // the artist must be named in what we show
+  if (!MUSIC.test(what) || !shown.includes(norm(artist))) return false;
+  if (title) return /\b(song|single|composition|instrumental)\b/i.test(what) && norm(s.title).includes(norm(title));
+  return norm(s.title.replace(/\s*\([^)]*\)$/, '')) === norm(artist) && !/\b(song|single|album)\b/i.test(what); // "Nirvana (band)", never "Mercury Rev" for Mercury
+}
+
+const andList = xs => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0] || '';
+
+// Natural sentence from the fields we have, nothing invented. a: MusicBrainz artist (search row); f: album facts.
+function factSentence(a, f = {}) {
+  const out = [];
+  if (a) {
+    const noun = { Group: 'band', Person: 'artist', Orchestra: 'orchestra', Choir: 'choir' }[a.type] || 'act';
+    const area = a.area && a.area.name, born = a['begin-area'] && a['begin-area'].name;
+    const year = ((a['life-span'] || {}).begin || '').slice(0, 4);
+    const tags = (a.tags || []).slice().sort((x, y) => y.count - x.count).slice(0, 3).map(t => t.name);
+    const verb = a.type === 'Person' ? 'born' : 'formed';
+    const when = [born && born !== area && `in ${born}`, year && `in ${year}`].filter(Boolean).join(' ');
+    if (area || when || tags.length)
+      out.push(`${/^[aeiou]/.test(noun) ? 'An' : 'A'} ${noun}${area ? ` from ${area}` : ''}${when ? `, ${verb} ${when}` : ''}${tags.length ? `, known for ${andList(tags)}` : ''}.`);
+  }
+  if (f.album) {
+    const kind = { single: 'single', ep: 'EP', compile: 'compilation' }[f.kind] || 'album';
+    out.push(`${out.length ? 'This track is from' : 'From'} the ${f.year ? `${f.year} ` : ''}${kind} “${f.album}”${f.label ? ` on ${f.label}` : ''}.`);
+  } else if (f.year) out.push(`Released in ${f.year}.`);
+  return out.join(' ');
+}
+
+const wikiSummary = (get, title) => get(`${WP}/api/rest_v1/page/summary/${enc(title.replace(/ /g, '_'))}`);
+const wikiSearch = async (get, q) => ((await get(`${WP}/w/api.php?action=query&list=search&srlimit=3&format=json&srsearch=${enc(q)}`)).query || {}).search || [];
+
+// Song page if it has one, else the artist's page; null when nothing passes wikiAccept.
+async function wikiAbout(get, artist, title) {
+  for (const r of await wikiSearch(get, `${title} ${artist} song`)) {
+    if (!norm(r.title).includes(norm(title))) continue;
+    const s = await wikiSummary(get, r.title);
+    if (wikiAccept(s, artist, title)) return s;
+  }
+  const direct = await wikiSummary(get, artist);
+  if (wikiAccept(direct, artist)) return direct;
+  for (const r of await wikiSearch(get, `${artist} musician band`)) {
+    if (!norm(r.title).startsWith(norm(artist)) || r.title === (direct && direct.title)) continue; // cheap pre-filter; wikiAccept is strict
+    const s = await wikiSummary(get, r.title);
+    if (wikiAccept(s, artist)) return s;
+  }
+  return null;
+}
+
+// Reveal description: { text, url (the Wikipedia page when that is the source), facts: { album, year, label, genre, kind } }.
+async function about(get, { source, id, albumId, title, artist }) {
+  if (!albumId && source === 'dz' && id) albumId = ((await get(`${DZ}/track/${enc(id)}`)).album || {}).id;
+  const al = albumId ? await get(`${DZ}/album/${enc(albumId)}`) : {};
+  const year = (al.release_date || '').slice(0, 4);
+  const genre = ((al.genres || {}).data || [])[0];
+  const facts = al.error ? {} : { album: al.title, year: year > '0000' ? year : undefined, label: al.label, genre: genre && genre.name, kind: al.record_type };
+  const w = await wikiAbout(get, artist, title);
+  if (w) return { text: trimSentences(w.extract), url: ((w.content_urls || {}).desktop || {}).page, facts };
+  const rows = ((await get(`${MB}/artist?query=${enc(`artist:"${artist}"`)}&limit=5&fmt=json`)).artists || [])
+    .filter(r => r.score >= 90 && norm(r.name) === norm(artist));
+  return { text: factSentence(new Set(rows.map(r => r.id)).size === 1 ? rows[0] : null, facts), facts }; // two same-name artists: say nothing about either
+}
+
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
-  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks },
+  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, coverArtists, dedupe, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks, about },
 };

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { isFresh, prune } = require('./cache');
 
-const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'itunes.apple.com': 3000 };
+const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'itunes.apple.com': 3000, 'en.wikipedia.org': 200 };
 const UA = 'MusicDiscovery/0.1 (you@example.com)';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
