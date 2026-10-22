@@ -406,10 +406,12 @@ const andList = xs => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs
 function factSentence(a, f = {}) {
   const out = [];
   if (a) {
-    const noun = { Group: 'band', Person: 'artist', Orchestra: 'orchestra', Choir: 'choir' }[a.type] || 'act';
+    const all = (a.tags || []).slice().sort((x, y) => y.count - x.count).map(t => t.name);
+    const role = a.type === 'Person' && all.find(t => MUSIC.test(t)); // "film composer" is what they are, not a style
+    const noun = role || { Group: 'band', Person: 'artist', Orchestra: 'orchestra', Choir: 'choir' }[a.type] || 'act';
     const area = a.area && a.area.name, born = a['begin-area'] && a['begin-area'].name;
     const year = ((a['life-span'] || {}).begin || '').slice(0, 4);
-    const tags = (a.tags || []).slice().sort((x, y) => y.count - x.count).slice(0, 3).map(t => t.name);
+    const tags = all.filter(t => !MUSIC.test(t)).slice(0, 3);
     const verb = a.type === 'Person' ? 'born' : 'formed';
     const when = [born && born !== area && `in ${born}`, year && `in ${year}`].filter(Boolean).join(' ');
     if (area || when || tags.length)
@@ -427,6 +429,7 @@ const wikiSearch = async (get, q) => ((await get(`${WP}/w/api.php?action=query&l
 
 // Song page if it has one, else the artist's page; null when nothing passes wikiAccept.
 async function wikiAbout(get, artist, title) {
+  title = title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || title; // "China (2015 Remaster)" -> "China"
   for (const r of await wikiSearch(get, `${title} ${artist} song`)) {
     if (!norm(r.title).includes(norm(title))) continue;
     const s = await wikiSummary(get, r.title);

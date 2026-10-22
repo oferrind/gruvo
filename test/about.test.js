@@ -30,6 +30,7 @@ test('fact sentence states only the fields it has', () => {
   assert.equal(m.factSentence(a, { album: 'X', year: '1975', label: 'Som Livre', kind: 'album' }),
     'A band from Brazil, formed in São Paulo in 1972, known for mpb and samba rock. This track is from the 1975 album “X” on Som Livre.');
   assert.equal(m.factSentence({ type: 'Person', area: { name: 'Mali' } }, {}), 'An artist from Mali.');
+  assert.equal(m.factSentence({ type: 'Person', area: { name: 'Vietnam' }, tags: [{ name: 'film composer', count: 1 }] }, {}), 'A film composer from Vietnam.');
   assert.equal(m.factSentence({ type: 'Group' }, { album: 'Y', kind: 'single' }), 'From the single “Y”.', 'no artist facts: album line only');
   assert.equal(m.factSentence(null, {}), '');
 });

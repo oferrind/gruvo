@@ -286,7 +286,7 @@ function aboutBlock(t) {
     box.setAttribute('aria-busy', 'false');
     const chips = [facts.album, facts.year, facts.label, facts.genre].filter(Boolean).map(f => el('li', { textContent: f }));
     box.replaceChildren(...[
-      text && el('p', { className: 'about-text' }, text, ' ', url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'Wikipedia',
+      text && el('p', { className: 'about-text' }, text, url ? ' ' : null, url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'Wikipedia',
         ariaLabel: 'Read more on Wikipedia (opens your browser)', onclick: () => api.open(url).catch(() => toast('Could not open the browser')) }) : null),
       chips.length && el('ul', { className: 'facts', ariaLabel: 'Release details' }, ...chips)].filter(Boolean));
   });
