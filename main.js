@@ -21,14 +21,18 @@ function createWindow() {
   // shortcut: test-only screenshot hook, active only when SNAP is set.
   // SNAP_JS runs in the page first; SNAP_WAIT (ms) is the delay before capture.
   if (process.env.SNAP) {
+    // A hung SNAP_JS, a failed capture or a load that never finishes left orphan test windows eating RAM: hard deadline.
+    setTimeout(() => app.exit(1), (Number(process.env.SNAP_WAIT) || 2500) + 60000);
     win.webContents.setAudioMuted(true);
     win.webContents.on('console-message', (e, ...a) => console.log('[page]', e.message ?? a[1]));
     win.webContents.once('did-finish-load', async () => {
       if (process.env.SNAP_JS) await win.webContents.executeJavaScript(process.env.SNAP_JS).catch(e => console.error('SNAP_JS', e));
       setTimeout(async () => {
-        win.webContents.invalidate(); // occluded windows stop painting; force a fresh frame
-        await new Promise(r => setTimeout(r, 500));
-        fs.writeFileSync(process.env.SNAP, (await win.webContents.capturePage()).toPNG());
+        try {
+          win.webContents.invalidate(); // occluded windows stop painting; force a fresh frame
+          await new Promise(r => setTimeout(r, 500));
+          fs.writeFileSync(process.env.SNAP, (await win.webContents.capturePage()).toPNG());
+        } catch (e) { console.error('SNAP capture', e); }
         app.quit();
       }, Number(process.env.SNAP_WAIT) || 2500);
     });
