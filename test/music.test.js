@@ -42,6 +42,16 @@ test('name-only pick refuses an ambiguous artist (live: Trinidad "Atlantik" reve
   assert.equal(m.pickItunes(it, 'Atlantik', ''), null);
 });
 
+test('search hits: named song first, then most popular, one row per song', async () => {
+  const get = fakeGet({ 'api.deezer.com/search': fx('dz_search_creep') });
+  const hits = await m.flows.searchTracks(get, 'radiohead creep');
+  assert.deepEqual(hits.slice(0, 3).map(h => `${h.artist} – ${h.title}`),
+    ['Radiohead – Creep', 'Glee Cast – Creep (Cover of Radiohead)', 'Thom Yorke – Creep (Very 2021 Rmx)']);
+  assert.ok(!hits.some(h => h.title === 'Creep (Acoustic)')); // same song, other version
+  const pop = m.sortHits(fx('dz_search_creep').data, 'xyz').map(r => r.rank);
+  assert.deepEqual(pop, pop.slice().sort((a, b) => b - a));
+});
+
 test('resolvePreview falls back to iTunes', async () => {
   const get = fakeGet({ 'api.deezer.com/search': { data: [] }, 'itunes.apple.com/search': fx('it_search_tezeta') });
   const t = await m.flows.resolvePreview(get, 'Hailu Mergia', 'Tezeta');

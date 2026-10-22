@@ -244,9 +244,19 @@ async function nextCandidate(get, { likes = [], heard = [], exclude = [], advent
   return n || exploreCandidate(get, heard, exclude);
 }
 
+// Search rows: title/artist named in the query first, then most popular (Deezer rank); one row per song across versions.
+function sortHits(rows, q) {
+  const nq = norm(q), has = s => !!s && nq.includes(s);
+  const base = r => norm(String(r.title).replace(/\s*[([].*$/, '')) || norm(r.title); // "Creep (Acoustic)" -> creep
+  const hit = r => 2 * has(base(r)) + has(norm(r.artist && r.artist.name)); // the title names the song; the artist alone doesn't
+  const seen = new Set();
+  return rows.slice().sort((a, b) => hit(b) - hit(a) || (b.rank || 0) - (a.rank || 0))
+    .filter(r => { const k = `${norm(r.artist && r.artist.name)}|${base(r)}`; return !seen.has(k) && seen.add(k); });
+}
+
 async function searchTracks(get, q) {
-  const res = await get(`${DZ}/search?q=${enc(q)}&limit=10`);
-  return (res.data || []).map(fromDeezer);
+  const res = await get(`${DZ}/search?q=${enc(q)}&limit=25`);
+  return sortHits(res.data || [], q).slice(0, 10).map(fromDeezer);
 }
 
 // Credits for a track: {recId} or {isrc, title, artist}.
@@ -293,6 +303,6 @@ async function covers(get, workId, originalArtist) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, coverArtists, dedupe,
+  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, sortHits,
   flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers },
 };
