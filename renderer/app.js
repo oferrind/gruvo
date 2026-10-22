@@ -430,10 +430,10 @@ async function runPassport(cc, decade) {
   const state = $('#passport-state');
   const list = $('#passport-results');
   list.replaceChildren();
-  setState(state, 'loading', `Asking MusicBrainz who made music in ${where}…`);
+  setState(state, 'loading', 'Searching…');
   const names = await call('passportArtists', cc, decade);
   if (run !== ppRun) return;
-  if (!names) return setState(state, 'error', "Couldn't reach MusicBrainz. Check your connection.", { actions: [btn('Try again', () => runPassport(cc, decade), 'primary')] });
+  if (!names) return setState(state, 'error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => runPassport(cc, decade), 'primary')] });
   const neighbours = () => [decade - 10, decade + 10].filter(d => DECADES.includes(d)).map(d => btn(`Try the ${d}s`, () => runPassport(cc, d)));
   if (!names.length) return setState(state, 'empty', `No recorded artists for ${where} yet.`, { actions: neighbours() });
   const misses = [], max = Math.min(30, names.length);
@@ -441,7 +441,7 @@ async function runPassport(cc, decade) {
   for (const name of names) {
     if (found >= 10 || tried >= 30) break;
     tried++;
-    setState(state, 'loading', `Finding playable tracks from ${where}: ${found} of 10 found. Tracks appear below as they arrive; this can take up to a minute.`, { progress: [tried, max] });
+    setState(state, 'loading', `Searching… ${found} of 10`, { progress: [tried, max] });
     const t = await call('resolvePreview', name);
     if (run !== ppRun) return;
     if (t) { found++; list.append(trackRow(t, { extra: { country: cc, decade }, reason: `${where}` })); } else misses.push(name);
@@ -483,7 +483,7 @@ $('#liner-search').addEventListener('submit', async e => {
   lnState('loading', `Searching for "${q}"…`);
   const hits = await call('searchTracks', q);
   if (run !== lnRun) return; // a newer search or an opened track took over
-  if (!hits) return lnState('error', "Couldn't reach Deezer. Check your connection.", { actions: [btn('Try again', () => $('#liner-search').requestSubmit(), 'primary')] });
+  if (!hits) return lnState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => $('#liner-search').requestSubmit(), 'primary')] });
   lnState(hits.length ? 'done' : 'empty', hits.length ? 'Pick the right song to see who made it.' : `No songs found for "${q}". Try artist and title, e.g. "Radiohead Creep".`);
   $('#liner-hits').replaceChildren(...hits.map(t => trackRow(t, { onOpen: () => { crumbs = []; $('#liner-hits').replaceChildren(); openTrack(t); } })));
 });
@@ -517,17 +517,17 @@ async function openTrack(t) {
   pushCrumb(`♪ ${t.title} (${t.artist})`, () => openTrack(t));
   $('#credits').replaceChildren(); $('#trail').replaceChildren(); $('#covers-list').replaceChildren();
   $('#trail-title').hidden = true; $('#liner-subtabs').hidden = true; showSub('credits');
-  lnState('loading', `Asking MusicBrainz who made "${t.title}"… (each step takes about 1.5 s)`);
+  lnState('loading', 'Searching…');
   const c = await call('credits', { recId: t.recId, isrc: t.isrc, title: t.title, artist: t.artist });
   if (run !== lnRun) return;
-  if (!c) return lnState('empty', `MusicBrainz has no record of "${t.title}" yet. Try another song.`, { actions: [btn('New search', () => $('#liner-q').focus())] });
+  if (!c) return lnState('empty', `No record of "${t.title}" yet. Try another song.`, { actions: [btn('New search', () => $('#liner-q').focus())] });
   lnState('', '');
   $('#liner-subtabs').hidden = !c.work;
   coverWork = c.work && { ...c.work, artist: c.artist, loaded: false };
   const box = $('#credits');
   box.append(el('h2', { textContent: `Who made "${c.title}"` }), el('p', { className: 'muted', textContent: `by ${c.artist}` }));
   if (!c.hasCredits) {
-    box.append(el('p', { className: 'state empty', textContent: `MusicBrainz has no credits for this recording yet.${c.work ? ' You can still hear its covers.' : ''}` }));
+    box.append(el('p', { className: 'state empty', textContent: `No credits for this recording yet.${c.work ? ' You can still hear its covers.' : ''}` }));
     if (c.country && countryNames[c.country]) box.append(btn(`Explore ${countryNames[c.country]} in Passport`,
       () => { showTab('passport'); runPassport(c.country, ppDecade || 1970); }));
     return;
@@ -549,14 +549,14 @@ async function openPerson(p, role, ctx) {
   list.replaceChildren();
   $('#trail-title').hidden = false;
   $('#trail-title').replaceChildren(`Other music ${p.name} worked on`, el('small', { className: 'muted', textContent: ` (${role} on ${ctx.artist} – ${ctx.title})` }));
-  lnState('loading', `Asking MusicBrainz about ${p.name}…`);
+  lnState('loading', 'Searching…');
   const picks = await call('personTrail', p.id, ctx.artist, profile.heard);
   if (run !== lnRun) return;
-  if (!picks) return lnState('error', "Couldn't reach MusicBrainz.", { actions: [btn('Try again', () => { crumbs.pop(); openPerson(p, role, ctx); }, 'primary')] });
+  if (!picks) return lnState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => { crumbs.pop(); openPerson(p, role, ctx); }, 'primary')] });
   if (!picks.length) return lnState('empty', `No other artists found for ${p.name}.`, { actions: [btn('← Back', () => $('#liner-back').click())] });
   let found = 0;
   for (const [i, pick] of picks.entries()) {
-    lnState('loading', `Finding previews: ${i + 1} of ${picks.length}. Select a title to follow the trail.`, { progress: [i + 1, picks.length] });
+    lnState('loading', `Searching… ${i + 1} of ${picks.length}`, { progress: [i + 1, picks.length] });
     const t = await call('resolvePreview', pick.artist, pick.title);
     if (run !== lnRun) return;
     if (!t) continue;
@@ -582,7 +582,7 @@ async function loadCovers(w) {
   coverHits = [];
   const list = $('#covers-list');
   list.replaceChildren();
-  lnState('loading', `Asking MusicBrainz for covers of "${w.title}"…`);
+  lnState('loading', 'Searching…');
   const names = (await call('covers', w.id, w.artist)) || [];
   if (run !== lnRun) return;
   let tried = 0;
@@ -590,12 +590,12 @@ async function loadCovers(w) {
   for (const name of names) {
     if (coverHits.length >= 8 || tried >= 25) break;
     tried++;
-    lnState('loading', `Finding cover previews: ${coverHits.length} found so far.`, { progress: [tried, max] });
+    lnState('loading', `Searching… ${tried} of ${max}`, { progress: [tried, max] });
     const t = await call('resolvePreview', name, w.title, true);
     if (run !== lnRun) return;
     if (t) { coverHits.push(t); list.append(trackRow(t, { reason: `Cover of ${w.artist}` })); }
   }
-  lnState(coverHits.length ? 'done' : 'empty', names.length ? `${coverHits.length} playable covers.` : 'No covers recorded in MusicBrainz.');
+  lnState(coverHits.length ? 'done' : 'empty', names.length ? `${coverHits.length} playable covers.` : 'No covers recorded yet.');
 }
 $('#spin').onclick = () => coverHits.length ? play(coverHits[Math.floor(Math.random() * coverHits.length)]) : toast('No covers loaded yet');
 

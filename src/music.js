@@ -209,7 +209,7 @@ async function neighbourCandidate(get, likes, heard, exclude, adventure, rand = 
   const a = pickOne(pool, rand);
   const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
   const t = pickOne((top.data || []).filter(r => r.preview), rand);
-  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, via: `Deezer's related artists of ${loved.artist}` } : null;
+  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, via: `artists related to ${loved.artist}` } : null;
 }
 
 const ROLE_WORD = { instrument: 'musician', vocal: 'singer', mix: 'mixer', 'mix-DJ': 'DJ' };
