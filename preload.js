@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('api', {
   audio: url => ipcRenderer.invoke('api:audio', url),
   call: (name, ...args) => ipcRenderer.invoke('api:call', name, ...args),
   countries: () => ipcRenderer.invoke('api:countries'),
+  open: url => ipcRenderer.invoke('shell:open', url),
 });
 contextBridge.exposeInMainWorld('store', {
   load: () => ipcRenderer.invoke('store:load'),

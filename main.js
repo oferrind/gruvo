@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { safeExternal } = require('./src/links');
 const fs = require('fs');
 const path = require('path');
 const net = require('./src/net');
@@ -41,6 +42,12 @@ ipcMain.handle('api:call', async (e, name, ...args) => {
   return flows[name](net.get, ...args);
 });
 ipcMain.handle('api:countries', () => COUNTRIES);
+// Full-song links open in the default browser, never in this window; only the https allowlist in src/links.js.
+ipcMain.handle('shell:open', (e, url) => {
+  const ok = safeExternal(url);
+  if (!ok) throw new Error('link not allowed');
+  return shell.openExternal(ok);
+});
 ipcMain.handle('store:load', () => store.load());
 ipcMain.handle('store:save', (e, profile) => store.save(profile));
 
