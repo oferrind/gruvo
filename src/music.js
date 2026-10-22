@@ -175,7 +175,20 @@ async function passportArtists(get, cc, decade, offset = 0) {
     const rel = await get(`${MB}/release?query=${enc(rq)}&limit=100&fmt=json`);
     names = names.concat(...(rel.releases || []).map(r => (r['artist-credit'] || []).map(c => c.name)));
   }
-  return shuffle(dedupe(names));
+  let out = shuffle(dedupe(names));
+  // A name two artists share (Greece's "Moist" vs Canada's) resolves to whichever is famous, under the wrong country: drop it.
+  // One OR query checks the first 40; shortcut: names past 40 go unchecked, fine while callers use only the first few.
+  const head = out.slice(0, 40);
+  const chk = await get(`${MB}/artist?query=${enc(head.map(n => `artist:"${n.replace(/["\\]/g, ' ')}"`).join(' OR '))}&limit=100&fmt=json`);
+  if (!chk.error) { const shared = sharedNames(chk.artists, head); out = out.filter(n => !shared.has(norm(n))); }
+  return out;
+}
+
+// Names (normalized) that more than one artist in `artists` carries exactly.
+function sharedNames(artists, names) {
+  const want = new Set(names.map(norm)), seen = new Map();
+  for (const a of artists || []) { const k = norm(a.name); if (want.has(k)) seen.set(k, (seen.get(k) || 0) + 1); }
+  return new Set([...seen].filter(([, c]) => c > 1).map(([k]) => k));
 }
 
 // Random-trip target. With chosen regions/decades, each axis follows them TRIP_BIAS of the time; the rest stays pure chance so discovery survives.
@@ -461,6 +474,6 @@ async function about(get, { source, id, albumId, title, artist }) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, coverArtists, dedupe, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, coverArtists, dedupe, sharedNames, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
   flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks, about },
 };

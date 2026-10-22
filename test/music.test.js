@@ -244,3 +244,9 @@ test('originalFirst: earliest popular same-title hit leads; unrelated older song
   assert.deepEqual(m.originalFirst(hits, undefined, 'hallelujah').rows, hits);
   assert.equal(m.originalFirst(hits, itRows, 'leonard cohen hallelujah').year, null);
 });
+
+test('sharedNames: a name two artists carry is flagged; unique and unrelated names are not', () => {
+  const artists = [{ name: 'Moist', country: 'GR' }, { name: 'Moist', country: 'CA' }, { name: 'Moist Boyz' }, { name: 'Socrates Drank the Conium' }];
+  const s = m.sharedNames(artists, ['Moist', 'Socrates Drank the Conium', 'Nobody']);
+  assert.deepEqual([...s], ['moist']);
+});
