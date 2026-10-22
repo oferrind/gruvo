@@ -263,7 +263,7 @@ async function genreCandidate(get, genres, heard, exclude, rand = Math.random) {
   if (!a) return null;
   const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
   const t = pickOne((top.data || []).filter(r => r.preview), rand);
-  return t ? { ...fromDeezer(t), reason: `From the ${g.name} shelf`, via: `Deezer's ${g.name} artists, a genre you picked` } : null;
+  return t ? { ...fromDeezer(t), reason: `From the ${g.name} shelf`, via: `${g.name} artists, a genre you picked` } : null;
 }
 
 // source: 'explore' | 'neighbour' | 'trail' | 'genre'; omitted = the Adventure mix (cold start).

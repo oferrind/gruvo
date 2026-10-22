@@ -124,6 +124,7 @@ test('artists listed in preferences are never recommended; they seed the neighbo
   for (const source of ['neighbour', 'genre']) for (let i = 0; i < 10; i++) {
     const c = await m.flows.nextCandidate(get, { likes: [], heard: [], adventure: 0, source, prefs });
     assert.ok(c && c.artistDzId !== 27 && c.artist !== 'Daft Punk', `${source} returned ${c && c.artist}`);
+    assert.doesNotMatch(`${c.reason} ${c.via}`, /Deezer|MusicBrainz|iTunes/, 'reason text never names the data source');
   }
   assert.ok(urls.some(u => u.includes('/artist/27/related')), 'listed artist used as a neighbour source');
   assert.deepEqual(m.prefHeard(prefs), ['dz:27', 'daftpunk']);
