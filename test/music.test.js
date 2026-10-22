@@ -30,6 +30,28 @@ test('pickDeezer prefers title match, rejects wrong artist', () => {
   assert.ok(m.pickDeezer(rows, 'Radiohead', 'Paranoid Android'));
 });
 
+test('name-only pick refuses an ambiguous artist (live: Trinidad "Atlantik" revealed as the German band)', () => {
+  const row = (id, name, title, rank) => ({ id: title, title, rank, preview: 'p', artist: { id, name } });
+  // Real Deezer "Atlantik" search: two different artists share the name.
+  const atl = [row(1462393, 'Ardian Bujupi', 'Atlantik', 238198), row(254159, 'Atlantik', 'Gezeitenkoenig', 158056), row(10024010, 'Atlantik', 'All Aboard', 118048)];
+  assert.equal(m.pickDeezer(atl, 'Atlantik', ''), null);
+  // A more popular substring-name artist must not beat the exact one.
+  const mario = [row(1, 'Mario Lanza', 'Be My Love', 900), row(2, 'Mario', 'Let Me Love You', 100)];
+  assert.equal(m.pickDeezer(mario, 'Mario', '').artist.id, 2);
+  const it = [{ artistId: 1, artistName: 'Atlantik', trackName: 'A', previewUrl: 'p' }, { artistId: 2, artistName: 'Atlantik', trackName: 'B', previewUrl: 'p' }];
+  assert.equal(m.pickItunes(it, 'Atlantik', ''), null);
+});
+
+test('search hits: named song first, then most popular, one row per song', async () => {
+  const get = fakeGet({ 'api.deezer.com/search': fx('dz_search_creep') });
+  const hits = await m.flows.searchTracks(get, 'radiohead creep');
+  assert.deepEqual(hits.slice(0, 3).map(h => `${h.artist} – ${h.title}`),
+    ['Radiohead – Creep', 'Glee Cast – Creep (Cover of Radiohead)', 'Thom Yorke – Creep (Very 2021 Rmx)']);
+  assert.ok(!hits.some(h => h.title === 'Creep (Acoustic)')); // same song, other version
+  const pop = m.sortHits(fx('dz_search_creep').data, 'xyz').map(r => r.rank);
+  assert.deepEqual(pop, pop.slice().sort((a, b) => b - a));
+});
+
 test('resolvePreview falls back to iTunes', async () => {
   const get = fakeGet({ 'api.deezer.com/search': { data: [] }, 'itunes.apple.com/search': fx('it_search_tezeta') });
   const t = await m.flows.resolvePreview(get, 'Hailu Mergia', 'Tezeta');

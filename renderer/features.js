@@ -127,8 +127,10 @@
     const l = L.r.features, name = names[L.r.id] || 'a track you loved';
     const both = (i, lo, hi) => (v[i] < lo && l[i] < lo) || (v[i] > hi && l[i] > hi);
     const bass = u => (u[6] + u[7]) / 2;
+    const beat = v[5] > 0.3 && l[5] > 0.3; // tempo of soft, sparse audio is a guess: only talk tempo when both have clear onsets
+    const octave = Math.abs(Math.abs(log2(bpmOf(v) / bpmOf(l))) - 1) < 0.08; // half/double reads as the same feel, not faster/slower
     const shared = [
-      Math.abs(bpmOf(v) / bpmOf(l) - 1) < 0.06 && `${v[5] > 0.4 ? 'driving' : 'steady'} ~${bpmOf(l)} BPM pulse`,
+      beat && Math.abs(bpmOf(v) / bpmOf(l) - 1) < 0.06 && `${v[5] > 0.45 && v[1] > 0.5 ? 'driving' : 'steady'} ~${bpmOf(l)} BPM pulse`,
       both(3, 0.35, 0.65) && (v[3] < 0.35 ? 'dark, warm tone' : 'bright, airy top end'),
       bass(v) > 0.8 && bass(l) > 0.8 && 'deep low end',
       both(5, 0.15, 0.45) && (v[5] > 0.45 ? 'busy, percussive rhythm' : 'sparse, gentle rhythm'),
@@ -137,9 +139,9 @@
     ].filter(Boolean).slice(0, 2);
     if (L.d < TMAX / 3) return shared.length ? `Same ${shared.join(' and ')} as ${name}` : `Sounds closest to ${name} among your loves`;
     const diff = [
-      Math.abs(v[0] - l[0]) > 0.1 && (v[0] > l[0] ? 'faster' : 'slower'),
-      Math.abs(v[3] - l[3]) > 0.1 && (v[3] > l[3] ? 'brighter' : 'darker'),
-      Math.abs(v[5] - l[5]) > 0.1 && (v[5] > l[5] ? 'more percussive' : 'calmer'),
+      beat && !octave && Math.abs(v[0] - l[0]) > 0.1 && (v[0] > l[0] ? 'faster' : 'slower'),
+      !both(3, 0.35, 0.65) && Math.abs(v[3] - l[3]) > 0.1 && (v[3] > l[3] ? 'brighter' : 'darker'), // never "bright top end ... but darker"
+      !both(5, 0.15, 0.45) && Math.abs(v[5] - l[5]) > 0.1 && (v[5] > l[5] ? 'more percussive' : 'calmer'),
       Math.abs(v[4] - l[4]) > 0.1 && (v[4] > l[4] ? 'noisier' : 'cleaner'),
     ].filter(Boolean).slice(0, 3);
     const but = diff.length ? ` but ${diff.join(', ')}` : '';

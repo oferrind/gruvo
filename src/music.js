@@ -25,6 +25,14 @@ function shuffle(arr, rand = Math.random) {
 
 const pickOne = (arr, rand = Math.random) => arr[Math.floor(rand() * arr.length)];
 
+// No title to check the row against: trust only one artist. Exact-name rows beat substring ones; two different
+// artists with that name (Trinidad's soca "Atlantik" vs Germany's) = we can't tell which was meant, so none.
+function soleArtist(rows, artist, nameOf, idOf) {
+  const exact = rows.filter(r => norm(nameOf(r)) === norm(artist));
+  const pool = exact.length ? exact : rows;
+  return new Set(pool.map(idOf)).size > 1 ? [] : pool;
+}
+
 // Deezer search rows -> best row for artist/title, or null.
 function pickDeezer(rows, artist, title, requireTitle = false) {
   const ok = (rows || []).filter(r => r.preview && artistMatch(r.artist && r.artist.name, artist));
@@ -32,7 +40,7 @@ function pickDeezer(rows, artist, title, requireTitle = false) {
   const titled = t ? ok.filter(r => norm(r.title).includes(t)) : [];
   if (titled.length) return titled[0];
   if (requireTitle && t) return null;
-  return ok.sort((a, b) => (b.rank || 0) - (a.rank || 0))[0] || null;
+  return soleArtist(ok, artist, r => r.artist.name, r => r.artist.id).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0] || null;
 }
 
 function pickItunes(rows, artist, title, requireTitle = false) {
@@ -41,7 +49,7 @@ function pickItunes(rows, artist, title, requireTitle = false) {
   const titled = t ? ok.filter(r => norm(r.trackName).includes(t)) : [];
   if (titled.length) return titled[0];
   if (requireTitle && t) return null;
-  return ok[0] || null;
+  return soleArtist(ok, artist, r => r.artistName, r => r.artistId)[0] || null;
 }
 
 const fromDeezer = r => ({ source: 'dz', id: r.id, title: r.title, artist: r.artist.name, artistDzId: r.artist.id,
@@ -193,8 +201,10 @@ async function exploreCandidate(get, heard, exclude, prefs, rand = Math.random) 
     .filter(n => !heard.includes(norm(n)) && !exclude.includes(norm(n)));
   for (const name of names.slice(0, 3)) {
     const t = await resolvePreview(get, name);
-    if (t && !isHeard(heard, { dz: t.artistDzId, name: t.artist }) && !exclude.includes(norm(t.artist)))
-      return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${decade}s`, via: `a random trip to ${ALL_CC[cc]}, ${decade}s`, country: cc, decade };
+    if (!t || isHeard(heard, { dz: t.artistDzId, name: t.artist }) || exclude.includes(norm(t.artist))) continue;
+    // The MB query is on the artist's birth/formation year and the track is their top one from any year: claim no song decade.
+    const who = `an artist born or formed ${decade - 20}–${decade + 9}`;
+    return { ...t, reason: `Random trip: ${ALL_CC[cc]}, ${who}`, via: `a random trip to ${ALL_CC[cc]} (${who})`, country: cc, decade };
   }
   return null;
 }
@@ -216,7 +226,7 @@ async function neighbourCandidate(get, likes, heard, exclude, adventure, rand = 
   const a = pickOne(pool, rand);
   const top = await get(`${DZ}/artist/${a.id}/top?limit=5`);
   const t = pickOne((top.data || []).filter(r => r.preview), rand);
-  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, via: `Deezer's related artists of ${loved.artist}` } : null;
+  return t ? { ...fromDeezer(t), reason: `Near ${loved.artist}`, via: `artists related to ${loved.artist}` } : null;
 }
 
 const ROLE_WORD = { instrument: 'musician', vocal: 'singer', mix: 'mixer', 'mix-DJ': 'DJ' };
@@ -290,9 +300,19 @@ async function seedTracks(get, artists, n = 2) {
   return out;
 }
 
+// Search rows: title/artist named in the query first, then most popular (Deezer rank); one row per song across versions.
+function sortHits(rows, q) {
+  const nq = norm(q), has = s => !!s && nq.includes(s);
+  const base = r => norm(String(r.title).replace(/\s*[([].*$/, '')) || norm(r.title); // "Creep (Acoustic)" -> creep
+  const hit = r => 2 * has(base(r)) + has(norm(r.artist && r.artist.name)); // the title names the song; the artist alone doesn't
+  const seen = new Set();
+  return rows.slice().sort((a, b) => hit(b) - hit(a) || (b.rank || 0) - (a.rank || 0))
+    .filter(r => { const k = `${norm(r.artist && r.artist.name)}|${base(r)}`; return !seen.has(k) && seen.add(k); });
+}
+
 async function searchTracks(get, q) {
-  const res = await get(`${DZ}/search?q=${enc(q)}&limit=10`);
-  return (res.data || []).map(fromDeezer);
+  const res = await get(`${DZ}/search?q=${enc(q)}&limit=25`);
+  return sortHits(res.data || [], q).slice(0, 10).map(fromDeezer);
 }
 
 // Credits for a track: {recId} or {isrc, title, artist}.
@@ -339,6 +359,6 @@ async function covers(get, workId, originalArtist) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, sortHits, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
   flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks },
 };
