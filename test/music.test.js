@@ -149,7 +149,10 @@ test('trail source: producer of a loved track -> another artist they worked with
     if (url.includes('/work/')) return fx('mb_work_creep_artists');
     if (url.includes('inc=recording-rels')) return fx('mb_artist_kolderie');
     const q = decodeURIComponent(url.split('q=')[1] || '').replace(/&limit.*/, '');
-    if (url.includes('api.deezer.com/search')) return { data: [{ id: 5, title: q, rank: 1, preview: 'https://x.dzcdn.net/p.mp3', artist: { id: q.length, name: q }, album: {} }] };
+    // q is "<artist> <title>" with no marker between them: offer every split, longest artist first, like a real catalogue.
+    const w = q.split(' ');
+    if (url.includes('api.deezer.com/search')) return { data: w.map((_, i) => w.length - i).map(k =>
+      ({ id: k, title: w.slice(k).join(' '), rank: 1, preview: 'https://x.dzcdn.net/p.mp3', artist: { id: k, name: w.slice(0, k).join(' ') }, album: {} })) };
     return { error: { message: 'no fixture' } };
   };
   const likes = [{ recId: '70595637-9310-45f2-a266-58f8de4874a7', title: 'Creep', artist: 'Radiohead' }];
