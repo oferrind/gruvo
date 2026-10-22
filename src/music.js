@@ -182,10 +182,10 @@ function pickTrip(prefs = {}, rand = Math.random) {
 // Artists the user listed in their preferences: never recommended (they know them already).
 const prefHeard = (prefs = {}) => (prefs.artists || []).flatMap(a => [`dz:${a.dzId}`, norm(a.name)]);
 
-// Deezer artist search rows -> exact name matches first, then by fans.
+// Deezer artist search rows -> by fans, an exact name match counting 10x (so a half-typed "Nirv" doesn't beat Nirvana).
 const rankArtists = (rows, q) => (rows || []).filter(a => a && a.id != null && a.name)
-  .map(a => ({ dzId: a.id, name: a.name, fans: a.nb_fan || 0, exact: norm(a.name) === norm(q) }))
-  .sort((a, b) => b.exact - a.exact || b.fans - a.fans);
+  .map(a => ({ dzId: a.id, name: a.name, fans: a.nb_fan || 0, w: (a.nb_fan || 0) * (norm(a.name) === norm(q) ? 10 : 1) }))
+  .sort((a, b) => b.w - a.w).map(({ w, ...a }) => a);
 
 async function exploreCandidate(get, heard, exclude, prefs, rand = Math.random) {
   const { cc, decade } = pickTrip(prefs, rand);
@@ -263,7 +263,8 @@ async function nextCandidate(get, { likes = [], heard = [], exclude = [], advent
   const genres = prefs.genres || [];
   const near = [...likes, ...(prefs.artists || []).map(a => ({ artist: a.name, artistDzId: a.dzId }))];
   source = source || (genres.length && rand() < 0.25 ? 'genre' : chooseSource(adventure, near.length, rand()));
-  const n = source === 'trail' ? await trailCandidate(get, likes, heard, exclude, rand)
+  const n = source === 'trail' ? (await trailCandidate(get, likes, heard, exclude, rand)) // no loved tracks yet: listed artists stand in
+      || (prefs.artists || []).length && await neighbourCandidate(get, near, heard, exclude, adventure, rand)
     : source === 'neighbour' ? await neighbourCandidate(get, near, heard, exclude, adventure, rand)
     : source === 'genre' ? await genreCandidate(get, genres, heard, exclude, rand) : null;
   return n || exploreCandidate(get, heard, exclude, prefs, rand);

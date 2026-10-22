@@ -16,6 +16,7 @@
       <button role="tab" id="tab-passport" data-tab="passport" aria-controls="passport" aria-selected="false" tabindex="-1">Passport</button>
       <button role="tab" id="tab-liner" data-tab="liner" aria-controls="liner" aria-selected="false" tabindex="-1">Liner Notes</button>
       <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
+      <button role="tab" id="tab-prefs" data-tab="prefs" aria-controls="prefs" aria-selected="false" tabindex="-1">Preferences</button>
     </nav>
     <button id="theme-toggle" type="button" class="theme-toggle ghost" aria-label="Dark theme" aria-pressed="true" title="Switch between light and dark"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
   </header>
@@ -143,6 +144,41 @@
       <ul id="saved-stamps" class="stamps"></ul>
       <h2>Loved tracks <span id="saved-like-count" class="count">0</span></h2>
       <ul id="saved-list" class="tracks"></ul>
+    </section>
+
+    <!-- Preferences: first-launch step, editable later -->
+    <section id="prefs" class="panel" role="tabpanel" aria-labelledby="tab-prefs" hidden>
+      <div class="panel-head">
+        <h1 id="prefs-title">Your taste</h1>
+        <p id="prefs-lede" class="muted">All optional. The Blind Test listens to your favourite artists to learn their sound, finds music near them, and never plays them back to you.</p>
+      </div>
+      <div class="prefs">
+        <div class="field">
+          <span id="pref-artists-label" class="label">Favourite artists <span class="muted">· three or more works best</span></span>
+          <ul id="pref-artists" class="chips picked" aria-labelledby="pref-artists-label"></ul>
+          <label for="pref-artist-q" class="sr-only">Search for an artist</label>
+          <input id="pref-artist-q" type="search" placeholder="Type an artist, e.g. Nina Simone" autocomplete="off" aria-describedby="pref-artist-help">
+          <p id="pref-artist-help" class="hint">Press Enter to add the best match, or pick one below.</p>
+          <ul id="pref-artist-hits" class="suggest" aria-label="Matching artists"></ul>
+        </div>
+        <div class="field">
+          <span id="pref-genres-label" class="label">Genres you love</span>
+          <div id="pref-genres" class="chips" role="group" aria-labelledby="pref-genres-label"></div>
+        </div>
+        <div class="field">
+          <span id="pref-decades-label" class="label">Eras you're curious about <span class="muted">· optional</span></span>
+          <div id="pref-decades" class="chips" role="group" aria-labelledby="pref-decades-label"></div>
+        </div>
+        <div class="field">
+          <span id="pref-regions-label" class="label">Regions you're curious about <span class="muted">· optional</span></span>
+          <div id="pref-regions" class="chips" role="group" aria-labelledby="pref-regions-label"></div>
+        </div>
+      </div>
+      <p id="pref-status" class="hint" aria-live="polite"></p>
+      <div class="row">
+        <button id="prefs-done" type="button" class="primary">Back to the Blind Test</button>
+        <button id="prefs-skip" type="button" class="ghost" hidden>Skip for now</button>
+      </div>
     </section>
   </main>
 

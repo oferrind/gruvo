@@ -107,9 +107,10 @@ test('artists listed in preferences are never recommended; they seed the neighbo
   assert.deepEqual(m.prefHeard(prefs), ['dz:27', 'daftpunk']);
 });
 
-test('artist search ranks exact name matches first, then by fans; seeds take top tracks with previews', async () => {
+test('artist search: highest-fan exact match wins, a tiny exact match does not beat a big partial; seeds take top tracks with previews', async () => {
   const rows = [{ id: 1, name: 'Daft Punk Tribute', nb_fan: 900 }, { id: 2, name: 'Daft Punk', nb_fan: 50 }, { id: 3, name: 'daft punk', nb_fan: 400 }];
-  assert.deepEqual(m.rankArtists(rows, 'Daft Punk').map(a => a.dzId), [3, 2, 1]);
+  assert.deepEqual(m.rankArtists(rows, 'Daft Punk').map(a => a.dzId), [3, 1, 2]);
+  assert.deepEqual(m.rankArtists([{ id: 1, name: 'NIRV', nb_fan: 3 }, { id: 2, name: 'Nirvana', nb_fan: 1e7 }], 'Nirv').map(a => a.name), ['Nirvana', 'NIRV']);
   const get = async () => ({ data: [{ id: 9, title: 'a', artist: { id: 2, name: 'B' }, album: {} },
     { id: 10, title: 'b', preview: 'https://x.dzcdn.net/1.mp3', artist: { id: 2, name: 'B' }, album: {} },
     { id: 11, title: 'c', preview: 'https://x.dzcdn.net/2.mp3', artist: { id: 2, name: 'B' }, album: {} },

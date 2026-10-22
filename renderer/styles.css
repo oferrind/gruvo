@@ -300,6 +300,33 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .toast { position: fixed; bottom: calc(var(--nowbar-h) + var(--space-3)); left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill); box-shadow: var(--shadow-art); }
 .toast:empty { display: none; }
 
+/* ---------- full-song links (after the reveal only) ---------- */
+#np-like { display: flex; align-items: center; gap: var(--space-3); }
+.full-song { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
+.full-label { color: var(--color-muted); }
+button.ext { border: none; background: none; padding: 0; min-height: 24px; color: var(--color-text); text-decoration: underline; text-decoration-color: var(--color-border); text-underline-offset: 3px; }
+button.ext::after { content: " ↗"; color: var(--color-muted); }
+button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); text-decoration-color: var(--color-accent); }
+.reveal-text .full-song { display: flex; margin-top: var(--space-3); }
+.track .full-song { margin-top: 2px; }
+
+/* ---------- preferences ---------- */
+.prefs { display: grid; gap: var(--space-6); max-width: 760px; }
+.prefs .field { margin: 0; }
+.prefs .field > .label .muted { font-weight: 400; }
+.picked { list-style: none; padding: 0; margin: 0 0 var(--space-3); }
+.picked-chip { display: inline-flex; align-items: center; gap: var(--space-2); background: var(--color-surface-2); font-weight: 600; }
+.picked-chip .x { font-size: 11px; color: var(--color-muted); }
+.picked-chip:hover:not(:disabled) .x { color: var(--color-love); }
+#pref-artist-q { max-width: 420px; }
+.suggest { list-style: none; padding: 0; margin: var(--space-2) 0 0; max-width: 420px; }
+.suggest:empty { display: none; }
+.suggest-row { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); border-radius: 0; border-width: 0 0 1px; background: transparent; text-align: left; }
+.suggest li:first-child .suggest-row { border-top-width: 1px; }
+.suggest-row:hover:not(:disabled), .suggest-row:focus-visible { background: var(--color-surface); }
+#pref-genres { max-width: 760px; }
+#pref-status:empty { display: none; }
+
 @media (max-width: 640px) {
   .topbar { flex-wrap: wrap; gap: 0; padding: 0 var(--space-3); }
   .brand { padding-top: var(--space-2); }
@@ -311,6 +338,7 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
   .bigplay { align-self: center; }
   .reveal-card { flex-direction: column; align-items: flex-start; }
   .np-time { display: none; }
+  .nowbar .full-song { display: none; } /* no room; the reveal and Saved rows still carry the links */
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

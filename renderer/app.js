@@ -94,7 +94,7 @@ function renderNpLike() {
   if (!current) return box.replaceChildren();
   if (current === mystery && !rated) return box.replaceChildren(el('button', { type: 'button', className: 'love', textContent: '♡ Love',
     ariaLabel: 'Love this mystery (rates it and reveals it)', onclick: () => rate('love') }));
-  box.replaceChildren(loveButton(current, currentExtra));
+  box.replaceChildren(fullSong(current), loveButton(current, currentExtra));
 }
 
 // ---------- likes / rows ----------
@@ -156,8 +156,18 @@ function loveButton(t, extra) {
   return b;
 }
 
+// "Listen to the full song" (previews stop at 30 s): opens the default browser via main's https allowlist. Only for revealed tracks.
+function fullSong(t) {
+  const q = encodeURIComponent(`${t.artist} ${t.title}`);
+  const dz = t.source === 'dz' ? `https://www.deezer.com/track/${encodeURIComponent(t.id)}` : `https://www.deezer.com/search/${q}`;
+  const link = (name, url) => el('button', { type: 'button', className: 'ext', textContent: name,
+    ariaLabel: `Listen to the full song on ${name} (opens your browser)`, onclick: () => api.open(url).catch(() => toast('Could not open the browser')) });
+  return el('span', { className: 'full-song' }, el('span', { className: 'full-label', textContent: 'Full song:' }),
+    link('YouTube', `https://www.youtube.com/results?search_query=${q}`), link('Spotify', `https://open.spotify.com/search/${q}`), link('Deezer', dz));
+}
+
 // One track row: cover, title / artist, optional reason, play, love. onOpen makes the title a link.
-function trackRow(t, { extra, reason, onOpen } = {}) {
+function trackRow(t, { extra, reason, onOpen, full } = {}) {
   const name = `${t.artist} – ${t.title}`;
   const title = onOpen ? el('button', { type: 'button', className: 'link', textContent: t.title, onclick: onOpen, title: 'See who made this' }) : el('span', { className: 'title', textContent: t.title });
   const playBtn = el('button', { type: 'button', className: 'play', textContent: '▶',
@@ -168,7 +178,7 @@ function trackRow(t, { extra, reason, onOpen } = {}) {
     t.cover ? el('img', { src: t.cover, alt: '', width: 48, height: 48 }) : el('span', { className: 'cover-ph', ariaHidden: 'true' }),
     playBtn,
     el('div', { className: 'meta' }, title, el('span', { className: 'artist', textContent: t.artist }),
-      reason ? el('small', { className: 'reason', textContent: reason }) : null),
+      reason ? el('small', { className: 'reason', textContent: reason }) : null, full ? fullSong(t) : null),
     loveButton(t, extra));
   row.dataset.key = likeKey(t);
   if (current && likeKey(current) === row.dataset.key) row.classList.add('is-playing');
@@ -183,6 +193,7 @@ function showTab(name, focus) {
   tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
   if (name === 'saved') renderSaved();
+  if (name === 'prefs') renderPrefs();
 }
 $('#tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) showTab(t.dataset.tab); });
 // Arrow / Home / End move between tabs (WAI-ARIA tabs pattern).
@@ -196,6 +207,7 @@ $('#tabs').addEventListener('keydown', e => {
 
 const introSeen = () => { try { return localStorage.getItem('introSeen') === '1'; } catch { return true; } };
 function openIntro() {
+  prefsMode(false); // the first-launch preferences step is over
   introOpen = true;
   $('#intro').hidden = false;
   $$('.panel').forEach(p => { p.hidden = true; });
@@ -219,7 +231,7 @@ let mystery = null, rated = false, n = 0, fails = 0, filling = false, trailing =
 
 // Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
 const warm = () => profile.ratings.length >= 3;
-const SOURCES = ['explore', 'trail', 'explore', 'trail', 'neighbour']; // Deezer neighbours: one minor source of five
+const SOURCES = ['explore', 'trail', 'explore', 'trail', 'neighbour', 'genre']; // Deezer neighbours: minor; 'genre' falls back to a random trip without chosen genres
 
 // Download the preview (main process, CDN allowlist), decode, analyse ~20 s from the middle. Memoised; resolves to the vector or null.
 function fingerprint(c) {
@@ -254,7 +266,7 @@ function nextFromQueue() {
 
 // Reveal sentence: how it sounds next to your nearest love, plus where it came from.
 function soundReason(m, v) {
-  const names = Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${l.title}” by ${l.artist}`]));
+  const names = { ...seedNames(), ...Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${l.title}” by ${l.artist}`])) };
   const sound = v && window.Features ? Features.explain(v, profile.ratings.filter(r => r.id !== likeKey(m)), names) : '';
   return sound && m.via ? `${sound}; found via ${m.via}` : sound || m.reason || '';
 }
@@ -274,7 +286,7 @@ async function fill() {
   $('#blind-error').hidden = true;
   while (queue.length < (warm() ? 6 : 3)) {
     const source = warm() ? SOURCES[srcTurn++ % SOURCES.length] : undefined;
-    const ask = () => call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude: excluded(), adventure: profile.adventure, source });
+    const ask = () => call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude: excluded(), adventure: profile.adventure, source, prefs: profile.prefs });
     if (source === 'trail') { // MusicBrainz trails can take ~10 s: run one on the side so the other sources keep filling
       if (!trailing) { trailing = true; ask().then(c => { trailing = false; if (queue.length < 6) accept(c); }); }
       continue;
@@ -344,7 +356,7 @@ function rate(kind) {
       el('h3', { className: 'reveal-artist', textContent: m.artist }),
       el('p', { className: 'reveal-title', textContent: m.title }),
       reason,
-      loveButton(m, extra))));
+      loveButton(m, extra), fullSong(m))));
   $('#mystery').classList.add('is-revealed');
   if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); }
   $('#mystery-next').hidden = false;
@@ -607,22 +619,152 @@ function renderSaved() {
   $('#saved-like-count').textContent = profile.likes.length;
   const list = $('#saved-list');
   list.replaceChildren(...profile.likes.slice().reverse().map(t => trackRow(t, {
-    extra: t.country ? { country: t.country, decade: t.decade } : undefined, // re-loving from the now-playing bar keeps the stamp
+    extra: t.country ? { country: t.country, decade: t.decade } : undefined, full: true, // re-loving from the now-playing bar keeps the stamp
     reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `loved ${new Date(t.ts).toLocaleDateString()}`].filter(Boolean).join(' · ') })));
   if (!profile.likes.length) list.append(el('li', { className: 'state empty' },
     el('p', { textContent: 'Nothing saved yet. Press Love on any track to keep it here.' }),
     el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Passport', () => showTab('passport')))));
 }
 
+// ---------- Preferences (first-launch step + tab) ----------
+// Seed ratings are 'seed:<artistDzId>:<trackId>': a favourite artist's top track, fingerprinted and kept as a Love.
+const seedArtist = r => r.id.split(':')[1];
+const seedNames = () => Object.fromEntries(profile.ratings.filter(r => r.seed).map(r => {
+  const a = profile.prefs.artists.find(x => String(x.dzId) === seedArtist(r));
+  return [r.id, a ? `${a.name}, one of your favourites` : 'one of your favourite artists'];
+}));
+let genreList = null, seeding = false, seedAgain = false, prefsTimer = null, artistQ = 0;
+
+// Background: drop seeds of removed artists, fetch + fingerprint 2 top tracks per new artist. Never blocks the Blind Test.
+async function seedTaste() {
+  if (seeding) { seedAgain = true; return; }
+  seeding = true;
+  try {
+    const listed = () => new Set(profile.prefs.artists.map(a => String(a.dzId)));
+    profile.ratings = profile.ratings.filter(r => !r.seed || listed().has(seedArtist(r)));
+    const done = new Set(profile.ratings.filter(r => r.seed).map(seedArtist));
+    const todo = profile.prefs.artists.filter(a => !done.has(String(a.dzId)));
+    if (!todo.length) return;
+    const tracks = (await call('seedTracks', plain(todo))) || [];
+    for (const [i, t] of tracks.entries()) {
+      prefStatus(`Listening to your favourites… ${i + 1} of ${tracks.length}`);
+      const v = await fingerprint(t);
+      if (!v || !listed().has(String(t.artistDzId))) continue;
+      profile.ratings = [...profile.ratings.filter(r => r.id !== t.seedId), { id: t.seedId, rating: 'love', features: v, seed: true }].slice(-500);
+      save();
+    }
+    prefStatus();
+  } finally {
+    seeding = false;
+    if (seedAgain) { seedAgain = false; seedTaste(); }
+  }
+}
+function prefStatus(msg) {
+  const n = profile.ratings.filter(r => r.seed).length;
+  $('#pref-status').textContent = msg || (n ? `Learned the sound of ${n} track${n > 1 ? 's' : ''} by your favourite artists.` : '');
+}
+
+// Any change: save now; after a pause, re-seed and drop queued picks that were found before the change.
+function prefsChanged() {
+  save();
+  clearTimeout(prefsTimer);
+  prefsTimer = setTimeout(() => {
+    seedTaste();
+    queue.length = 0;
+    if (mystery && !rated && current !== mystery) { mystery = null; showMystery(); } else fill();
+  }, 1200);
+}
+
+function toggleChip(label, on, onToggle) {
+  const b = btn(label, () => { const v = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', v); onToggle(v); prefsChanged(); }, 'chip');
+  b.setAttribute('aria-pressed', on);
+  return b;
+}
+const setIn = (list, x, on, same = (a, b) => a === b) => (on ? [...list.filter(y => !same(y, x)), x] : list.filter(y => !same(y, x)));
+
+function renderPickedArtists() {
+  const p = profile.prefs;
+  $('#pref-artists').replaceChildren(...p.artists.map(a => el('li', {}, el('button', { type: 'button', className: 'chip picked-chip', ariaLabel: `Remove ${a.name}`,
+    onclick: () => { p.artists = p.artists.filter(x => x.dzId !== a.dzId); renderPickedArtists(); prefsChanged(); $('#pref-artist-q').focus(); } },
+  a.name, el('span', { ariaHidden: 'true', className: 'x', textContent: '✕' })))));
+  if (!p.artists.length) $('#pref-artists').append(el('li', { className: 'hint', textContent: 'None yet.' }));
+}
+function addArtist(a) {
+  const p = profile.prefs;
+  if (!p.artists.some(x => x.dzId === a.dzId)) p.artists = [...p.artists, { dzId: a.dzId, name: a.name }].slice(0, 30);
+  $('#pref-artist-q').value = '';
+  $('#pref-artist-hits').replaceChildren();
+  renderPickedArtists();
+  prefsChanged();
+}
+const fans = n => n >= 1e6 ? `${(n / 1e6).toFixed(1)}M fans` : n >= 1e3 ? `${Math.round(n / 1e3)}K fans` : `${n} fans`;
+let hits = [];
+$('#pref-artist-q').addEventListener('input', e => {
+  const q = e.target.value.trim(), my = ++artistQ;
+  clearTimeout(e.target.t);
+  if (q.length < 2) { hits = []; return $('#pref-artist-hits').replaceChildren(); }
+  e.target.t = setTimeout(async () => {
+    const res = (await call('searchArtists', q)) || [];
+    if (my !== artistQ) return; // a newer keystroke won
+    hits = res.slice(0, 6);
+    $('#pref-artist-hits').replaceChildren(...(hits.length ? hits.map(a => el('li', {}, el('button', { type: 'button', className: 'suggest-row', onclick: () => addArtist(a) },
+      el('span', { textContent: a.name }), el('small', { className: 'muted', textContent: fans(a.fans) })))) : [el('li', { className: 'hint', textContent: `No artist called “${q}” on Deezer.` })]));
+  }, 250);
+});
+$('#pref-artist-q').addEventListener('keydown', e => { if (e.key === 'Enter' && hits[0]) { e.preventDefault(); addArtist(hits[0]); } });
+
+async function renderGenres() {
+  const box = $('#pref-genres');
+  genreList ??= await call('genres');
+  if (!genreList || !genreList.length) {
+    genreList = null;
+    return setState(box, 'error', "Couldn't load the genre list.", { actions: [btn('Try again', renderGenres)] });
+  }
+  box.className = 'chips';
+  const p = profile.prefs;
+  box.replaceChildren(...genreList.map(g => toggleChip(g.name, p.genres.some(x => x.id === g.id),
+    on => { p.genres = setIn(p.genres, { id: g.id, name: g.name }, on, (a, b) => a.id === b.id); })));
+}
+
+let prefsBuilt = false;
+function renderPrefs() {
+  const p = profile.prefs;
+  renderPickedArtists();
+  prefStatus();
+  renderGenres();
+  if (prefsBuilt) return;
+  prefsBuilt = true;
+  $('#pref-decades').append(...DECADES.map(d => toggleChip(`${d}s`, p.decades.includes(d), on => { profile.prefs.decades = setIn(profile.prefs.decades, d, on); })));
+  $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
+}
+
+// First launch: this step comes before the intro; Continue and Skip both lead there. Later it is just a tab.
+let regionList = {};
+function prefsMode(first) {
+  $('#prefs-title').textContent = first ? 'First, what do you already love?' : 'Your taste';
+  $('#prefs-skip').hidden = !first;
+  $('#prefs-done').textContent = first ? 'Continue' : 'Back to the Blind Test';
+  $('#prefs-done').onclick = () => (first ? openIntro() : showTab('blind'));
+}
+function openPrefs(first) {
+  prefsMode(first);
+  showTab('prefs');
+  if (first) $('#pref-artist-q').focus();
+}
+prefsMode(false);
+$('#prefs-skip').onclick = () => openIntro();
+
 // ---------- start ----------
 (async () => {
   profile = await store.load();
-  buildPassport(await api.countries());
+  regionList = await api.countries();
+  buildPassport(regionList);
   $('#adventure').value = profile.adventure;
   showAdventure();
   afterLikeChange();
-  if (!introSeen() && !profile.likes.length) openIntro();
+  if (!introSeen() && !profile.likes.length) openPrefs(true);
   fill();
+  seedTaste(); // finishes seeding an interrupted earlier session; no-op otherwise
 })();
 
 // Theme toggle (Agent 6): follows the OS until the user picks; the choice persists in localStorage.
