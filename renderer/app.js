@@ -215,7 +215,7 @@ $$('#intro [data-goto]').forEach(b => { b.onclick = () => showTab(b.dataset.goto
 
 // ---------- A. Blind Taste Test ----------
 const queue = [];
-let mystery = null, rated = false, n = 0, fails = 0, filling = false, trailing = false, srcTurn = 0;
+let mystery = null, rated = false, fails = 0, filling = false, trailing = false, srcTurn = 0;
 
 // Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
 const warm = () => profile.ratings.length >= 3;
@@ -294,7 +294,7 @@ async function fill() {
 
 function setRateEnabled(on) { $$('#rate button').forEach(b => { b.disabled = !on; b.removeAttribute('aria-pressed'); }); }
 
-const playMystery = () => { const m = mystery; play(m, { label: `Mystery #${n}: rate it to reveal`, onFail: () => { // preview dead: drop silently, never offer this artist again
+const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: rate it to reveal', onFail: () => { // preview dead: drop silently, never offer this artist again
   if (mystery !== m || rated) return;
   addHeard(m); save(); showMystery();
 } }); };
@@ -312,9 +312,8 @@ function showMystery() {
     $('#mystery-play').disabled = true; setRateEnabled(false);
     fill(); return;
   }
-  n++;
   $('#mystery').setAttribute('aria-busy', false);
-  $('#mystery-title').textContent = `Mystery #${n}`;
+  $('#mystery-title').textContent = 'Mystery track';
   $('#mystery-play').disabled = false; setRateEnabled(true);
   if (!$('#blind').hidden) playMystery(); // autoplay only where the user is looking (not over the intro or another tab)
   syncPlayState();
