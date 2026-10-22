@@ -228,3 +228,17 @@ test('prune drops expired entries and enforces a byte budget', () => {
   };
   assert.deepEqual(Object.keys(prune(c, 5000, 2500, now)).sort(), ['https://musicbrainz.org/2', 'https://musicbrainz.org/3']);
 });
+
+test('originalFirst: earliest popular same-title hit leads; unrelated older song and misdated covers lose', () => {
+  const dz = (name, title, rank) => ({ id: name, title, rank, artist: { id: name, name } });
+  const it = (artistName, trackName, releaseDate) => ({ artistName, trackName, releaseDate });
+  const hits = [dz('Jul', 'Hallelujah', 900), dz('Jeff Buckley', 'Hallelujah', 800), dz('Leonard Cohen', 'Hallelujah', 600), dz('Jeff Gutt', 'Hallelujah', 500)];
+  const itRows = [it('Jeff Buckley', 'Hallelujah', '1994-08-23'), it('Leonard Cohen', 'Hallelujah', '1984-12-01'),
+    it('Jeff Gutt', 'Hallelujah', '1984-12-01'), it('Leonard Cohen', 'Hallelujah (Live)', '2009-03-31'), it('The Damned', 'Hallelujah', '1970-01-01')];
+  const { rows, year } = m.originalFirst(hits, itRows, 'hallelujah');
+  assert.deepEqual(rows.map(r => r.artist.name), ['Leonard Cohen', 'Jul', 'Jeff Buckley', 'Jeff Gutt']);
+  assert.equal(year, 1984);
+  // No iTunes data (offline / error) or a query that isn't a bare title: order untouched.
+  assert.deepEqual(m.originalFirst(hits, undefined, 'hallelujah').rows, hits);
+  assert.equal(m.originalFirst(hits, itRows, 'leonard cohen hallelujah').year, null);
+});

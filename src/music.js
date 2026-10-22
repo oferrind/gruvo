@@ -301,18 +301,34 @@ async function seedTracks(get, artists, n = 2) {
 }
 
 // Search rows: title/artist named in the query first, then most popular (Deezer rank); one row per song across versions.
+const baseTitle = t => norm(String(t).replace(/\s*[([].*$/, '')) || norm(t); // "Creep (Acoustic)" -> creep
+
 function sortHits(rows, q) {
   const nq = norm(q), has = s => !!s && nq.includes(s);
-  const base = r => norm(String(r.title).replace(/\s*[([].*$/, '')) || norm(r.title); // "Creep (Acoustic)" -> creep
+  const base = r => baseTitle(r.title);
   const hit = r => 2 * has(base(r)) + has(norm(r.artist && r.artist.name)); // the title names the song; the artist alone doesn't
   const seen = new Set();
   return rows.slice().sort((a, b) => hit(b) - hit(a) || (b.rank || 0) - (a.rank || 0))
     .filter(r => { const k = `${norm(r.artist && r.artist.name)}|${base(r)}`; return !seen.has(k) && seen.add(k); });
 }
 
+// Title-only query: among the popular hits with exactly that title, the earliest iTunes release date is the original.
+// Only popular hits compete, so an older unrelated song with the same title (The Damned's "Creep") can't win;
+// a date tie keeps the more popular one (iTunes misdates some covers, e.g. a 2018 "Hallelujah" as 1984).
+function originalFirst(hits, itRows, q) {
+  const nq = baseTitle(q);
+  const date = r => (itRows || []).filter(i => i.releaseDate && baseTitle(i.trackName) === nq && artistMatch(i.artistName, r.artist && r.artist.name))
+    .map(i => i.releaseDate).sort()[0];
+  const dated = hits.filter(r => baseTitle(r.title) === nq).map(r => ({ r, d: date(r) })).filter(x => x.d);
+  if (!dated.length) return { rows: hits, year: null };
+  const o = dated.reduce((a, b) => (b.d < a.d ? b : a));
+  return { rows: [o.r, ...hits.filter(r => r !== o.r)], year: Number(o.d.slice(0, 4)) };
+}
+
 async function searchTracks(get, q) {
-  const res = await get(`${DZ}/search?q=${enc(q)}&limit=25`);
-  return sortHits(res.data || [], q).slice(0, 10).map(fromDeezer);
+  const [res, it] = await Promise.all([get(`${DZ}/search?q=${enc(q)}&limit=25`), get(`${IT}/search?entity=song&limit=200&term=${enc(q)}`)]);
+  const { rows, year } = originalFirst(sortHits(res.data || [], q).slice(0, 10), it.results, q);
+  return rows.map((r, i) => ({ ...fromDeezer(r), original: i === 0 ? year : null }));
 }
 
 // Credits for a track: {recId} or {isrc, title, artist}.
@@ -359,6 +375,6 @@ async function covers(get, workId, originalArtist) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, sortHits, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  bestRecording, groupCredits, trailPicks, coverArtists, dedupe, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
   flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks },
 };

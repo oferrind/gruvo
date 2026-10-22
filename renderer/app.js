@@ -497,7 +497,7 @@ $('#liner-search').addEventListener('submit', async e => {
   if (run !== lnRun) return; // a newer search or an opened track took over
   if (!hits) return lnState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => $('#liner-search').requestSubmit(), 'primary')] });
   lnState(hits.length ? 'done' : 'empty', hits.length ? 'Pick the right song to see who made it.' : `No songs found for "${q}". Try artist and title, e.g. "Radiohead Creep".`);
-  $('#liner-hits').replaceChildren(...hits.map(t => trackRow(t, { onOpen: () => { crumbs = []; $('#liner-hits').replaceChildren(); openTrack(t); } })));
+  $('#liner-hits').replaceChildren(...hits.map(t => trackRow(t, { reason: t.original ? `Original recording, ${t.original}` : undefined, onOpen: () => { crumbs = []; $('#liner-hits').replaceChildren(); openTrack(t); } })));
 });
 for (const q of ['Radiohead Creep', 'Stevie Wonder Superstition', 'Portishead Glory Box'])
   $('#liner-examples').append(btn(q, () => { $('#liner-q').value = q; $('#liner-search').requestSubmit(); }, 'chip'));
