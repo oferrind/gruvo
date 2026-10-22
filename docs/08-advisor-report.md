@@ -86,3 +86,33 @@ and fun. Calling it a recommender would overstate it.
 
 Screenshots (scratchpad, not committed): `final-01-intro`, `-02-blind-cold`, `-03/-05-warm-adv0`, `-04-warm-adv100`,
 `-06-passport`, `-07-liner-trail`, `-08-offline`, `-09-offline-liner`, `-10-saved-light` (.png).
+
+## Round 2 verification (after merging Agents 3 and 4)
+
+I tested the merged app live with an empty temp profile (`--user-data-dir`), using 3 listed artists (Radiohead, Portishead,
+Massive Attack), 2 genres (Rock, Alternative) and 8 rated mysteries.
+
+1. **Reveal matches the audio: PASS.** In 8 of 8 mysteries (2 cold, 6 warm), the playing `audio.src` was the revealed
+   track's preview, and the revealed artist and title matched. Passport trips now say "an artist born or formed 1950–1979"
+   rather than claiming a song decade. "faster"/"slower" is suppressed when the tempo is half or double (features.js
+   `octave` guard).
+2. **Liner Notes search: PARTIAL.** "creep": Radiohead is first. "hallelujah": Jul, Jeff Buckley, Vianney (live),
+   Pentatonix, Leonard Cohen. Deezer's rank favours a French rapper's song of the same name, so the expected
+   versions are #2 and #5.
+3. **No "Mystery #n": PASS.** Every text the page showed during the run was recorded, and none matched.
+4. **No source names: FIXED.** The genre source (Agent 3) said "found via Deezer's Alternative artists". Agent 4's
+   wording fix did not cover it. This is fixed in a separate commit, with an assertion in the prefs test. No
+   "MusicBrainz" or "iTunes" was seen. "Deezer" now appears only on the full-song button.
+5. **First-launch preferences: PASS.** The flow opens on an empty profile ("First, what do you already love?"). Early
+   reasons reference the listed artists ("A stretch from Portishead…", "artists related to Portishead"), and the genre
+   source fired by mystery 3. No listed artist was recommended. Note: mysteries 1 and 2 were still random trips
+   (Finland, Venezuela), compared against the listed artists' sound.
+6. **Full-song links: PASS.** They were absent before rating and present after it (YouTube, Spotify, Deezer). Through the
+   real IPC, `shell:open` blocked `https://evil.com`, `http://www.youtube.com`, `javascript:`, `file:` and
+   `www.youtube.com.evil.com`.
+
+**Tests:** 41/41 pass. The trail test "producer of a loved track…" is **flaky** (about 7% of runs) on main and before the
+merge. Its fake search returns artist = query, and `artistMatch` rejects names under 5 characters ("Hole", "Lush"),
+which falls back to iTunes. The test is at fault, not the app: it should pin `rand` or use a realistic fake row.
+
+Screenshots (scratchpad): `verify-01-prefs.png`, `verify-02-liner.png`.
