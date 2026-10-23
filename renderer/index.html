@@ -12,7 +12,8 @@
   <header class="topbar">
     <span class="brand">Music Discovery</span>
     <nav id="tabs" role="tablist" aria-label="Modes">
-      <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="true">Blind Test</button>
+      <button role="tab" id="tab-home" data-tab="home" aria-controls="home" aria-selected="true">Home</button>
+      <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="false" tabindex="-1">Blind Test</button>
       <button role="tab" id="tab-passport" data-tab="passport" aria-controls="passport" aria-selected="false" tabindex="-1">Passport</button>
       <button role="tab" id="tab-tree" data-tab="tree" aria-controls="tree" aria-selected="false" tabindex="-1">Family Tree</button>
       <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
@@ -38,23 +39,52 @@
       </div>
     </section>
 
+    <!-- Home: the landing page once the first-launch steps are done -->
+    <section id="home" class="panel home" role="tabpanel" aria-labelledby="tab-home">
+      <div class="panel-head">
+        <h1>After hours</h1>
+        <p class="muted">The shop's quiet. Pick up where you left off, or take a new way in.</p>
+      </div>
+      <div class="home-top">
+        <section id="continue" class="card continue" aria-labelledby="continue-title">
+          <h2 id="continue-title">Continue where you left off</h2>
+          <div id="continue-body"></div>
+        </section>
+        <section class="taste" aria-labelledby="taste-title">
+          <h2 id="taste-title">Your taste so far</h2>
+          <dl id="taste" class="taste-list"></dl>
+        </section>
+      </div>
+      <h2>Ways in</h2>
+      <ul id="ways" class="ways"></ul>
+      <h2>Recent finds <span id="recent-count" class="count"></span></h2>
+      <ul id="recent" class="tracks crate"></ul>
+    </section>
+
     <!-- A. Blind Taste Test -->
-    <section id="blind" class="panel" role="tabpanel" aria-labelledby="tab-blind">
+    <section id="blind" class="panel" role="tabpanel" aria-labelledby="tab-blind" hidden>
       <div class="panel-head">
         <h1>Blind Test</h1>
         <p class="muted">Listen, rate, then find out who it was.</p>
       </div>
-
+      <div class="blind-layout">
+      <div class="blind-main">
       <article id="mystery" class="card mystery" aria-busy="true">
-        <h2 id="mystery-title">Finding your first mystery…</h2>
-        <div class="player">
-          <button id="mystery-play" type="button" class="bigplay" aria-label="Play" disabled><span aria-hidden="true">▶</span></button>
-          <progress id="mystery-progress" max="1" value="0" aria-label="Playback progress"></progress>
-        </div>
-        <div id="rate" class="rate" role="group" aria-label="Rate this track">
-          <button type="button" data-rate="skip" disabled>Skip <kbd>1</kbd></button>
-          <button type="button" data-rate="ok" disabled>OK <kbd>2</kbd></button>
-          <button type="button" data-rate="love" disabled>Love <kbd>3</kbd></button>
+        <div class="mystery-top">
+          <div id="deck" class="deck">
+            <button id="mystery-play" type="button" class="bigplay" aria-label="Play" disabled><span class="icon" aria-hidden="true">▶</span><span class="disc" aria-hidden="true"></span><svg class="ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle class="ring-track" cx="50" cy="50" r="48"/><circle class="ring-fill" cx="50" cy="50" r="48" pathLength="1"/></svg></button>
+            <span class="tonearm" aria-hidden="true"></span>
+          </div>
+          <div class="mystery-side">
+            <h2 id="mystery-title">Finding your first mystery…</h2>
+            <progress id="mystery-progress" class="sr-only" max="1" value="0" aria-label="Playback progress"></progress>
+            <div id="rate" class="rate" role="group" aria-label="Rate this track">
+              <button type="button" data-rate="skip" disabled>Skip <kbd>1</kbd></button>
+              <button type="button" data-rate="ok" disabled>OK <kbd>2</kbd></button>
+              <button type="button" data-rate="love" disabled>Love <kbd>3</kbd></button>
+            </div>
+            <p class="hint keys"><kbd>Space</kbd> play/pause · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> rate · <kbd>Enter</kbd> next</p>
+          </div>
         </div>
         <div id="reveal" class="reveal" aria-live="polite"></div>
         <button id="mystery-next" type="button" class="primary" hidden>Next mystery <kbd>Enter</kbd></button>
@@ -63,7 +93,6 @@
           <button id="blind-retry" type="button" class="primary">Try again</button>
         </div>
       </article>
-      <p class="hint">Keys: <kbd>Space</kbd> play/pause · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> rate · <kbd>Enter</kbd> next</p>
 
       <div class="adventure">
         <label for="adventure">Adventure</label>
@@ -73,6 +102,12 @@
           <span class="end">Total stranger</span>
         </div>
         <p id="adventure-help" class="muted"><output id="adventure-value"></output></p>
+      </div>
+      </div>
+      <aside class="rail" aria-labelledby="rail-title">
+        <h2 id="rail-title">Tonight's reveals <span id="rail-count" class="count"></span></h2>
+        <ol id="tonight" class="tracks rail-list"></ol>
+      </aside>
       </div>
     </section>
 
@@ -174,17 +209,24 @@
     </section>
   </main>
 
-  <footer class="nowbar" aria-label="Now playing">
+  <footer class="nowbar is-idle" aria-label="Now playing">
+    <span id="np-cover" class="np-cover" aria-hidden="true"></span>
     <button id="np-toggle" type="button" class="np-toggle" aria-label="Play" disabled><span aria-hidden="true">▶</span></button>
     <div class="np-meta">
-      <span id="now-playing" class="np-title">Nothing playing</span>
-      <progress id="np-progress" max="1" value="0" aria-hidden="true"></progress>
+      <div class="np-line"><span id="now-playing" class="np-title">Nothing playing</span><button id="np-from" type="button" class="np-from" hidden></button></div>
+      <input id="np-progress" class="np-seek" type="range" min="0" max="1" step="any" value="0" aria-label="Seek" disabled>
     </div>
     <span id="np-time" class="np-time" aria-hidden="true"></span>
     <span id="np-like"></span>
     <audio id="audio"></audio>
     <span id="toast" class="toast" role="status"></span>
   </footer>
+  <!-- Duotone for covers of past items: luminance mapped from walnut shadows to amber/paper highlights, one per theme. -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="duo-dark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".1 .95"/><feFuncG type="table" tableValues=".07 .72"/><feFuncB type="table" tableValues=".05 .4"/></feComponentTransfer></filter>
+    <filter id="duo-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".27 .97"/><feFuncG type="table" tableValues=".16 .9"/><feFuncB type="table" tableValues=".08 .76"/></feComponentTransfer></filter>
+  </svg>
+  <script src="tint.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

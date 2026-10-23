@@ -30,12 +30,15 @@ function setState(box, kind, msg, { actions = [], progress } = {}) {
 
 // ---------- player (one <audio> for the whole app) ----------
 const audio = $('#audio');
-let current = null, currentExtra = null, retried = false, onFail = null;
+let current = null, currentExtra = null, currentFrom = null, retried = false, onFail = null;
+const hidden = t => t === mystery && !rated; // an unrated mystery: nothing that names it (cover, colour, last-played) may show
 
-async function play(item, { label, onFail: failCb, extra } = {}) {
-  current = item; currentExtra = extra || null; retried = false; onFail = failCb || null;
+// from: {tab, label} where the track was started, for the bar's "came from" chip and Home's "continue".
+async function play(item, { label, onFail: failCb, extra, from } = {}) {
+  current = item; currentExtra = extra || null; currentFrom = from || null; retried = false; onFail = failCb || null;
   $('#now-playing').textContent = label || `${item.artist} – ${item.title}`;
-  renderNpLike(); syncPlayState();
+  renderNpLike(); renderNpMeta(); syncPlayState();
+  remember(item);
   // Saved likes have no preview URL (they expire); fetch one at play time.
   const url = item.previewUrl || await call('freshPreview', plain(item));
   if (current !== item) return;
@@ -71,6 +74,10 @@ function syncPlayState() {
   setBtn($('#np-toggle'), playing);
   $('#np-toggle').disabled = !current;
   setBtn($('#mystery-play'), playing && current === mystery);
+  const deck = $('#deck'), on = playing && !!mystery && current === mystery;
+  if (on && !deck.classList.contains('is-playing')) deck.classList.add('needle-drop'); // the arm swings in and the rim ripples once
+  deck.classList.toggle('is-playing', on);
+  $('.nowbar').classList.toggle('is-idle', !current);
   $$('.track.is-playing').forEach(r => r.classList.remove('is-playing'));
   $$('.track .play').forEach(b => { b.textContent = '▶'; b.setAttribute('aria-label', b.dataset.label); });
   if (current) $$(`.track[data-key="${CSS.escape(likeKey(current))}"]`).forEach(r => {
@@ -80,13 +87,75 @@ function syncPlayState() {
   });
 }
 ['play', 'pause', 'ended', 'emptied'].forEach(ev => audio.addEventListener(ev, syncPlayState));
+let scrubbing = false;
 audio.addEventListener('timeupdate', () => {
-  const p = audio.duration ? audio.currentTime / audio.duration : 0;
-  $('#np-progress').value = p;
+  const p = audio.duration ? audio.currentTime / audio.duration : 0, seek = $('#np-progress');
+  if (!scrubbing) seek.value = p;
+  seek.style.setProperty('--v', seek.value);
+  seek.disabled = !audio.duration;
+  seek.setAttribute('aria-valuetext', audio.duration ? `${fmt(audio.currentTime)} of ${fmt(audio.duration)}` : '');
   $('#np-time').textContent = audio.duration ? `${fmt(audio.currentTime)} / ${fmt(audio.duration)}` : '';
-  if (current === mystery) $('#mystery-progress').value = p;
+  if (current === mystery) { $('#mystery-progress').value = p; $('#deck').style.setProperty('--p', p); }
 });
+$('#np-progress').addEventListener('input', e => { scrubbing = true; e.target.style.setProperty('--v', e.target.value); if (audio.duration) audio.currentTime = e.target.value * audio.duration; });
+$('#np-progress').addEventListener('change', () => { scrubbing = false; });
+$('#deck').addEventListener('animationend', e => { if (e.target.classList.contains('tonearm')) $('#deck').classList.remove('needle-drop'); });
 $('#np-toggle').onclick = togglePlay;
+
+// Bar 2.0: the cover (a blurred "?" while it is a mystery) and the "came from" chip that jumps back to the source.
+const tabName = id => ($(`#tab-${id}`)?.firstChild.textContent || id).trim();
+const bigCover = u => u && u.replace('/100x100bb.', '/300x300bb.'); // iTunes art: ask for a sharper size
+function renderNpMeta() {
+  const c = $('#np-cover');
+  c.classList.toggle('is-mystery', !!current && hidden(current));
+  c.replaceChildren(!current ? '' : hidden(current) ? el('span', { textContent: '?' }) : current.cover ? el('img', { src: current.cover, alt: '' }) : '');
+  const f = $('#np-from');
+  f.hidden = !currentFrom;
+  if (currentFrom) { f.textContent = `From ${currentFrom.label}`; f.setAttribute('aria-label', `Go back to ${currentFrom.label}`); }
+  setTint(current && !hidden(current) ? current.cover : null);
+}
+$('#np-from').onclick = () => {
+  if (!currentFrom) return;
+  showTab(currentFrom.tab);
+  if (current === mystery) return $('#mystery-play').focus();
+  const row = current && $(`#${currentFrom.tab} .track[data-key="${CSS.escape(likeKey(current))}"]`);
+  if (row) { row.scrollIntoView({ block: 'center' }); row.querySelector('.play').focus(); }
+};
+// Last played (never an unrated mystery), kept in the profile for Home's "continue where you left off".
+function remember(t) {
+  if (hidden(t)) return;
+  const { source, id, title, artist, artistDzId, albumId, cover, isrc } = t;
+  profile.last = { track: { source, id, title, artist, artistDzId, albumId, cover, isrc, ...(t === current ? currentExtra : null) }, from: t === current ? currentFrom : null, ts: Date.now() };
+  save();
+}
+
+// Cover accent: the dominant hue of the playing cover tints glows and the bar. Lightness comes from the theme (AA);
+// grey covers, unreadable images or a hidden mystery fall back to amber. Both cover CDNs send CORS headers.
+const tints = new Map();
+function coverTint(url) {
+  if (!tints.has(url)) tints.set(url, new Promise(res => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const c = el('canvas', { width: 24, height: 24 }), x = c.getContext('2d', { willReadFrequently: true });
+        x.drawImage(img, 0, 0, 24, 24);
+        res(Tint.tintOf(x.getImageData(0, 0, 24, 24).data));
+      } catch { res(null); } // a tainted canvas: no colour, keep amber
+    };
+    img.onerror = () => res(null);
+    img.src = url;
+  }));
+  return tints.get(url);
+}
+let tintRun = 0;
+function setTint(url) {
+  const run = ++tintRun, s = document.documentElement.style;
+  (url ? coverTint(url) : Promise.resolve(null)).then(t => {
+    if (run !== tintRun) return;
+    if (t) { s.setProperty('--tint-h', t.h); s.setProperty('--tint-s', `${t.s}%`); } else { s.removeProperty('--tint-h'); s.removeProperty('--tint-s'); }
+  });
+}
 
 // Like button in the now-playing bar. An unrated mystery is rated "Love" instead, so nothing leaks.
 function renderNpLike() {
@@ -137,6 +206,7 @@ function afterLikeChange() {
   $$('.love').forEach(b => b.sync && b.sync());
   $('#saved-count').textContent = profile.likes.length || '';
   renderStamps();
+  if (!$('#home').hidden && !$('#home').contains(document.activeElement)) renderHome(); // never re-render under the focused Love
   if ($('#saved').hidden) return;
   const i = $$('#saved-list > li').findIndex(r => r.contains(document.activeElement));
   renderSaved(); // R3: Saved reflects unloves immediately
@@ -151,7 +221,12 @@ function loveButton(t, extra) {
   const b = el('button', { type: 'button', className: 'love' });
   b.sync = () => { const on = isLiked(t); b.textContent = on ? '♥ Loved' : '♡ Love'; b.setAttribute('aria-pressed', on); };
   b.setAttribute('aria-label', `Love ${t.artist} – ${t.title}`);
-  b.onclick = () => isLiked(t) ? unlike(t) : like(t, extra);
+  b.onclick = () => {
+    if (isLiked(t)) return unlike(t);
+    like(t, extra);
+    b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); // heart pulse, replayable
+  };
+  b.addEventListener('animationend', () => b.classList.remove('pop'));
   b.sync();
   return b;
 }
@@ -167,11 +242,16 @@ function fullSong(t) {
 }
 
 // One track row: cover, title / artist, optional reason, play, love. onOpen makes the title a link.
-function trackRow(t, { extra, reason, onOpen, full, tag = 'li' } = {}) {
+// from: where the bar's "came from" chip leads; by default the row's own tab (plus its Family Tree step).
+const fromOf = row => {
+  const tab = row.closest('.panel')?.id, step = row.closest('.tree-node')?.dataset.step;
+  return tab ? { tab, label: tabName(tab) + (step && step !== '0' ? ` · ${step}` : '') } : null;
+};
+function trackRow(t, { extra, reason, onOpen, full, tag = 'li', from } = {}) {
   const name = `${t.artist} – ${t.title}`;
   const title = onOpen ? el('button', { type: 'button', className: 'link', textContent: t.title, onclick: onOpen, title: 'Grow its family tree' }) : el('span', { className: 'title', textContent: t.title });
   const playBtn = el('button', { type: 'button', className: 'play', textContent: '▶',
-    onclick: () => current && likeKey(current) === likeKey(t) && audio.getAttribute('src') ? togglePlay() : play(t, { extra }) });
+    onclick: () => current && likeKey(current) === likeKey(t) && audio.getAttribute('src') ? togglePlay() : play(t, { extra, from: from || fromOf(row) }) });
   playBtn.dataset.label = `Play ${name}`;
   playBtn.setAttribute('aria-label', playBtn.dataset.label);
   const row = el(tag, { className: 'track' },
@@ -192,6 +272,8 @@ function showTab(name, focus) {
   closeIntro();
   tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
+  if (name === 'home') renderHome();
+  if (name === 'blind' && mystery && !rated && !current) playMystery(); // Home is the landing page: the first mystery waits until you come here
   if (name === 'saved') renderSaved();
   if (name === 'prefs') renderPrefs();
   if (name === 'tree') renderTreePicker();
@@ -227,7 +309,7 @@ $('#intro-start').onclick = () => {
 $$('#intro [data-goto]').forEach(b => { b.onclick = () => showTab(b.dataset.goto); });
 
 // ---------- A. Blind Taste Test ----------
-const queue = [];
+const queue = [], tonight = [];
 let mystery = null, rated = false, fails = 0, filling = false, trailing = false, srcTurn = 0;
 
 // Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
@@ -335,7 +417,7 @@ async function fill() {
 
 function setRateEnabled(on) { $$('#rate button').forEach(b => { b.disabled = !on; b.removeAttribute('aria-pressed'); }); }
 
-const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: rate it to reveal', onFail: () => { // preview dead: drop silently, never offer this artist again
+const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: rate it to reveal', from: { tab: 'blind', label: `${tabName('blind')} · #${tonight.length + 1}` }, onFail: () => { // preview dead: drop silently, never offer this artist again
   if (mystery !== m || rated) return;
   addHeard(m); save(); showMystery();
 } }); };
@@ -347,6 +429,8 @@ function showMystery() {
   $('#mystery-next').hidden = true;
   $('#mystery-progress').value = 0;
   $('#mystery').classList.remove('is-revealed');
+  $$('#deck .sleeve, #deck .verdict').forEach(e => e.remove());
+  $('#deck').style.setProperty('--p', 0);
   if (!mystery) {
     $('#mystery-title').textContent = 'Finding the next mystery…';
     $('#mystery').setAttribute('aria-busy', true);
@@ -354,7 +438,7 @@ function showMystery() {
     fill(); return;
   }
   $('#mystery').setAttribute('aria-busy', false);
-  $('#mystery-title').textContent = 'Mystery track';
+  $('#mystery-title').textContent = `Mystery track #${tonight.length + 1}`;
   $('#mystery-play').disabled = false; setRateEnabled(true);
   aboutOf(mystery); // prefetch only; nothing reaches the DOM before the rating
   if (!$('#blind').hidden) playMystery(); // autoplay only where the user is looking (not over the intro or another tab)
@@ -377,27 +461,68 @@ function rate(kind) {
   });
   setRateEnabled(false);
   $(`#rate [data-rate=${kind}]`).setAttribute('aria-pressed', true);
-  // Artist/title enter the DOM only now, after rating.
+  const said = VERDICT[kind];
+  // Artist/title enter the DOM only now, after rating. The cover slides out over the record, the name types on.
+  $('#deck').prepend(m.cover ? el('img', { className: 'sleeve', src: bigCover(m.cover), alt: `Cover of ${m.title}` }) : el('span', { className: 'sleeve cover-ph', ariaHidden: 'true' }));
+  $('#deck').append(el('span', { className: 'verdict', textContent: `You said ${said}`, ariaHidden: 'true' }));
+  $('#deck').dataset.verdict = kind;
+  const [meta, about] = revealDetails(m);
   $('#reveal').replaceChildren(el('div', { className: 'reveal-card' },
-    m.cover ? el('img', { src: m.cover, alt: `Cover of ${m.title}`, width: 128, height: 128 }) : el('span', { className: 'cover-ph big', ariaHidden: 'true' }),
-    el('div', { className: 'reveal-text' },
-      el('p', { className: 'eyebrow', textContent: `You said ${{ skip: 'Skip', ok: 'OK', love: 'Love' }[kind]}. It was…` }),
-      el('h3', { className: 'reveal-artist', textContent: m.artist }),
-      el('p', { className: 'reveal-title', textContent: m.title }),
-      aboutBlock(m),
-      reason,
-      loveButton(m, extra), fullSong(m))));
+    el('p', { className: 'sr-only', textContent: `You said ${said}. It was` }),
+    el('h3', { className: 'reveal-artist', textContent: m.artist }),
+    el('p', { className: 'reveal-title', textContent: m.title }),
+    meta, reason, about,
+    el('div', { className: 'reveal-actions' }, loveButton(m, extra), fullSong(m))));
   $('#mystery').classList.add('is-revealed');
-  if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); }
+  tonight.unshift({ t: m, kind, extra });
+  renderTonight();
+  if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); renderNpMeta(); remember(m); }
   $('#mystery-next').hidden = false;
   $('#mystery-next').focus();
+}
+
+const VERDICT = { skip: 'Skip', ok: 'OK', love: 'Love' };
+// How the pick was found, as a short price-sticker tag ("Random trip · Greece", "Near Oasis").
+function whyTag(m) {
+  const w = m.why || {};
+  return { trip: `Random trip · ${w.place}${m.decade ? `, ${m.decade}s` : ''}`, near: `Near ${w.artist}`, trail: `Via ${w.person}`, genre: `${w.genre} shelf` }[w.kind] || '';
+}
+// Reveal order: name, then a meta row (how it was found · year · label · genre · album), then the about text clamped to 3 lines.
+function revealDetails(m) {
+  const tag = whyTag(m);
+  const meta = el('ul', { className: 'facts meta-row', ariaLabel: 'About this pick' }, tag ? el('li', { className: 'sticker', textContent: tag }) : null);
+  const box = el('div', { className: 'about', ariaBusy: 'true' }, el('p', { className: 'about-text is-loading', textContent: '…' }));
+  aboutOf(m).then(({ text, url, facts = {} }) => {
+    meta.append(...[facts.year, facts.label, facts.genre, facts.album].filter(Boolean).map(f => el('li', { textContent: f })));
+    box.setAttribute('aria-busy', 'false');
+    if (!text) return box.replaceChildren();
+    const p = el('p', { className: 'about-text clamp', textContent: text });
+    const more = el('button', { type: 'button', className: 'more-toggle', textContent: 'More' });
+    more.setAttribute('aria-expanded', 'false');
+    more.onclick = () => { const shut = p.classList.toggle('clamp'); more.textContent = shut ? 'More' : 'Less'; more.setAttribute('aria-expanded', !shut); };
+    const src = url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'Wikipedia',
+      ariaLabel: 'Read more on Wikipedia (opens your browser)', onclick: () => api.open(url).catch(() => toast('Could not open the browser')) }) : null;
+    box.replaceChildren(p, el('div', { className: 'about-links' }, more, src));
+    requestAnimationFrame(() => { more.hidden = p.scrollHeight <= p.clientHeight + 1; }); // short text: nothing to expand
+  });
+  return [meta, box];
+}
+
+// Tonight's reveals: this session's rated mysteries, newest first (in memory only).
+function renderTonight() {
+  $('#rail-count').textContent = tonight.length || '';
+  $('#tonight').replaceChildren(...(tonight.length ? tonight.map(({ t, kind, extra }) => {
+    const row = trackRow(t, { extra, reason: `You said ${VERDICT[kind]}`, from: { tab: 'blind', label: `${tabName('blind')} · tonight` } });
+    row.dataset.verdict = kind;
+    return row;
+  }) : [el('li', { className: 'rail-empty', textContent: 'Every mystery you rate lands here, newest first, so you can play it again.' })]));
 }
 
 $('#rate').addEventListener('click', e => { const b = e.target.closest('[data-rate]'); if (b) rate(b.dataset.rate); });
 $('#mystery-next').onclick = () => showMystery();
 $('#mystery-play').onclick = () => {
   if (!mystery) return;
-  if (current !== mystery) return rated ? play(mystery) : playMystery(); // resume after playing something else
+  if (current !== mystery) return rated ? play(mystery, { from: { tab: 'blind', label: tabName('blind') } }) : playMystery(); // resume after playing something else
   togglePlay();
 };
 $('#blind-retry').onclick = () => { fails = 0; $('#mystery-title').textContent = 'Finding your first mystery…'; fill(); };
@@ -710,6 +835,60 @@ function renderSaved() {
     el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Passport', () => showTab('passport')))));
 }
 
+// ---------- Home ----------
+const day = ts => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const topOf = (xs, n = 3) => Object.entries(xs.reduce((a, x) => ((a[x] = (a[x] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, n);
+function renderHome() {
+  if (!profile) return;
+  if (!current) setTint(profile.last && profile.last.track.cover);
+  const { last, likes } = profile, f = last && last.from && $(`#tab-${last.from.tab}`) ? last.from : null;
+  // Continue where you left off: the last revealed or saved track you played, and the way back to where it came from.
+  $('#continue').classList.toggle('has-art', !!(last && last.track.cover));
+  $('#continue-body').replaceChildren(...(last ? [
+    last.track.cover ? el('img', { className: 'continue-art', src: bigCover(last.track.cover), alt: '' }) : null,
+    el('div', { className: 'continue-text' },
+      trackRow(last.track, { tag: 'div', from: f || undefined, extra: last.track.country ? { country: last.track.country, decade: last.track.decade } : undefined,
+        reason: [f && `From ${f.label || tabName(f.tab)}`, last.ts && `played ${day(last.ts)}`].filter(Boolean).join(' · ') }),
+      el('div', { className: 'row' }, f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab)) : null,
+        btn(tonight.length ? 'Next mystery' : 'Open the Blind Test', () => showTab('blind'), 'primary')))]
+    : [el('p', { className: 'muted', textContent: 'Nothing played yet. The Blind Test is the quickest way in: one track, no names, and you rate it before you find out.' }),
+      el('div', { className: 'row' }, btn('Start the Blind Test', () => showTab('blind'), 'primary'))]));
+
+  // Your taste so far: from loves and ratings, in words, not a stats wall.
+  const rs = profile.ratings.filter(r => !r.seed), n = k => rs.filter(r => r.rating === k).length;
+  const list = pairs => pairs.length ? pairs.map(([k, c]) => el('span', { className: 'taste-item' }, k, el('span', { className: 'num', textContent: ` ${c}` }))) : null;
+  const adv = ADVENTURE.find(([max]) => profile.adventure <= max)[1];
+  const rows = [
+    ['Places', list(topOf(likes.filter(l => l.country).map(l => countryNames[l.country] || l.country))), 'Love a track from a random trip to start a map.'],
+    ['Decades', list(topOf(likes.filter(l => l.decade).map(l => `${l.decade}s`))), 'No decades yet.'],
+    ['Genres you picked', profile.prefs.genres.length ? profile.prefs.genres.slice(0, 4).map(g => el('span', { className: 'taste-item', textContent: g.name })) : null, 'None picked. Add some in Preferences.'],
+    ['Ratings', rs.length ? [el('span', { className: 'num', textContent: `${n('love')} loved · ${n('ok')} OK · ${n('skip')} skipped` })] : null, 'Rate a few mysteries and your taste shows up here.'],
+    ['Adventure', [el('span', { className: 'num', textContent: `${profile.adventure} ` }), adv], ''],
+  ];
+  $('#taste').replaceChildren(...rows.flatMap(([k, v, empty]) => [el('dt', { textContent: k }), el('dd', { className: v ? '' : 'muted' }, ...(v || [empty]))]));
+
+  // Ways in: one card per route, each with a live line; the stamps tab is whatever the tab after Blind Test is called now.
+  const stampTab = tabs.find(b => !['home', 'blind', 'tree', 'saved', 'prefs'].includes(b.dataset.tab));
+  const stamps = Object.keys(profile.stamps || {}).length, newest = likes[likes.length - 1];
+  const ways = [
+    ['blind', 'vinyl', 'One track, no names. Rate it first, then see who it was.', tonight.length ? `${tonight.length} revealed tonight` : 'A mystery is cued up'],
+    stampTab && [stampTab.dataset.tab, 'stamp', 'Pick a place and a time, love a track, collect the stamp.', `${stamps} stamp${stamps === 1 ? '' : 's'} collected`],
+    ['tree', 'branch', 'Start from a song and walk its scene, one explained step at a time.', newest ? `Grow from “${newest.title}”` : 'Start from any song'],
+  ].filter(Boolean);
+  $('#ways').replaceChildren(...ways.map(([tab, art, text, live]) => el('li', {}, el('button', { type: 'button', className: `way way-${art}`, onclick: () => showTab(tab) },
+    el('span', { className: 'way-art', ariaHidden: 'true' }), el('span', { className: 'way-name', textContent: tabName(tab) }),
+    el('span', { className: 'way-text', textContent: text }), el('span', { className: 'way-live', textContent: live })))));
+
+  // Recent finds: tonight's reveals and your newest loves, one crate.
+  const seen = new Set(), finds = [];
+  for (const { t, kind, extra } of tonight) finds.push({ t, extra, reason: `You said ${VERDICT[kind]} · tonight` });
+  for (const t of likes.slice().reverse()) finds.push({ t, extra: t.country ? { country: t.country, decade: t.decade } : undefined, reason: t.ts ? `Loved ${day(t.ts)}` : 'Loved' });
+  const crate = finds.filter(({ t }) => !seen.has(likeKey(t)) && seen.add(likeKey(t))).slice(0, 8);
+  $('#recent-count').textContent = crate.length || '';
+  $('#recent').replaceChildren(...(crate.length ? crate.map(({ t, extra, reason }) => trackRow(t, { extra, reason }))
+    : [el('li', { className: 'state empty' }, el('p', { textContent: 'Nothing found yet. Rate a mystery or love a track anywhere and it lands here.' }))]));
+}
+
 // ---------- Preferences (first-launch step + tab) ----------
 // Seed ratings are 'seed:<artistDzId>:<trackId>': a favourite artist's top track, fingerprinted and kept as a Love.
 const seedArtist = r => r.id.split(':')[1];
@@ -846,7 +1025,8 @@ $('#prefs-skip').onclick = () => openIntro();
   $('#adventure').value = profile.adventure;
   showAdventure();
   afterLikeChange();
-  if (!introSeen() && !profile.likes.length) openPrefs(true);
+  renderTonight();
+  if (!introSeen() && !profile.likes.length) openPrefs(true); else showTab('home');
   fill();
   seedTaste(); // finishes seeding an interrupted earlier session; no-op otherwise
 })();
