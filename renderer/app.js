@@ -148,7 +148,7 @@ function coverTint(url) {
         res(Tint.tintOf(x.getImageData(0, 0, 24, 24).data));
       } catch { res(null); } // a tainted canvas: no colour, keep amber
     };
-    img.onerror = () => res(null);
+    img.onerror = () => { tints.delete(url); res(null); }; // a network blip: try again next time this cover plays
     img.src = url;
   }));
   return tints.get(url);
