@@ -50,3 +50,11 @@ test('audio refuses previews over 2 MB, by header or while streaming', () =>
     assert.deepEqual(await net.audio('https://x.dzcdn.net/hdr.mp3'), { error: { message: 'too large' } });
     assert.deepEqual(await net.audio('https://x.dzcdn.net/stream.mp3'), { error: { message: 'too large' } });
   }));
+
+test('two concurrent requests for one url share a single fetch (the tree asks for an artist twice at once)', () =>
+  withFetch(async () => ({ ok: true, status: 200, json: async () => ({ n: 1 }) }), async calls => {
+    const u = 'https://en.wikipedia.org/inflight-test';
+    const [a, b] = await Promise.all([net.get(u), net.get(u)]);
+    assert.deepEqual([a, b], [{ n: 1 }, { n: 1 }]);
+    assert.equal(calls.length, 1);
+  }));

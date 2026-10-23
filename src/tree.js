@@ -77,9 +77,16 @@ function lookBack(rec, work) {
   }
   for (const r of (work && work.relations) || []) {
     if (r.type === 'based on' && r.direction === 'backward' && r.work && !out.some(o => norm(o.title) === norm(r.work.title)))
-      out.push({ title: r.work.title, kind: 'builton' });
+      out.push({ title: r.work.title, work: r.work.id, kind: 'builton' });
   }
   return out;
+}
+
+// Who first recorded a work: the credit on its earliest dated recording that isn't a live/demo/remix cut.
+function firstPerformer(recs) {
+  const ok = (recs || []).filter(r => r['first-release-date'] && !/(live|demo|remix|edit|version)/i.test(r.disambiguation || ''))
+    .sort((a, b) => a['first-release-date'].localeCompare(b['first-release-date']))[0];
+  return ok ? (ok['artist-credit'] || []).map(c => c.name + (c.joinphrase || '')).join('') || null : null;
 }
 
 // Earliest dated studio recording with this exact title: Saved can hold a 2025 live version, the tree wants the original.
@@ -93,7 +100,7 @@ function originalRecording(recs, artist, title) {
 // ---------- tree state ----------
 
 function newTree(get, root, { emit = () => {}, live = () => true, heard = [] } = {}) {
-  const T = { get, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0, scene: [], tag: null };
+  const T = { get, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0 };
   addNode(T, null, root, { label: '' });
   claim(T, { artist: root.artist, dzId: root.artistDzId });
   return T;
@@ -135,11 +142,11 @@ async function topTrack(get, dzId) {
   return dzTrack((res.data || []).find(t => t.preview && !/\b(live|remix|demo|version)\b/i.test(t.title)));
 }
 
-// A work we only know by title ("based on" carries no performer): the most popular exact-title track.
-// shortcut: a famous same-title song by someone else can win; resolve the work's first recording on MB if that shows up.
-async function songByTitle(get, title) {
-  const res = await get(`${DZ}/search?q=${enc(`track:"${title}"`)}&limit=10`);
-  return dzTrack((res.data || []).filter(r => r.preview && norm(r.title_short || r.title) === norm(title)).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0]);
+// A work we only know by title ("based on" carries no performer): its first recording on MB names the artist.
+// shortcut: MB browse returns the first 100 recordings only; a much-covered work's original may be past them.
+async function workPerformer(get, workId) {
+  const res = await get(`${MB}/recording?work=${enc(workId)}&inc=artist-credits&limit=100&fmt=json`);
+  return firstPerformer(res.recordings);
 }
 
 const related = async (get, dzId) => dzId == null ? [] : ((await get(`${DZ}/artist/${enc(dzId)}/related?limit=25`)).data || []);
@@ -166,17 +173,40 @@ async function influences(get, rels) {
   return qs.map(q => (((l.entities || {})[q] || {}).labels || {}).en).filter(Boolean).map(x => x.value);
 }
 
-// Ranked scene candidates for `node`: in the root's scene list, boosted when the node's fans also play them.
+// The node's MB row (tags, era, country): from the scene search, its rels, or an exact-name lookup like the root's.
+async function mbOf(T, node) {
+  if (node.mb) return node.mb;
+  if (node.mbid) { const r = await mbRels(T.get, node.mbid); if (!r.error) node.mb = r; }
+  else { const a = await mbArtist(T.get, node.artist, T.nodes[0].mb); if (a) { node.mb = a; node.mbid = a.id; claim(T, { mbid: a.id }); } }
+  return node.mb;
+}
+
+// The node's own scene (its top tag, era, country): one MB query per node, started once.
+// With node.mb known the query is queued synchronously, so it goes on the MB lane ahead of anything started after it.
+function sceneOf(T, node) {
+  return node.sceneP ??= (node.mb ? scan(T, node.mb) : mbOf(T, node).then(mb => scan(T, mb))).catch(() => []);
+}
+
+async function scan(T, mb) {
+  if (!mb || !topTags(mb).length || !T.live()) return [];
+  const res = await T.get(`${MB}/artist?query=${enc(sceneQuery(mb))}&limit=50&fmt=json`);
+  const rows = (res.artists || []).filter(a => a.id !== mb.id && sceneGuard(mb, a));
+  const shared = sharedNames(rows, rows.map(a => a.name)); // two scene artists with one name: can't tell them apart on Deezer
+  return rows.filter(a => !shared.has(norm(a.name)));
+}
+
+// Ranked scene candidates for `node`: its own scene, boosted when the node's fans also play them.
 async function rank(T, node) {
-  const rel = await related(T.get, node.dzId);
+  const [rel, scene] = await Promise.all([related(T.get, node.dzId), sceneOf(T, node)]);
   const relBy = new Map(rel.map(a => [norm(a.name), a]));
-  if (!T.scene.length) return fallback(T, node, rel);
-  return T.scene.map(a => {
+  if (!scene.length) return fallback(T, node, rel);
+  const tag = topTags(node.mb)[0];
+  return scene.map(a => {
     const r = relBy.get(norm(a.name));
     const heard = T.heard.has(norm(a.name)) || (r && T.heard.has(`dz:${r.id}`));
     const score = (r ? 3 : 2) + (a.score || 0) / 100 - (heard ? 0.5 : 0);
     return { artist: a.name, mbid: a.id, mb: a, dzId: r ? r.id : undefined, kind: 'scene', score,
-      label: sceneLabel(T.tag, a, r && node.artist) };
+      label: sceneLabel(tag, a, r && node.artist) };
   }).sort((a, b) => b.score - a.score);
 }
 
@@ -199,8 +229,11 @@ async function tryAdd(T, node, c) {
   claim(T, c);
   let track;
   if (c.title && !c.artist) {
-    track = await songByTitle(T.get, c.title);
-    if (track) c.label = `Built on ${track.artist}'s “${c.title}”`;
+    const artist = c.work && await workPerformer(T.get, c.work);
+    if (!artist || taken(T, { artist })) return null;
+    track = await resolvePreview(T.get, artist, c.title, true);
+    c.artist = artist;
+    c.label = `Built on ${artist}'s “${c.title}”`;
   } else if (c.title) {
     track = await resolvePreview(T.get, c.artist, c.title, true);
   } else {
@@ -220,44 +253,51 @@ async function fill(T, node, n) {
 }
 
 // The original recording, its producers and what it looks back on. Cached per node (MB calls are 1.5 s each).
-async function recordingOf(T, node) {
-  if (node.done.has('rec')) return node.rec;
-  node.done.add('rec');
-  const { artist } = node.track;
-  const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
-  const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
-  const hit = originalRecording((await T.get(`${MB}/recording?query=${enc(q)}&limit=10&fmt=json`)).recordings, artist, title);
-  if (!hit) return (node.rec = null);
-  const rec = await T.get(`${MB}/recording/${hit.id}?inc=work-rels+recording-rels+artist-rels+artist-credits&fmt=json`);
-  if (rec.error) return (node.rec = null);
-  const perf = (rec.relations || []).find(r => r.type === 'performance' && r.work);
-  const work = perf ? await T.get(`${MB}/work/${perf.work.id}?inc=work-rels&fmt=json`) : null;
-  node.year = yearOf(hit['first-release-date']);
-  return (node.rec = { rec, work: work && !work.error ? work : null });
+// The promise is kept, so a More during the build waits for the lookup the build started instead of getting nothing.
+function recordingOf(T, node) {
+  return node.recP ??= (async () => {
+    const { artist } = node.track;
+    const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
+    const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
+    const hit = originalRecording((await T.get(`${MB}/recording?query=${enc(q)}&limit=10&fmt=json`)).recordings, artist, title);
+    if (!hit) return null;
+    const rec = await T.get(`${MB}/recording/${hit.id}?inc=work-rels+recording-rels+artist-rels+artist-credits&fmt=json`);
+    if (rec.error) return null;
+    const perf = (rec.relations || []).find(r => r.type === 'performance' && r.work);
+    const work = perf ? await T.get(`${MB}/work/${perf.work.id}?inc=work-rels&fmt=json`) : null;
+    node.year = yearOf(hit['first-release-date']);
+    return { rec, work: work && !work.error ? work : null };
+  })().catch(() => null);
 }
 
-// Third child: Built on (root only) > Member moved > Roots, else the next scene candidate. Leftovers wait for More.
-async function special(T, node) {
-  const cands = [];
-  if (node.depth === 0) { const r = await recordingOf(T, node); if (r) cands.push(...lookBack(r.rec, r.work)); }
-  if (!T.live()) return;
-  if (!node.mbid && !node.mb) { const a = await mbArtist(T.get, node.artist, T.nodes[0].mb); if (a) { node.mb = a; node.mbid = a.id; } }
-  const rels = node.mbid ? await mbRels(T.get, node.mbid) : null;
-  if (rels && !rels.error) {
-    node.mb = node.mb || rels;
-    const band = { id: node.mbid, begin: yearOf(((node.mb || rels)['life-span'] || {}).begin) };
-    const members = parseMembers(rels.relations);
-    members.forEach(m => claim(T, { artist: m.name })); // "Liam Gallagher" never shows up under Oasis
-    for (const m of members.slice(0, node.depth === 0 ? 2 : 1)) {
-      if (!T.live()) return;
-      const mr = await T.get(`${MB}/artist/${m.id}?inc=artist-rels&fmt=json`);
-      cands.push(...otherBands(mr.relations, m, band));
-    }
-    if (T.roots < MAX_ROOTS) {
-      const inf = (await influences(T.get, rels)).filter(n => !taken(T, { artist: n }));
+// Special-slot candidates: Built on (root only) > Member moved > Roots. Started once, early, so the calls overlap.
+function candsOf(T, node) {
+  return node.candsP ??= (async () => {
+    if (!T.live()) return [];
+    const recP = node.depth === 0 ? recordingOf(T, node) : null;
+    await mbOf(T, node);
+    const rels = node.mbid && T.live() ? await mbRels(T.get, node.mbid) : null;
+    const cands = [];
+    if (rels && !rels.error) {
+      node.mb = node.mb || rels;
+      const band = { id: node.mbid, begin: yearOf((node.mb['life-span'] || {}).begin) };
+      const members = parseMembers(rels.relations);
+      members.forEach(m => claim(T, { artist: m.name })); // "Liam Gallagher" never shows up under Oasis
+      const infP = T.roots < MAX_ROOTS ? influences(T.get, rels).catch(() => []) : Promise.resolve([]); // Wikidata runs beside the MB lookups
+      const mrs = T.live() ? await Promise.all(members.slice(0, node.depth === 0 ? 2 : 1).map(m => T.get(`${MB}/artist/${m.id}?inc=artist-rels&fmt=json`))) : [];
+      mrs.forEach((mr, i) => cands.push(...otherBands(mr.relations, members[i], band)));
+      const inf = (await infP).filter(n => !taken(T, { artist: n }));
       if (inf[0]) cands.push({ artist: inf[0], kind: 'roots', label: `${node.artist} named ${inf[0]} as an influence` });
     }
-  }
+    const r = await recP;
+    return [...(r ? lookBack(r.rec, r.work) : []), ...cands];
+  })().catch(() => []);
+}
+
+// Third child: the first special candidate that resolves, else the next scene candidate. Leftovers wait for More.
+async function special(T, node) {
+  const cands = [...await candsOf(T, node)];
+  if (!T.live()) return;
   while (node.kids < KIDS && cands.length && T.live()) await tryAdd(T, node, cands.shift());
   node.pending.unshift(...cands); // leftovers wait for More
   await fill(T, node, KIDS);
@@ -268,25 +308,25 @@ async function special(T, node) {
 // Root -> 3 children -> 3 grandchildren each, streamed. Scene children first (fast), the MB-heavy special slots after.
 async function growTree(T) {
   const root = T.nodes[0];
-  root.mb = await mbArtist(T.get, root.artist);
+  [root.mb, root.dzId] = await Promise.all([mbArtist(T.get, root.artist), root.dzId ?? dzArtist(T.get, root.artist)]);
   root.mbid = root.mb && root.mb.id;
   claim(T, { mbid: root.mbid });
-  if (root.dzId == null) root.dzId = await dzArtist(T.get, root.artist);
   if (!T.live()) return T;
-  if (root.mb && topTags(root.mb).length) {
-    T.tag = topTags(root.mb)[0];
-    const res = await T.get(`${MB}/artist?query=${enc(sceneQuery(root.mb))}&limit=50&fmt=json`);
-    const rows = (res.artists || []).filter(a => a.id !== root.mbid && sceneGuard(root.mb, a));
-    const shared = sharedNames(rows, rows.map(a => a.name)); // two scene artists with one name: can't tell them apart on Deezer
-    T.scene = rows.filter(a => !shared.has(norm(a.name)));
-  }
-  if (!T.live()) return T;
+  // The root's scene query goes first on the 1.5 s MB lane; its special lookups use the lane while that (slow) query runs.
+  sceneOf(T, root);
+  candsOf(T, root);
   await ranked(T, root);
   await fill(T, root, 2);
-  for (const c of kidsOf(T, root)) { await ranked(T, c); await fill(T, c, 2); }
+  if (!T.live()) return T;
+  // Then the kids' own scenes (level 2 shows sooner), then their special lookups.
+  const kids = kidsOf(T, root);
+  kids.forEach(c => sceneOf(T, c));
+  kids.forEach(c => candsOf(T, c));
+  for (const c of kids) { await ranked(T, c); await fill(T, c, 2); }
   await special(T, root);
   for (const c of kidsOf(T, root)) {
     if (!T.live()) break;
+    sceneOf(T, c); candsOf(T, c); // the special third child: start both lookups together
     await ranked(T, c);
     await fill(T, c, 2);
     await special(T, c);
@@ -303,7 +343,7 @@ async function ranked(T, node) {
 const kidsOf = (T, node) => T.nodes.filter(n => n.parent === node.id);
 
 // "More from this branch": up to 3 more children. The More-only edges come first, once: Built on, Same producer,
-// Same label + era; then the leftover scene queue; then the node's own scene query.
+// Same label + era; then the leftover queue of the node's own scene.
 async function moreTree(T, id) {
   const node = T.nodes[id];
   if (!node || T.nodes.length >= CAP) return { added: 0, full: T.nodes.length >= CAP };
@@ -317,15 +357,7 @@ async function moreTree(T, id) {
     node.pending = [...built, ...prod.slice(0, 1), ...lab.slice(0, 1), ...node.pending, ...prod.slice(1), ...lab.slice(1)];
   }
   const start = T.nodes.length;
-  while (T.nodes.length - start < KIDS && T.nodes.length < CAP && T.live()) {
-    if (!node.pending.length) {
-      if (node.done.has('ownScene')) break;
-      node.done.add('ownScene');
-      node.pending = await ownScene(T, node);
-      continue;
-    }
-    await tryAdd(T, node, node.pending.shift());
-  }
+  while (T.nodes.length - start < KIDS && T.nodes.length < CAP && node.pending.length && T.live()) await tryAdd(T, node, node.pending.shift());
   return { added: T.nodes.length - start, full: T.nodes.length >= CAP };
 }
 
@@ -347,12 +379,4 @@ async function labelEdge(T, node) {
   return names.map(n => ({ artist: n, kind: 'label', label: `Also on ${l.label.name}, ${y - 2}–${String(y + 2).slice(2)}` }));
 }
 
-async function ownScene(T, node) {
-  if (!node.mb || !topTags(node.mb).length) return [];
-  const res = await T.get(`${MB}/artist?query=${enc(sceneQuery(node.mb))}&limit=50&fmt=json`);
-  const tag = topTags(node.mb)[0];
-  return (res.artists || []).filter(a => sceneGuard(node.mb, a))
-    .map(a => ({ artist: a.name, mbid: a.id, mb: a, kind: 'scene', label: sceneLabel(tag, a) }));
-}
-
-module.exports = { topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, originalRecording, newTree, growTree, moreTree, CAP };
+module.exports = { topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, growTree, moreTree, CAP };

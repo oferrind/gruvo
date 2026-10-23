@@ -40,7 +40,15 @@ function slot(host) {
 }
 
 // Returns parsed JSON, or {error} on any failure. Never throws.
-async function get(url, { fresh = false } = {}) {
+// The same url asked for again while the first request is still out shares it (each extra MB call costs 1.5 s).
+const inflight = new Map();
+function get(url, { fresh = false } = {}) {
+  if (fresh) return load(url, true);
+  if (!inflight.has(url)) inflight.set(url, load(url, false).finally(() => inflight.delete(url)));
+  return inflight.get(url);
+}
+
+async function load(url, fresh) {
   let u;
   try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
   const host = u.hostname;

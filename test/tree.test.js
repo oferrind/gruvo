@@ -13,7 +13,11 @@ const SCENE = ['Blur', 'The Verve', 'Suede', 'Supergrass', 'Pulp', 'Elastica', '
   'Dodgy', 'Gene', 'Mansun'].map((n, i) => row(`mb${i}`, n, { score: 99 - i }));
 SCENE.push(row('met', 'Metallica', { score: 100, country: 'US', tags: tags(['thrash metal', 20], ['heavy metal', 10], ['britpop', 1]) }),
   row('cast1', 'Cast'), row('cast2', 'Cast'));
-const DZ_NAMES = [...SCENE.map(a => a.name), 'Oasis', 'Beady Eye', 'The Kinks', 'Boo Radleys', 'Liam Gallagher'];
+// Each level-1 node has its own scene: Blur / The Verve (formed 1990) and Beady Eye (2009) query their own era.
+const EARLY = ['Ride', 'Lush', 'Slowdive', 'Chapterhouse', 'Moose', 'Swervedriver'].map((n, i) => row(`e${i}`, n, { score: 90 - i }));
+const LATE = ['Kasabian', 'The Enemy', 'The Twang', 'Razorlight'].map((n, i) => row(`l${i}`, n, { score: 90 - i, 'life-span': { begin: '2005' } }));
+const BEADY = row('a0e10984-0eca-4920-a171-5fd7a62ee069', 'Beady Eye', { 'life-span': { begin: '2009' }, relations: [] });
+const DZ_NAMES = [...SCENE.map(a => a.name), ...EARLY.map(a => a.name), ...LATE.map(a => a.name), 'Oasis', 'Beady Eye', 'The Kinks', 'Boo Radleys', 'Liam Gallagher'];
 const dzId = n => DZ_NAMES.indexOf(n) + 1;
 
 // A tiny recorded-shape world behind a fake `get`: no network.
@@ -24,7 +28,10 @@ function world() {
     const u = decodeURIComponent(url);
     let m;
     if (u.includes('/ws/2/artist?query=artist:"Oasis"')) return { artists: [oasis] };
+    if (u.includes('/ws/2/artist?query=tag:') && u.includes('begin:[1984 ')) return { artists: EARLY };
+    if (u.includes('/ws/2/artist?query=tag:') && u.includes('begin:[2003 ')) return { artists: LATE };
     if (u.includes('/ws/2/artist?query=tag:')) return { artists: SCENE };
+    if (u.includes(`/ws/2/artist/${BEADY.id}`)) return BEADY;
     if (u.includes('/ws/2/artist?query=')) return { artists: [] };
     if (u.includes(`/ws/2/artist/${OASIS}`)) return fx('mb_artist_oasis_rels');
     if (u.includes('/ws/2/artist/1f2345fa')) return fx('mb_artist_liam_rels');
@@ -69,7 +76,13 @@ test('tree: 3 + 9 children, one artist once, tag guard, homonyms dropped, labels
   assert.equal(kids[2].label, 'Liam Gallagher (lead vocals) went on to Beady Eye');
   // Streaming: the first two children arrive before any member / relation lookups.
   const firstRels = calls.findIndex(u => u.includes(`/artist/${OASIS}?`));
-  assert.ok(emitted[2].at <= firstRels, 'scene children come first');
+  const firstScene = calls.findIndex(u => decodeURIComponent(u).includes('query=tag:'));
+  assert.ok(firstScene >= 0 && firstScene < firstRels, 'the scene query is queued first');
+  // Level 2 comes from each level-1 node's own scene, not the root's.
+  const under = id => T.nodes.filter(n => n.parent === id && n.label.startsWith('Same scene')).map(n => n.artist);
+  for (const k of kids.slice(0, 2)) assert.ok(under(k.id).length && under(k.id).every(a => EARLY.some(e => e.name === a)), `${k.artist}: ${under(k.id)}`);
+  assert.ok(under(kids[2].id).length && under(kids[2].id).every(a => LATE.some(e => e.name === a)), `Beady Eye: ${under(kids[2].id)}`);
+  assert.ok(T.nodes.filter(n => n.parent === kids[2].id)[0].label.includes('formed 2005'));
 });
 
 test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', async () => {
@@ -93,12 +106,12 @@ test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', as
 
 test('tree: a cancelled build stops making calls', async () => {
   const { get, calls } = world();
-  let n = 0;
-  const T = t.newTree(get, ROOT, { emit: () => n++, live: () => n < 2 }); // root + one child, then a newer tree took over
+  let n = 0, cut;
+  const T = t.newTree(get, ROOT, { emit: () => { if (++n === 2) cut = calls.length; }, live: () => n < 2 }); // root + one child, then a newer tree took over
   await t.growTree(T);
   const after = calls.length;
   assert.equal(T.nodes.length, 2);
-  assert.ok(!calls.some(u => u.includes(`/artist/${OASIS}?`)));
+  assert.ok(!calls.slice(cut).map(decodeURIComponent).some(u => /inc=artist-rels&|query=tag:|\/top\?/.test(u)), 'no member, scene or track lookups after the cut');
   assert.deepEqual(await t.moreTree(T, 0).then(r => r.added), 0);
   assert.ok(calls.length - after <= 3, 'More on a dead tree does nothing heavy');
 });
@@ -129,4 +142,12 @@ test('built on looks back only: samples it uses and works it is based on, never 
   assert.deepEqual(back.map(b => b.label), ['Samples The Andrew Oldham Orchestra\'s “The Last Time”']); // the work rel names the same song
   assert.deepEqual(t.lookBack(null, fx('mb_work_bss')).map(b => b.title), ['The Last Time']);
   assert.equal(t.originalRecording(fx('mb_recsearch_bss').recordings, 'The Verve', 'Bitter Sweet Symphony').id, '8b6d9029-1990-4660-bd57-24b5bc0fb626');
+});
+
+test('built on by title only: the work\'s first studio recording names the artist, so a namesake song never wins', () => {
+  const rec = (date, name, disambiguation = '') => ({ title: 'The Last Time', 'first-release-date': date, disambiguation, 'artist-credit': [{ name }] });
+  assert.equal(t.firstPerformer([rec('1967', 'The Who'), rec('1966-12-10', 'The Rolling Stones', 'live: Royal Albert Hall'),
+    rec('', 'Nobody'), rec('1965', 'The Rolling Stones')]), 'The Rolling Stones');
+  assert.equal(t.firstPerformer([]), null);
+  assert.deepEqual(t.lookBack(null, fx('mb_work_bss')).map(b => b.work), ['d12cf1ae-7feb-3f04-88e9-c4d7df3ff754']);
 });
