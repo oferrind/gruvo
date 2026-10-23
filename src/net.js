@@ -104,4 +104,23 @@ async function audio(url) {
   }
 }
 
-module.exports = { get, audio, initCache, flushCache };
+// Spotify: the only hosts that ever get an Authorization header. Never cached, never paced here (spotify.js handles 429).
+const SPOTIFY = new Set(['api.spotify.com', 'accounts.spotify.com']);
+
+// Returns {status, headers, body} (body = parsed JSON or null), or {error}. Never throws.
+async function send(url, { method = 'GET', headers = {}, body } = {}) {
+  let u;
+  try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
+  if (u.protocol !== 'https:' || !SPOTIFY.has(u.hostname) || u.port || u.username) return { error: { message: 'host not allowed' } };
+  try {
+    const res = await fetch(u.href, { method, headers: { 'User-Agent': UA, ...headers }, body, redirect: 'error', signal: AbortSignal.timeout(15000) });
+    const text = await res.text();
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch {}
+    return { status: res.status, headers: res.headers, body: json };
+  } catch (e) {
+    return { error: { message: e.message } };
+  }
+}
+
+module.exports = { get, audio, send, initCache, flushCache };

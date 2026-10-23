@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, safeStorage } = require('electron');
 const { safeExternal } = require('./src/links');
 const fs = require('fs');
 const path = require('path');
@@ -6,6 +6,7 @@ const net = require('./src/net');
 const store = require('./src/store');
 const { flows, COUNTRIES } = require('./src/music');
 const Tree = require('./src/tree');
+const Spotify = require('./src/spotify');
 
 let win;
 
@@ -87,6 +88,21 @@ ipcMain.handle('shell:open', (e, url) => {
   if (!ok) throw new Error('link not allowed');
   return shell.openExternal(ok);
 });
+// Spotify: tokens stay in this process; the renderer only gets status, devices and results.
+let spotify;
+const trackIn = t => {
+  if (!t || typeof t.artist !== 'string' || typeof t.title !== 'string') throw new Error('bad track');
+  return { source: String(t.source), id: t.id == null ? null : String(t.id), artist: t.artist.slice(0, 300), title: t.title.slice(0, 300), isrc: typeof t.isrc === 'string' ? t.isrc : undefined };
+};
+ipcMain.handle('spotify:status', () => spotify.status());
+ipcMain.handle('spotify:connect', (e, clientId) => spotify.connect(String(clientId)));
+ipcMain.handle('spotify:disconnect', () => spotify.disconnect());
+ipcMain.handle('spotify:devices', () => spotify.devices());
+ipcMain.handle('spotify:play', (e, t, deviceId) => spotify.play(trackIn(t), deviceId == null ? undefined : String(deviceId)));
+ipcMain.handle('spotify:export', (e, name, tracks) => {
+  if (!Array.isArray(tracks)) throw new Error('bad tracks');
+  return spotify.exportPlaylist(String(name || 'After Hours').slice(0, 100), tracks.slice(0, 500).map(trackIn));
+});
 ipcMain.handle('store:load', () => store.load());
 ipcMain.handle('store:save', (e, profile) => store.save(profile));
 
@@ -94,6 +110,11 @@ app.whenReady().then(() => {
   const dir = app.getPath('userData');
   net.initCache(dir);
   store.init(dir);
+  spotify = Spotify.create({ dir, send: net.send, getJson: net.get,
+    crypt: { available: () => safeStorage.isEncryptionAvailable(), encrypt: s => safeStorage.encryptString(s), decrypt: b => safeStorage.decryptString(b) },
+    openUrl: url => {
+      if (process.env.SNAP) return console.log('[spotify] authorize', url); // test hook: log (no secrets in it), don't open a browser
+      const ok = safeExternal(url); if (!ok) throw new Error('link not allowed'); return shell.openExternal(ok); } });
   createWindow();
 });
 app.on('before-quit', () => net.flushCache());

@@ -266,7 +266,8 @@ function fullSong(t) {
   const dz = t.source === 'dz' ? `https://www.deezer.com/track/${encodeURIComponent(t.id)}` : `https://www.deezer.com/search/${q}`;
   const link = (name, url) => el('button', { type: 'button', className: 'ext', textContent: name,
     ariaLabel: `Listen to the full song on ${name} (opens your browser)`, onclick: () => api.open(url).catch(() => toast('Could not open the browser')) });
-  return el('span', { className: 'full-song' }, el('span', { className: 'full-label', textContent: 'Full song:' }),
+  return el('span', { className: 'full-song' }, sp.connected ? el('button', { type: 'button', className: 'primary sp-play',
+    onclick: e => playInSpotify(t, e.currentTarget) }, icon('play'), 'Play in Spotify') : null, el('span', { className: 'full-label', textContent: 'Full song:' }),
     link('YouTube', `https://www.youtube.com/results?search_query=${q}`), link('Spotify', `https://open.spotify.com/search/${q}`), link('Deezer', dz));
 }
 
@@ -1072,8 +1073,70 @@ function openPrefs(first) {
 prefsMode(false);
 $('#prefs-skip').onclick = () => openIntro();
 
+// ---------- Spotify (options A + C; tokens stay in main) ----------
+let sp = { connected: false };
+function renderSpotifyPrefs(msg) {
+  $('#sp-redirect').textContent = sp.redirectUri || '';
+  if (!$('#sp-client').value) $('#sp-client').value = sp.clientId || '';
+  $('#sp-connect').hidden = !!sp.connected;
+  $('#sp-off').hidden = !sp.connected;
+  $('#sp-setup').open = !sp.clientId && !sp.connected;
+  $('#sp-status').textContent = msg ?? (sp.connected ? `Connected as ${sp.name || 'your Spotify account'}.` : 'Not connected.');
+}
+function openSpotifyPrefs() {
+  showTab('prefs');
+  $('#spotify-prefs').scrollIntoView({ block: 'start' });
+  (sp.connected ? $('#sp-off') : $('#sp-client')).focus();
+}
+$('#sp-connect').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('#sp-go').disabled = true;
+  renderSpotifyPrefs('Log in to Spotify in your browser, then come back here…');
+  const r = await spotify.connect($('#sp-client').value).catch(() => ({ error: 'Spotify login failed. Try again.' }));
+  $('#sp-go').disabled = false;
+  if (r.error) return renderSpotifyPrefs(r.error);
+  sp = r;
+  renderSpotifyPrefs();
+});
+$('#sp-off').onclick = async () => { sp = await spotify.disconnect(); renderSpotifyPrefs(); $('#sp-client').focus(); };
+$('#sp-dash').onclick = () => api.open('https://developer.spotify.com/dashboard').catch(() => toast('Could not open the browser'));
+
+// Plays that exact track on the user's Spotify device; several idle devices: ask which, next to the button.
+async function playInSpotify(t, b, deviceId) {
+  b.disabled = true;
+  const r = await spotify.play(plain(t), deviceId).catch(() => ({ error: 'Spotify failed. Try again.' }));
+  b.disabled = false;
+  b.parentElement.querySelector('.sp-devices')?.remove();
+  if (r.devices) return b.after(el('span', { className: 'sp-devices' }, el('span', { className: 'full-label', textContent: 'Play on:' }),
+    ...r.devices.map(d => btn(d.name, () => playInSpotify(t, b, d.id), 'ext'))));
+  if (r.error) return toast(r.error);
+  audio.pause();
+  toast(`Playing “${t.title}” in Spotify`);
+}
+
+// Private playlist from tracks (in order); reports matches and the songs Spotify doesn't have. Genre Stamps can call it too.
+async function exportToSpotify(name, tracks, out, b) {
+  if (!sp.connected) return openSpotifyPrefs();
+  if (!tracks.length) return out.replaceChildren('Nothing to export yet.');
+  if (b) b.disabled = true;
+  out.replaceChildren(`Finding ${tracks.length} songs on Spotify…`);
+  const r = await spotify.exportPlaylist(name, plain(tracks)).catch(() => ({ error: 'Spotify failed. Try again.' }));
+  if (b) b.disabled = false;
+  const miss = r.unmatched?.length ? ` Not on Spotify: ${r.unmatched.map(u => `${u.artist} – ${u.title}`).join(', ')}.` : '';
+  if (r.error) return out.replaceChildren(r.error + miss);
+  out.replaceChildren(`Added ${r.added} of ${r.total} songs to the private playlist “${name}”.${miss} `,
+    btn('Open in Spotify', () => api.open(r.url).catch(() => toast('Could not open the browser')), 'ext'));
+}
+$('#saved-export').onclick = e => exportToSpotify('After Hours: Loved', profile.likes.slice().reverse(), $('#saved-export-status'), e.currentTarget);
+$('#tree-export').onclick = e => {
+  const steps = $$('#tree-canvas .tree-node').map(n => trNodes[n.dataset.nodeId]?.track).filter(Boolean); // guided-step (document) order
+  exportToSpotify(steps.length ? `After Hours: ${steps[0].title} family tree` : 'After Hours', steps, $('#tree-export-status'), e.currentTarget);
+};
+
 // ---------- start ----------
 (async () => {
+  sp = await spotify.status().catch(() => sp);
+  renderSpotifyPrefs();
   profile = await store.load();
   regionList = await api.countries();
   buildPassport(regionList);
