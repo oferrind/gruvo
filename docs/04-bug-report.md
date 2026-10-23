@@ -77,3 +77,22 @@ Not done: no unit test for the fixes above. They are in `renderer/app.js`, which
 4. **Status text named the data source.** Loading and progress lines read "Searching…" or "Searching… x of n"; errors, empty states and the neighbour reveal no longer name MusicBrainz or Deezer.
 
 Not done: a same-name artist that only one service lists can still slip through (Deezer has no country to check against). The warm-pool sound reasons were checked by unit test, not live.
+
+## Round 5 (Family Tree, diff 627ff71..6156958)
+
+Fixed:
+- **Level 2 reused the root's scene list,** so a Roots node like The Beatles got britpop children. Each node now runs its own scene query (its top tag, era and country), once, and caches it on the node. That is 1 extra MB call per level-1 node. More no longer needs a separate "own scene" step, because the ranked queue already is the node's own scene. Live: The Beatles → The Rolling Stones, The Who, The Hollies ("Same scene: pop rock, UK, formed 1962"). Beady Eye → Kaiser Chiefs, The Vaccines, Bastille (2003–2013). Test: the first tree test now has a separate scene per era. (4aceaec)
+- **Cold build time.** MB calls were made one after another while the 1.5 s MB lane sat idle. The worst case was the slow root scene query (6–8 s), which ran with nothing else in flight. Now the root's special-slot lookups (its recording, rels and members) start right after that query and fill the lane while it runs. The kids' own scenes are queued next, then their lookups. Wikidata runs beside the MB member lookups. `net.get` now shares an in-flight request for the same url, because one artist's rels were fetched twice at once. Measured with the same node harness, real network, empty cache: **29.6 s → 24.8 s**, even though the build now makes 17 MB calls instead of 14. With 17 calls at 1.5 s each, the MB lane is now the floor. The Electron live run took 36.9 s (Builder's run: 41 s); its britpop scene query alone took about 7 s on MB's side. (4aceaec, 3fc5989)
+- **"Built on" by title only could pick a namesake song.** A based-on work names no performer, so the most popular Deezer track with the same title won. Now the artist comes from the credit on the work's earliest studio recording (MB browse by work), and the track must match that artist. Live: "The Last Time" → The Rolling Stones. Test: `built on by title only…`. (9920b71)
+- **A More during the build lost the root's Built on and producer edges.** `recordingOf` marked itself done before its lookup returned, so a concurrent More got `undefined` and never retried. It now keeps the promise. Lookups that start early are caught where they start, so closing the window mid-build can't leave an unhandled rejection. (c4df73f)
+
+Reviewed, no change needed:
+- `tree:more` with a bad id (`'x'`, `-1`, `1e9`) returns `{added: 0}` (checked live). More before any grow returns `{added: 0}`. A More on an old tree after a new grow runs against the old tree object, whose `live()` is now false, so it adds nothing. The renderer also clears the canvas on a new grow.
+- Cancel: every add and every new lookup checks `live()`. The test now checks that no member, scene or track lookups start after the cut. `emit` checks `isDestroyed`.
+- Wikidata: `www.wikidata.org` is in the allowlist with a 200 ms gap and a 30-day TTL. Error bodies (HTTP 200 with `{error}`) are not cached.
+- Guided-step numbers are set in the renderer (`renderTree`, DOM pre-order), not in `src/tree.js`. They stay unique and in path order after More (live: `STEPS 0..18`). See the renderer note below.
+
+Not done / for the renderer:
+- After a More, steps are renumbered: Beady Eye went from 9 to 10 when More added Radiohead under the root's scene branch. The spec (§5) asks for 1 / 1.1 / 1.2 numbering, which would keep existing numbers stable.
+- First children took 1.7–9.8 s. That time is the MB scene query alone (`tag + begin + country`, limit 50), and it varies with MB load.
+- `workPerformer` sees only the first 100 recordings of a much-covered work (shortcut comment).
