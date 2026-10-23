@@ -458,6 +458,6 @@ async function about(get, { source, id, albumId, title, artist }) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
   flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about },
 };
