@@ -513,7 +513,7 @@ function renderStamps() {
 
 // ---------- C. Family Tree ----------
 // main builds the tree (src/tree.js) and streams nodes over 'tree:node'; a newer tree's run number drops the old one's.
-let trRun = 0, trSearch = 0, trBusy = 0, trNodes = [], trRoots = [];
+let trRun = 0, trSearch = 0, trBusy = 0, trNodes = [], trRoots = [], trEls = new Map();
 const trState = (kind, msg, opts) => setState($('#tree-state'), kind, msg, opts);
 const trWork = d => { trBusy += d; if (trBusy) trState('loading', 'Searching…'); };
 
@@ -539,8 +539,8 @@ $('#tree-search').addEventListener('submit', async e => {
 
 async function growTree(root) {
   const run = ++trRun;
-  trNodes = []; trBusy = 0;
-  $('#tree-out').replaceChildren();
+  trNodes = []; trBusy = 0; trEls = new Map();
+  $('#tree-canvas').replaceChildren();
   trWork(1);
   const ok = await api.tree(plain(root), profile.heard, run).catch(e => { console.error('tree', e); return null; });
   if (run !== trRun) return;
@@ -548,31 +548,53 @@ async function growTree(root) {
   if (ok === null) return trState('error', "Couldn't grow the tree right now. Check your connection.", { actions: [btn('Try again', () => growTree(root), 'primary')] });
   if (trBusy) return;
   if (trNodes.length > 1) trState('done', '');
-  else trState('empty', 'No family found yet.', { actions: [btn('Try More', () => trNodes[0] && trNodes[0].more.click())] });
+  else trState('empty', 'No family found yet.', { actions: [btn('Try More', () => trNodes[0] && moreTree(trNodes[0]))] });
 }
-api.onTreeNode((run, n) => { if (run === trRun) addTreeNode(n); });
+api.onTreeNode((run, n) => { if (run === trRun) { trNodes[n.id] = n; renderTree({ nodes: trNodes }); } });
 
-// One node: step number, the usual track row (play, love, full song, About), its "why" chip, More, then its children.
-function addTreeNode(n) {
-  trNodes[n.id] = n;
+// Render hook for the Family Tree. model.nodes: {id, parentId, depth, edgeType, label, track}; this adds `step` and `spine`.
+// Each node is built once (open About panels survive re-renders). Children sit in one .branch per edgeType under their
+// parent, so each category can be drawn as its own branch off the path. The spine is the root plus its children, in
+// step order. Fires 'tree:updated' on #tree-canvas after every change (stream or More) so connectors can be redrawn.
+const EDGE_NAMES = { scene: 'Same scene', member: 'Member moved', builton: 'Built on', roots: 'Roots', producer: 'Same producer', label: 'Same label', related: 'Fans also play' };
+function renderTree(model) {
+  const canvas = $('#tree-canvas');
+  for (const n of model.nodes) if (n && !trEls.has(n.id)) placeNode(n, canvas);
+  // Guided path: document order is depth-first pre-order, so numbering the nodes in order reads like a walk.
+  $$('#tree-canvas .tree-node').forEach((e, i) => {
+    const n = model.nodes[e.dataset.nodeId];
+    n.step = i; n.spine = n.depth <= 1;
+    e.dataset.step = i; e.dataset.spine = n.spine;
+    e.querySelector('.step').textContent = i || '';
+  });
+  canvas.dispatchEvent(new CustomEvent('tree:updated', { detail: model }));
+}
+
+function placeNode(n, canvas) {
   const row = trackRow(n.track, { reason: n.label || 'Your song', full: true, tag: 'div' });
   row.prepend(el('span', { className: 'step' }));
-  n.kids = el('ol');
-  n.more = btn('More from this branch', () => moreTree(n), 'ghost more');
-  n.more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
-  (n.parent == null ? $('#tree-out') : trNodes[n.parent].kids).append(el('li', { className: 'tree-node' }, row, n.more, n.kids));
-  // Guided path: document order is depth-first pre-order, so numbering the rows in order reads like a walk.
-  $$('#tree-out .tree-node > .track .step').forEach((s, i) => { s.textContent = i ? i : ''; });
+  const more = btn('More from this branch', () => moreTree(n), 'ghost more');
+  more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
+  const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node' }, row, more, el('div', { className: 'branches' }));
+  Object.assign(node.dataset, { nodeId: n.id, parentId: n.parentId ?? '', edge: n.edgeType, depth: n.depth });
+  trEls.set(n.id, node);
+  if (n.parentId == null) return canvas.append(node);
+  const parent = trEls.get(n.parentId), branches = parent.querySelector(':scope > .branches');
+  let branch = branches.querySelector(`:scope > .branch[data-edge="${n.edgeType}"]`);
+  if (!branch) branches.append(branch = el('section', { className: 'branch' },
+    el('h3', { className: 'branch-name', textContent: EDGE_NAMES[n.edgeType] || n.edgeType }), el('ol')));
+  branch.dataset.edge = n.edgeType;
+  branch.querySelector('ol').append(node);
 }
 
 async function moreTree(n) {
-  const run = trRun;
-  n.more.disabled = true;
+  const run = trRun, more = trEls.get(n.id).querySelector(':scope > .more');
+  more.disabled = true;
   trWork(1);
   const r = await api.treeMore(n.id).catch(() => null);
   if (run !== trRun) return;
   trBusy--;
-  n.more.disabled = !!(r && r.full);
+  more.disabled = !!(r && r.full);
   if (trBusy) return;
   trState(r ? 'done' : 'error', !r ? "Couldn't reach the music services. Try again." : r.full ? 'This tree is full. Start a new one from any song.' : r.added ? '' : 'No more family found.');
 }

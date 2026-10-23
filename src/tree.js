@@ -73,11 +73,11 @@ function lookBack(rec, work) {
   for (const r of (rec && rec.relations) || []) {
     if (r.type !== 'samples material' || r.direction !== 'forward' || !r.recording) continue;
     const artist = (r.recording['artist-credit'] || []).map(c => c.name + (c.joinphrase || '')).join('');
-    if (artist) out.push({ artist, title: r.recording.title, kind: 'built', label: `Samples ${artist}'s “${r.recording.title}”` });
+    if (artist) out.push({ artist, title: r.recording.title, kind: 'builton', label: `Samples ${artist}'s “${r.recording.title}”` });
   }
   for (const r of (work && work.relations) || []) {
     if (r.type === 'based on' && r.direction === 'backward' && r.work && !out.some(o => norm(o.title) === norm(r.work.title)))
-      out.push({ title: r.work.title, kind: 'built' });
+      out.push({ title: r.work.title, kind: 'builton' });
   }
   return out;
 }
@@ -109,7 +109,7 @@ function addNode(T, parent, track, c) {
     pending: [], done: new Set() };
   T.nodes.push(n);
   if (parent) parent.kids++;
-  T.emit({ id: n.id, parent: n.parent, depth: n.depth, label: n.label, track });
+  T.emit({ id: n.id, parentId: n.parent, depth: n.depth, edgeType: parent ? c.kind : 'root', label: n.label, track });
   return n;
 }
 
@@ -188,7 +188,7 @@ async function fallback(T, node, rel) {
   for (const r of rel.filter(x => !taken(T, { artist: x.name, dzId: x.id })).slice(0, 3)) {
     const a = await mbArtist(T.get, r.name);
     const y = a && yearOf((a['life-span'] || {}).begin);
-    if (y && Math.abs(y - b) <= 8) out.push({ artist: r.name, dzId: r.id, mbid: a.id, mb: a, kind: 'scene', label: `Same era · fans of ${node.artist} play them too` });
+    if (y && Math.abs(y - b) <= 8) out.push({ artist: r.name, dzId: r.id, mbid: a.id, mb: a, kind: 'related', label: `Same era · fans of ${node.artist} play them too` });
   }
   return out;
 }

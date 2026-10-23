@@ -62,6 +62,8 @@ test('tree: 3 + 9 children, one artist once, tag guard, homonyms dropped, labels
   for (const bad of ['metallica', 'cast', 'liamgallagher']) assert.ok(!names.includes(bad), bad);
   assert.ok(T.nodes.slice(1).every(n => n.label && !SOURCE_WORDS.test(n.label) && n.track.title === 'Hit')); // no live cut, no "(Remaster)"
   const kids = T.nodes.filter(n => n.parent === 0);
+  assert.equal(emitted[0].edgeType, 'root');
+  assert.ok(emitted.slice(1).every(n => ['scene', 'member'].includes(n.edgeType) && n.parentId != null));
   assert.equal(kids[0].artist, 'Blur');
   assert.equal(kids[0].label, 'Same scene: britpop, UK, formed 1990 · fans of Oasis play them too');
   assert.equal(kids[2].label, 'Liam Gallagher (lead vocals) went on to Beady Eye');
