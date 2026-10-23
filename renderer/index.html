@@ -14,7 +14,7 @@
     <nav id="tabs" role="tablist" aria-label="Modes">
       <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="true">Blind Test</button>
       <button role="tab" id="tab-passport" data-tab="passport" aria-controls="passport" aria-selected="false" tabindex="-1">Passport</button>
-      <button role="tab" id="tab-liner" data-tab="liner" aria-controls="liner" aria-selected="false" tabindex="-1">Liner Notes</button>
+      <button role="tab" id="tab-tree" data-tab="tree" aria-controls="tree" aria-selected="false" tabindex="-1">Family Tree</button>
       <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
       <button role="tab" id="tab-prefs" data-tab="prefs" aria-controls="prefs" aria-selected="false" tabindex="-1">Preferences</button>
     </nav>
@@ -29,12 +29,12 @@
       <ol class="modes">
         <li><h2>Blind Test</h2><p>Hear a track with no name, no cover, no hype. Rate it first, then see who it was.</p><p class="why">Why: you judge the sound, not the name.</p></li>
         <li><h2>Passport</h2><p>Pick a country and a decade, get ten playable tracks from there and then.</p><p class="why">Why: no algorithm, just a place and a time.</p></li>
-        <li><h2>Liner Notes</h2><p>Start from a song you know. Follow its producer or session player to other records.</p><p class="why">Why: the people behind the music link it.</p></li>
+        <li><h2>Family Tree</h2><p>Start from a song you saved. Walk through its scene, step by step.</p><p class="why">Why: every step says how it is related.</p></li>
       </ol>
       <div class="row">
         <button id="intro-start" type="button" class="primary">Start the Blind Test</button>
         <button type="button" class="ghost" data-goto="passport">Open Passport</button>
-        <button type="button" class="ghost" data-goto="liner">Open Liner Notes</button>
+        <button type="button" class="ghost" data-goto="tree">Open Family Tree</button>
       </div>
     </section>
 
@@ -103,35 +103,25 @@
       <ul id="stamps" class="stamps"></ul>
     </section>
 
-    <!-- C. Liner Notes Trail + Covers -->
-    <section id="liner" class="panel" role="tabpanel" aria-labelledby="tab-liner" hidden>
+    <!-- C. Family Tree -->
+    <section id="tree" class="panel" role="tabpanel" aria-labelledby="tab-tree" hidden>
       <div class="panel-head">
-        <h1>Liner Notes</h1>
-        <p class="muted">Search a song you know, then follow the people who made it to other music.</p>
+        <h1>Family Tree</h1>
+        <p class="muted">Start from a song you saved. Walk through its scene, step by step.</p>
       </div>
-      <form id="liner-search" class="search" role="search">
-        <label for="liner-q" class="sr-only">Artist and song</label>
-        <input id="liner-q" type="search" placeholder="Artist and song, e.g. Radiohead Creep" autocomplete="off">
-        <button class="primary">Search</button>
+      <form id="tree-pick" class="search">
+        <label for="tree-root">Song</label>
+        <select id="tree-root"></select>
+        <button class="primary">Grow tree</button>
       </form>
-      <p id="liner-examples" class="muted">Try: </p>
-      <ul id="liner-hits" class="tracks"></ul>
-      <div id="trail-nav" class="trail-nav" hidden>
-        <button id="liner-back" type="button" class="ghost" aria-label="Back one step">← Back</button>
-        <nav aria-label="Trail"><ol id="crumbs" class="crumbs"></ol></nav>
-      </div>
-      <div id="liner-state" class="state" aria-live="polite"></div>
-      <div id="liner-subtabs" class="segmented" role="group" aria-label="View" hidden>
-        <button type="button" data-sub="credits">Credits</button>
-        <button type="button" data-sub="covers">Covers</button>
-      </div>
-      <div id="credits"></div>
-      <div id="covers" hidden>
-        <button id="spin" type="button" class="primary">Spin: play a random cover</button>
-        <ul id="covers-list" class="tracks"></ul>
-      </div>
-      <h2 id="trail-title" hidden></h2>
-      <ul id="trail" class="tracks"></ul>
+      <form id="tree-search" class="search" role="search">
+        <label for="tree-q">or search</label>
+        <input id="tree-q" type="search" placeholder="Artist and song, e.g. Oasis Wonderwall" autocomplete="off">
+        <button>Search</button>
+      </form>
+      <ul id="tree-hits" class="tracks"></ul>
+      <div id="tree-state" class="state" aria-live="polite"></div>
+      <ol id="tree-out" class="tree" aria-label="Family tree, in listening order"></ol>
     </section>
 
     <!-- Saved -->

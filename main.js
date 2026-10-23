@@ -5,6 +5,7 @@ const path = require('path');
 const net = require('./src/net');
 const store = require('./src/store');
 const { flows, COUNTRIES } = require('./src/music');
+const Tree = require('./src/tree');
 
 let win;
 
@@ -46,6 +47,17 @@ ipcMain.handle('api:call', async (e, name, ...args) => {
   return flows[name](net.get, ...args);
 });
 ipcMain.handle('api:countries', () => COUNTRIES);
+// Family Tree: one build at a time. A newer tree makes the older one's live() false, so it stops before its next call.
+let tree = null, treeRun = 0;
+ipcMain.handle('tree:grow', async (e, root, heard, run) => {
+  if (!root || typeof root.artist !== 'string' || typeof root.title !== 'string') throw new Error('bad root');
+  const mine = ++treeRun;
+  const live = () => mine === treeRun && !e.sender.isDestroyed();
+  tree = Tree.newTree(net.get, root, { heard: Array.isArray(heard) ? heard.map(String) : [], live, emit: n => live() && e.sender.send('tree:node', run, n) });
+  await Tree.growTree(tree);
+  return live();
+});
+ipcMain.handle('tree:more', (e, id) => tree ? Tree.moreTree(tree, Number(id)) : { added: 0 });
 // Full-song links open in the default browser, never in this window; only the https allowlist in src/links.js.
 ipcMain.handle('shell:open', (e, url) => {
   const ok = safeExternal(url);

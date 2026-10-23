@@ -140,8 +140,7 @@ input::placeholder { color: var(--color-muted); opacity: 1; }
 
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chip { border-radius: var(--radius-pill); padding: var(--space-1) var(--space-3); min-height: 32px; font-variant-numeric: tabular-nums; }
-.chip[aria-pressed=true], .segmented [aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); font-weight: 650; }
-#liner-examples .chip { margin-left: var(--space-1); }
+.chip[aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); font-weight: 650; }
 
 /* ---------- top bar + tabs ---------- */
 .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--space-6); padding: 0 var(--space-5); background: var(--color-bg); border-bottom: 1px solid var(--color-border); }
@@ -279,26 +278,14 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .stamp-decade { font-size: 26px; font-weight: 600; text-transform: none; font-variant-numeric: tabular-nums; border-top: 1.5px solid var(--ink); padding-top: 3px; }
 @keyframes stamp { from { opacity: 0; transform: scale(1.5) rotate(-12deg); } }
 
-/* ---------- liner notes ---------- */
-.search { display: flex; gap: var(--space-2); }
-.search input { flex: 1; }
-.trail-nav { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-4) 0; padding: var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
-.crumbs { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); padding: 0; margin: 0; }
-.crumbs li + li::before { content: ""; display: inline-block; width: 18px; margin-right: var(--space-2); vertical-align: middle; border-top: 2px dotted var(--color-accent); }
-.crumbs .crumb { font-size: var(--font-size-sm); font-weight: 400; text-decoration-thickness: 1px; }
-.crumbs [aria-current] { font-weight: 700; }
-.segmented { display: inline-flex; margin: var(--space-3) 0; }
-.segmented button { border-radius: 0; }
-.segmented button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-.segmented button:last-child { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
-#credits { max-width: 72ch; }
-.role { font-family: var(--font-display); text-transform: capitalize; color: var(--color-muted); font-size: 18px; font-weight: 700; letter-spacing: .04em; margin-top: var(--space-5); padding-bottom: var(--space-1); border-bottom: 1px solid var(--color-border); }
-.people { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; padding: 0; margin: var(--space-2) 0 0; }
-.person { display: inline-flex; gap: var(--space-2); align-items: center; font-weight: 600; border-radius: var(--radius-pill); padding-inline: var(--space-4); }
-.person .arrow { color: var(--color-accent); transition: transform var(--dur); }
-.person:hover .arrow { transform: translateX(3px); }
-#trail-title { font-size: 28px; }
-#trail-title small { font: 400 var(--font-size) var(--font-body); color: var(--color-muted); }
+/* ---------- family tree ---------- */
+.search { display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-3); }
+.search input, .search select { flex: 1; }
+.tree, .tree ol { list-style: none; padding: 0; margin: 0; }
+.tree ol { margin-left: var(--space-5); padding-left: var(--space-4); border-left: 2px dotted var(--color-border); }
+.tree-node > .track { align-items: flex-start; }
+.tree-node .step { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--color-accent); min-width: 2ch; padding-top: var(--space-3); }
+.tree-node .more { margin: 0 0 var(--space-3) calc(48px + var(--space-6)); }
 
 /* ---------- now-playing bar ---------- */
 .nowbar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nowbar-h); display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-5); background: var(--color-surface); border-top: 1px solid var(--color-border); box-shadow: var(--shadow-bar); z-index: 5; }

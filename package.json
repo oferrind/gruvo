@@ -1,7 +1,7 @@
 {
   "name": "music-discovery",
   "version": "0.1.0",
-  "description": "Desktop music discovery: Blind Taste Test, Sonic Passport, Liner Notes Trail",
+  "description": "Desktop music discovery: Blind Taste Test, Sonic Passport, Family Tree",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

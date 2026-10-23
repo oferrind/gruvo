@@ -167,14 +167,14 @@ function fullSong(t) {
 }
 
 // One track row: cover, title / artist, optional reason, play, love. onOpen makes the title a link.
-function trackRow(t, { extra, reason, onOpen, full } = {}) {
+function trackRow(t, { extra, reason, onOpen, full, tag = 'li' } = {}) {
   const name = `${t.artist} – ${t.title}`;
-  const title = onOpen ? el('button', { type: 'button', className: 'link', textContent: t.title, onclick: onOpen, title: 'See who made this' }) : el('span', { className: 'title', textContent: t.title });
+  const title = onOpen ? el('button', { type: 'button', className: 'link', textContent: t.title, onclick: onOpen, title: 'Grow its family tree' }) : el('span', { className: 'title', textContent: t.title });
   const playBtn = el('button', { type: 'button', className: 'play', textContent: '▶',
     onclick: () => current && likeKey(current) === likeKey(t) && audio.getAttribute('src') ? togglePlay() : play(t, { extra }) });
   playBtn.dataset.label = `Play ${name}`;
   playBtn.setAttribute('aria-label', playBtn.dataset.label);
-  const row = el('li', { className: 'track' },
+  const row = el(tag, { className: 'track' },
     t.cover ? el('img', { src: t.cover, alt: '', width: 48, height: 48 }) : el('span', { className: 'cover-ph', ariaHidden: 'true' }),
     playBtn,
     el('div', { className: 'meta' }, title, el('span', { className: 'artist', textContent: t.artist }),
@@ -194,6 +194,7 @@ function showTab(name, focus) {
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
   if (name === 'saved') renderSaved();
   if (name === 'prefs') renderPrefs();
+  if (name === 'tree') renderTreePicker();
 }
 $('#tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) showTab(t.dataset.tab); });
 // Arrow / Home / End move between tabs (WAI-ARIA tabs pattern).
@@ -510,136 +511,71 @@ function renderStamps() {
   $('#stamps').replaceChildren(...stampItems());
 }
 
-// ---------- C. Liner Notes Trail + Covers ----------
-let lnRun = 0, crumbs = [], coverHits = [];
-const lnState = (kind, msg, opts) => setState($('#liner-state'), kind, msg, opts);
+// ---------- C. Family Tree ----------
+// main builds the tree (src/tree.js) and streams nodes over 'tree:node'; a newer tree's run number drops the old one's.
+let trRun = 0, trSearch = 0, trBusy = 0, trNodes = [], trRoots = [];
+const trState = (kind, msg, opts) => setState($('#tree-state'), kind, msg, opts);
+const trWork = d => { trBusy += d; if (trBusy) trState('loading', 'Searching…'); };
 
-$('#liner-search').addEventListener('submit', async e => {
+function renderTreePicker() {
+  trRoots = profile.likes.slice().reverse(); // newest first
+  $('#tree-root').replaceChildren(...trRoots.map((t, i) => el('option', { value: i, textContent: `${t.title} – ${t.artist}` })));
+  $('#tree-pick').hidden = !trRoots.length;
+  if (!trRoots.length && !trNodes.length) trState('empty', 'Save songs in Blind Test or Passport to grow trees from them.');
+}
+$('#tree-pick').addEventListener('submit', e => { e.preventDefault(); const t = trRoots[$('#tree-root').value]; if (t) growTree(t); });
+$('#tree-search').addEventListener('submit', async e => {
   e.preventDefault();
-  const q = $('#liner-q').value.trim();
-  if (!q) return $('#liner-q').focus();
-  const run = ++lnRun;
-  crumbs = []; renderCrumbs();
-  for (const id of ['#credits', '#trail', '#covers-list']) $(id).replaceChildren();
-  $('#trail-title').hidden = true; $('#liner-subtabs').hidden = true;
-  lnState('loading', `Searching for "${q}"…`);
+  const q = $('#tree-q').value.trim();
+  if (!q) return $('#tree-q').focus();
+  const run = ++trSearch;
+  trState('loading', 'Searching…');
   const hits = await call('searchTracks', q);
-  if (run !== lnRun) return; // a newer search or an opened track took over
-  if (!hits) return lnState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => $('#liner-search').requestSubmit(), 'primary')] });
-  lnState(hits.length ? 'done' : 'empty', hits.length ? 'Pick the right song to see who made it.' : `No songs found for "${q}". Try artist and title, e.g. "Radiohead Creep".`);
-  $('#liner-hits').replaceChildren(...hits.map(t => trackRow(t, { reason: t.original ? `Original recording, ${t.original}` : undefined, onOpen: () => { crumbs = []; $('#liner-hits').replaceChildren(); openTrack(t); } })));
-});
-for (const q of ['Radiohead Creep', 'Stevie Wonder Superstition', 'Portishead Glory Box'])
-  $('#liner-examples').append(btn(q, () => { $('#liner-q').value = q; $('#liner-search').requestSubmit(); }, 'chip'));
-// Arrow keys move between results; Down from the search box enters the list; Escape clears.
-$('#liner').addEventListener('keydown', e => {
-  if (e.key === 'Escape' && e.target.id === 'liner-q') { e.target.value = ''; $('#liner-hits').replaceChildren(); return; }
-  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-  const links = $$('#liner-hits .link');
-  if (!links.length) return;
-  const i = links.indexOf(document.activeElement);
-  if (i < 0 && e.target.id !== 'liner-q') return;
-  e.preventDefault();
-  links[Math.max(0, Math.min(links.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus();
+  if (run !== trSearch) return;
+  if (!hits) return trState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => $('#tree-search').requestSubmit(), 'primary')] });
+  trState(hits.length ? 'done' : 'empty', hits.length ? 'Pick the song to grow its tree.' : `No songs found for "${q}". Try artist and title, e.g. "Oasis Wonderwall".`);
+  $('#tree-hits').replaceChildren(...hits.map(t => trackRow(t, { onOpen: () => { $('#tree-hits').replaceChildren(); growTree(t); } })));
 });
 
-function goCrumb(i) { const c = crumbs[i]; crumbs = crumbs.slice(0, i); c.fn(); }
-function renderCrumbs() {
-  $('#trail-nav').hidden = !crumbs.length;
-  $('#liner-back').disabled = crumbs.length < 2;
-  $('#crumbs').replaceChildren(...crumbs.map((c, i) => el('li', {}, i === crumbs.length - 1
-    ? el('span', { className: 'crumb', textContent: c.label, ariaCurrent: 'step' })
-    : btn(c.label, () => goCrumb(i), 'crumb link'))));
+async function growTree(root) {
+  const run = ++trRun;
+  trNodes = []; trBusy = 0;
+  $('#tree-out').replaceChildren();
+  trWork(1);
+  const ok = await api.tree(plain(root), profile.heard, run).catch(e => { console.error('tree', e); return null; });
+  if (run !== trRun) return;
+  trBusy--;
+  if (ok === null) return trState('error', "Couldn't grow the tree right now. Check your connection.", { actions: [btn('Try again', () => growTree(root), 'primary')] });
+  if (trBusy) return;
+  if (trNodes.length > 1) trState('done', '');
+  else trState('empty', 'No family found yet.', { actions: [btn('Try More', () => trNodes[0] && trNodes[0].more.click())] });
 }
-function pushCrumb(label, fn) { crumbs.push({ label, fn }); renderCrumbs(); }
-$('#liner-back').onclick = () => { if (crumbs.length > 1) goCrumb(crumbs.length - 2); };
+api.onTreeNode((run, n) => { if (run === trRun) addTreeNode(n); });
 
-async function openTrack(t) {
-  const run = ++lnRun;
-  pushCrumb(`♪ ${t.title} (${t.artist})`, () => openTrack(t));
-  $('#credits').replaceChildren(); $('#trail').replaceChildren(); $('#covers-list').replaceChildren();
-  $('#trail-title').hidden = true; $('#liner-subtabs').hidden = true; showSub('credits');
-  lnState('loading', 'Searching…');
-  const c = await call('credits', { recId: t.recId, isrc: t.isrc, title: t.title, artist: t.artist });
-  if (run !== lnRun) return;
-  if (!c) return lnState('empty', `No record of "${t.title}" yet. Try another song.`, { actions: [btn('New search', () => $('#liner-q').focus())] });
-  lnState('', '');
-  $('#liner-subtabs').hidden = !c.work;
-  coverWork = c.work && { ...c.work, artist: c.artist, loaded: false };
-  const box = $('#credits');
-  box.append(el('h2', { textContent: `Who made "${c.title}"` }), el('p', { className: 'muted', textContent: `by ${c.artist}` }));
-  if (!c.hasCredits) {
-    box.append(el('p', { className: 'state empty', textContent: `No credits for this recording yet.${c.work ? ' You can still hear its covers.' : ''}` }));
-    if (c.country && countryNames[c.country]) box.append(btn(`Explore ${countryNames[c.country]} in Passport`,
-      () => { showTab('passport'); runPassport(c.country, ppDecade || 1970); }));
-    return;
-  }
-  box.append(el('p', { className: 'hint', textContent: 'Pick a person to hear other music they worked on.' }));
-  for (const g of c.groups) {
-    box.append(el('h3', { className: 'role', textContent: g.role }),
-      el('ul', { className: 'people' }, ...g.people.map(p => el('li', {}, el('button', { type: 'button', className: 'person',
-        ariaLabel: `${p.name}, ${g.role}. Show their other work`, onclick: () => openPerson(p, g.role, c) },
-      el('span', { textContent: p.name }), el('span', { className: 'arrow', ariaHidden: 'true', textContent: '→' }))))));
-  }
+// One node: step number, the usual track row (play, love, full song, About), its "why" chip, More, then its children.
+function addTreeNode(n) {
+  trNodes[n.id] = n;
+  const row = trackRow(n.track, { reason: n.label || 'Your song', full: true, tag: 'div' });
+  row.prepend(el('span', { className: 'step' }));
+  n.kids = el('ol');
+  n.more = btn('More from this branch', () => moreTree(n), 'ghost more');
+  n.more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
+  (n.parent == null ? $('#tree-out') : trNodes[n.parent].kids).append(el('li', { className: 'tree-node' }, row, n.more, n.kids));
+  // Guided path: document order is depth-first pre-order, so numbering the rows in order reads like a walk.
+  $$('#tree-out .tree-node > .track .step').forEach((s, i) => { s.textContent = i ? i : ''; });
 }
 
-async function openPerson(p, role, ctx) {
-  const run = ++lnRun;
-  pushCrumb(`${p.name} (${role})`, () => openPerson(p, role, ctx));
-  $('#credits').replaceChildren(); $('#liner-subtabs').hidden = true; showSub('credits');
-  const list = $('#trail');
-  list.replaceChildren();
-  $('#trail-title').hidden = false;
-  $('#trail-title').replaceChildren(`Other music ${p.name} worked on`, el('small', { className: 'muted', textContent: ` (${role} on ${ctx.artist} – ${ctx.title})` }));
-  lnState('loading', 'Searching…');
-  const picks = await call('personTrail', p.id, ctx.artist, profile.heard);
-  if (run !== lnRun) return;
-  if (!picks) return lnState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => { crumbs.pop(); openPerson(p, role, ctx); }, 'primary')] });
-  if (!picks.length) return lnState('empty', `No other artists found for ${p.name}.`, { actions: [btn('← Back', () => $('#liner-back').click())] });
-  let found = 0;
-  for (const [i, pick] of picks.entries()) {
-    lnState('loading', `Searching… ${i + 1} of ${picks.length}`, { progress: [i + 1, picks.length] });
-    const t = await call('resolvePreview', pick.artist, pick.title);
-    if (run !== lnRun) return;
-    if (!t) continue;
-    found++;
-    list.append(trackRow(t, { reason: `${p.name}, ${pick.role}, for ${pick.artist}`,
-      onOpen: () => openTrack({ recId: pick.recId, title: pick.title, artist: pick.artist }) }));
-  }
-  lnState(found ? 'done' : 'empty', found ? `${found} playable of ${picks.length} artists. Select a title to see its credits and keep going.` : `None of ${p.name}'s other work has a playable preview.`);
+async function moreTree(n) {
+  const run = trRun;
+  n.more.disabled = true;
+  trWork(1);
+  const r = await api.treeMore(n.id).catch(() => null);
+  if (run !== trRun) return;
+  trBusy--;
+  n.more.disabled = !!(r && r.full);
+  if (trBusy) return;
+  trState(r ? 'done' : 'error', !r ? "Couldn't reach the music services. Try again." : r.full ? 'This tree is full. Start a new one from any song.' : r.added ? '' : 'No more family found.');
 }
-
-let coverWork = null;
-function showSub(name) {
-  $('#credits').hidden = name !== 'credits';
-  $('#covers').hidden = name !== 'covers';
-  $$('#liner-subtabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sub === name));
-  if (name === 'covers' && coverWork && !coverWork.loaded) loadCovers(coverWork);
-}
-$('#liner-subtabs').addEventListener('click', e => { if (e.target.dataset.sub) showSub(e.target.dataset.sub); });
-
-async function loadCovers(w) {
-  w.loaded = true;
-  const run = lnRun;
-  coverHits = [];
-  const list = $('#covers-list');
-  list.replaceChildren();
-  lnState('loading', 'Searching…');
-  const names = (await call('covers', w.id, w.artist)) || [];
-  if (run !== lnRun) return;
-  let tried = 0;
-  const max = Math.min(25, names.length);
-  for (const name of names) {
-    if (coverHits.length >= 8 || tried >= 25) break;
-    tried++;
-    lnState('loading', `Searching… ${tried} of ${max}`, { progress: [tried, max] });
-    const t = await call('resolvePreview', name, w.title, true);
-    if (run !== lnRun) return;
-    if (t) { coverHits.push(t); list.append(trackRow(t, { reason: `Cover of ${w.artist}` })); }
-  }
-  lnState(coverHits.length ? 'done' : 'empty', names.length ? `${coverHits.length} playable covers.` : 'No covers recorded yet.');
-}
-$('#spin').onclick = () => coverHits.length ? play(coverHits[Math.floor(Math.random() * coverHits.length)]) : toast('No covers loaded yet');
 
 // ---------- Saved ----------
 function renderSaved() {

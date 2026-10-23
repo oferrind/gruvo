@@ -24,7 +24,7 @@ Help a listener find new music through routes that are explainable and fun, not 
 Three discovery mechanisms that a similarity-based streaming app can't truthfully copy:
 - **Blind Test**: a 30-second preview with no artist, title, cover or genre. The listener rates it, and only then sees who it was. An Adventure slider sets how far from their taste the picks go.
 - **Passport**: pick a country and a decade, get playable tracks from there and then. Loving a track collects that country-decade stamp.
-- **Liner Notes**: start from a known song, see its credited people (producer, players, engineer), follow one to their other work. A Covers view plays reinterpretations.
+- **Family Tree**: start from a song you saved (or search one); grow a small explained tree of songs from its scene, members who moved on, what it is built on and its roots. Every step says why it is there.
 
 ## Operating Context
 
@@ -35,7 +35,7 @@ Three discovery mechanisms that a similarity-based streaming app can't truthfull
 
 ## Capabilities and Constraints
 
-- Tabs: Blind Test, Passport, Liner Notes, Saved; one global now-playing bar.
+- Tabs: Blind Test, Passport, Family Tree, Saved; one global now-playing bar.
 - Saved holds loved tracks and collected stamps, stored locally.
 - No accounts, no social features, no full-length playback.
 - Never depend on BPM or audio features (the APIs don't provide them reliably).
