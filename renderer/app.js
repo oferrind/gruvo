@@ -70,7 +70,7 @@ const plain = o => JSON.parse(JSON.stringify(o));
 // Keep every play/pause control and the "playing" row highlight in sync with the audio element.
 function syncPlayState() {
   const playing = !audio.paused && !!audio.getAttribute('src');
-  const setBtn = (b, on) => { b.firstChild.textContent = on ? '❚❚' : '▶'; b.setAttribute('aria-label', on ? 'Pause' : 'Play'); };
+  const setBtn = (b, on) => { b.firstChild.replaceWith(icon(on ? 'pause' : 'play')); b.setAttribute('aria-label', on ? 'Pause' : 'Play'); };
   setBtn($('#np-toggle'), playing);
   $('#np-toggle').disabled = !current;
   setBtn($('#mystery-play'), playing && current === mystery);
@@ -79,11 +79,11 @@ function syncPlayState() {
   deck.classList.toggle('is-playing', on);
   $('.nowbar').classList.toggle('is-idle', !current);
   $$('.track.is-playing').forEach(r => r.classList.remove('is-playing'));
-  $$('.track .play').forEach(b => { b.textContent = '▶'; b.setAttribute('aria-label', b.dataset.label); });
+  $$('.track .play').forEach(b => { b.replaceChildren(icon('play')); b.setAttribute('aria-label', b.dataset.label); });
   if (current) $$(`.track[data-key="${CSS.escape(likeKey(current))}"]`).forEach(r => {
     r.classList.add('is-playing');
     const b = r.querySelector('.play');
-    if (playing) { b.textContent = '❚❚'; b.setAttribute('aria-label', 'Pause'); }
+    if (playing) { b.replaceChildren(icon('pause')); b.setAttribute('aria-label', 'Pause'); }
   });
 }
 ['play', 'pause', 'ended', 'emptied'].forEach(ev => audio.addEventListener(ev, syncPlayState));
@@ -161,8 +161,8 @@ function setTint(url) {
 function renderNpLike() {
   const box = $('#np-like');
   if (!current) return box.replaceChildren();
-  if (current === mystery && !rated) return box.replaceChildren(el('button', { type: 'button', className: 'love', textContent: '♡ Love',
-    ariaLabel: 'Love this mystery (rates it and reveals it)', onclick: () => rate('love') }));
+  if (current === mystery && !rated) return box.replaceChildren(el('button', { type: 'button', className: 'love',
+    ariaLabel: 'Love this mystery (rates it and reveals it)', onclick: () => rate('love') }, icon('heart'), 'Love'));
   box.replaceChildren(fullSong(current), loveButton(current, currentExtra));
 }
 
@@ -219,7 +219,7 @@ function afterLikeChange() {
 
 function loveButton(t, extra) {
   const b = el('button', { type: 'button', className: 'love' });
-  b.sync = () => { const on = isLiked(t); b.textContent = on ? '♥ Loved' : '♡ Love'; b.setAttribute('aria-pressed', on); };
+  b.sync = () => { const on = isLiked(t); b.replaceChildren(icon('heart', on), on ? 'Loved' : 'Love'); b.setAttribute('aria-pressed', on); };
   b.setAttribute('aria-label', `Love ${t.artist} – ${t.title}`);
   b.onclick = () => {
     if (isLiked(t)) return unlike(t);
@@ -269,13 +269,14 @@ function fullSong(t) {
 // from: where the bar's "came from" chip leads; by default the row's own tab (plus its Family Tree step).
 const fromOf = row => {
   const tab = row.closest('.panel')?.id, step = row.closest('.tree-node')?.dataset.step;
-  return tab ? { tab, label: tabName(tab) + (step && step !== '0' ? ` · ${step}` : '') } : null;
+  return tab ? { tab, label: tabName(tab) + (step && step !== '0' ? `, step ${step}` : '') } : null;
 };
 function trackRow(t, { extra, reason, onOpen, full, tag = 'li', from } = {}) {
   const name = `${t.artist} – ${t.title}`;
   const title = onOpen ? el('button', { type: 'button', className: 'link', textContent: t.title, onclick: onOpen, title: 'Grow its family tree' }) : el('span', { className: 'title', textContent: t.title });
-  const playBtn = el('button', { type: 'button', className: 'play', textContent: '▶',
+  const playBtn = el('button', { type: 'button', className: 'play',
     onclick: () => current && likeKey(current) === likeKey(t) && audio.getAttribute('src') ? togglePlay() : play(t, { extra, from: from || fromOf(row) }) });
+  playBtn.append(icon('play'));
   playBtn.dataset.label = `Play ${name}`;
   playBtn.setAttribute('aria-label', playBtn.dataset.label);
   const row = el(tag, { className: 'track' },
@@ -441,7 +442,7 @@ async function fill() {
 
 function setRateEnabled(on) { $$('#rate button').forEach(b => { b.disabled = !on; b.removeAttribute('aria-pressed'); }); }
 
-const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: rate it to reveal', from: { tab: 'blind', label: `${tabName('blind')} · #${tonight.length + 1}` }, onFail: () => { // preview dead: drop silently, never offer this artist again
+const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: rate it to reveal', from: { tab: 'blind', label: tabName('blind') }, onFail: () => { // preview dead: drop silently, never offer this artist again
   if (mystery !== m || rated) return;
   addHeard(m); save(); showMystery();
 } }); };
@@ -462,7 +463,7 @@ function showMystery() {
     fill(); return;
   }
   $('#mystery').setAttribute('aria-busy', false);
-  $('#mystery-title').textContent = `Mystery track #${tonight.length + 1}`;
+  $('#mystery-title').textContent = 'Mystery track';
   $('#mystery-play').disabled = false; setRateEnabled(true);
   aboutOf(mystery); // prefetch only; nothing reaches the DOM before the rating
   if (!$('#blind').hidden) playMystery(); // autoplay only where the user is looking (not over the intro or another tab)
@@ -494,7 +495,7 @@ function rate(kind) {
   $('#reveal').replaceChildren(el('div', { className: 'reveal-card' },
     el('p', { className: 'sr-only', textContent: `You said ${said}. It was` }),
     el('h3', { className: 'reveal-artist', textContent: m.artist }),
-    el('p', { className: 'reveal-title', textContent: m.title }),
+    norm(m.title) === norm(m.artist) ? null : el('p', { className: 'reveal-title', textContent: m.title }), // self-titled: say it once
     meta, reason, about,
     el('div', { className: 'reveal-actions' }, loveButton(m, extra), fullSong(m))));
   $('#mystery').classList.add('is-revealed');
@@ -506,18 +507,19 @@ function rate(kind) {
 }
 
 const VERDICT = { skip: 'Skip', ok: 'OK', love: 'Love' };
-// How the pick was found, as a short price-sticker tag ("Random trip · Greece", "Near Oasis").
+// How the pick was found, as a short price-sticker tag ("Random trip: Greece", "Near Oasis").
 function whyTag(m) {
   const w = m.why || {};
-  return { trip: `Random trip · ${w.place}${m.decade ? `, ${m.decade}s` : ''}`, near: `Near ${w.artist}`, trail: `Via ${w.person}`, genre: `${w.genre} shelf` }[w.kind] || '';
+  return { trip: `Random trip: ${w.place}${m.decade ? `, ${m.decade}s` : ''}`, near: `Near ${w.artist}`, trail: `Via ${w.person}`, genre: `${w.genre} shelf` }[w.kind] || '';
 }
 // Reveal order: name, then a meta row (how it was found · year · label · genre · album), then the about text clamped to 3 lines.
 function revealDetails(m) {
   const tag = whyTag(m);
-  const meta = el('ul', { className: 'facts meta-row', ariaLabel: 'About this pick' }, tag ? el('li', { className: 'sticker', textContent: tag }) : null);
+  const facts = el('ul', { className: 'facts', ariaLabel: 'Release details' });
+  const meta = el('div', { className: 'meta-row' }, tag ? el('span', { className: 'sticker', textContent: tag }) : null, facts);
   const box = el('div', { className: 'about', ariaBusy: 'true' }, el('p', { className: 'about-text is-loading', textContent: '…' }));
-  aboutOf(m).then(({ text, url, facts = {} }) => {
-    meta.append(...[facts.year, facts.label, facts.genre, facts.album].filter(Boolean).map(f => el('li', { textContent: f })));
+  aboutOf(m).then(({ text, url, facts: f = {} }) => {
+    facts.append(...[f.year, f.label, f.genre, f.album].filter(Boolean).map(x => el('li', { textContent: x })));
     box.setAttribute('aria-busy', 'false');
     if (!text) return box.replaceChildren();
     const p = el('p', { className: 'about-text clamp', textContent: text });
@@ -536,7 +538,7 @@ function revealDetails(m) {
 function renderTonight() {
   $('#rail-count').textContent = tonight.length || '';
   $('#tonight').replaceChildren(...(tonight.length ? tonight.map(({ t, kind, extra }) => {
-    const row = trackRow(t, { extra, reason: `You said ${VERDICT[kind]}`, from: { tab: 'blind', label: `${tabName('blind')} · tonight` } });
+    const row = trackRow(t, { extra, reason: `You said ${VERDICT[kind]}`, from: { tab: 'blind', label: "Tonight's reveals" } });
     row.dataset.verdict = kind;
     return row;
   }) : [el('li', { className: 'rail-empty', textContent: 'Every mystery you rate lands here, newest first, so you can play it again.' })]));
@@ -564,7 +566,7 @@ const ADVENTURE = [[20, 'Stays close to artists you loved.'], [45, 'Mostly famil
 function showAdventure() {
   const v = profile.adventure;
   const text = ADVENTURE.find(([max]) => v <= max)[1];
-  $('#adventure-value').textContent = `${v} · ${text}${profile.likes.length ? '' : ' Love a few tracks first; until then every pick is a stranger.'}`;
+  $('#adventure-value').textContent = `${v}: ${text}${profile.likes.length ? '' : ' Love a few tracks first; until then every pick is a stranger.'}`;
   $('#adventure').setAttribute('aria-valuetext', `${v}, ${text}`);
 }
 $('#adventure').addEventListener('input', e => { profile.adventure = Number(e.target.value); showAdventure(); });
@@ -731,6 +733,14 @@ const EDGE_ICONS = {
   label: 'M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
   related: 'M6 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
 };
+// Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
+const ICONS = { play: 'M5 3.2v9.6L12.8 8z', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
+  heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z' };
+function icon(name, filled) {
+  const s = svgEl('svg', { viewBox: '0 0 16 16', class: `icon i-${name}${filled ? ' filled' : ''}`, 'aria-hidden': 'true', focusable: 'false' });
+  s.append(svgEl('path', { d: ICONS[name] }));
+  return s;
+}
 const svgEl = (tag, attrs) => { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
 const edgeIcon = edge => { const s = svgEl('svg', { viewBox: '0 0 16 16', class: 'edge-icon', 'aria-hidden': 'true' }); s.append(svgEl('path', { d: EDGE_ICONS[edge] || EDGE_ICONS.related })); return s; };
 
@@ -868,51 +878,42 @@ function renderHome() {
   if (!profile) return;
   if (!current) setTint(profile.last && profile.last.track.cover);
   const { last, likes } = profile, f = last && last.from && $(`#tab-${last.from.tab}`) ? last.from : null;
-  // Continue where you left off: the last revealed or saved track you played, and the way back to where it came from.
-  $('#continue').classList.toggle('has-art', !!(last && last.track.cover));
-  $('#continue-body').replaceChildren(...(last ? [
-    last.track.cover ? el('img', { className: 'continue-art', src: bigCover(last.track.cover), alt: '' }) : null,
-    el('div', { className: 'continue-text' },
-      trackRow(last.track, { tag: 'div', from: f || undefined, extra: last.track.country ? { country: last.track.country, decade: last.track.decade } : undefined,
-        reason: [f && `From ${f.label || tabName(f.tab)}`, last.ts && `played ${day(last.ts)}`].filter(Boolean).join(' · ') }),
-      el('div', { className: 'row' }, f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab)) : null,
-        btn(tonight.length ? 'Next mystery' : 'Open the Blind Test', () => showTab('blind'), 'primary')))]
-    : [el('p', { className: 'muted', textContent: 'Nothing played yet. The Blind Test is the quickest way in: one track, no names, and you rate it before you find out.' }),
+  // Last on the platter: the record you played last, as a sleeve on the counter, and the way back to where it came from.
+  $('#platter').classList.toggle('is-empty', !last);
+  $('#platter-title').textContent = last ? 'Last on the platter' : 'Nothing on the platter yet';
+  $('#platter-art').replaceChildren(last && last.track.cover ? el('img', { src: bigCover(last.track.cover), alt: '' }) : el('span', { className: 'cover-ph' }));
+  $('#platter-body').replaceChildren(...(last ? [
+    trackRow(last.track, { tag: 'div', from: f || undefined, extra: last.track.country ? { country: last.track.country, decade: last.track.decade } : undefined,
+      reason: `Played ${day(last.ts)}${f ? ` from ${f.label || tabName(f.tab)}` : ''}` }),
+    el('div', { className: 'row' }, btn(tonight.length ? 'Next mystery' : 'Open the Blind Test', () => showTab('blind'), 'primary'),
+      f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab), 'ghost') : null)]
+    : [el('p', { className: 'muted', textContent: 'Start with a mystery: one track, no names, and you rate it before you find out who it was.' }),
       el('div', { className: 'row' }, btn('Start the Blind Test', () => showTab('blind'), 'primary'))]));
 
-  // Your taste so far: from loves and ratings, in words, not a stats wall.
-  const rs = profile.ratings.filter(r => !r.seed), n = k => rs.filter(r => r.rating === k).length;
-  const list = pairs => pairs.length ? pairs.map(([k, c]) => el('span', { className: 'taste-item' }, k, el('span', { className: 'num', textContent: ` ${c}` }))) : null;
-  const adv = ADVENTURE.find(([max]) => profile.adventure <= max)[1];
-  const rows = [
-    ['Places', list(topOf(likes.filter(l => l.country).map(l => countryNames[l.country] || l.country))), 'Love a track from a random trip to start a map.'],
-    ['Decades', list(topOf(likes.filter(l => l.decade).map(l => `${l.decade}s`))), 'No decades yet.'],
-    ['Genres you picked', profile.prefs.genres.length ? profile.prefs.genres.slice(0, 4).map(g => el('span', { className: 'taste-item', textContent: g.name })) : null, 'None picked. Add some in Preferences.'],
-    ['Ratings', rs.length ? [el('span', { className: 'num', textContent: `${n('love')} loved · ${n('ok')} OK · ${n('skip')} skipped` })] : null, 'Rate a few mysteries and your taste shows up here.'],
-    ['Adventure', [el('span', { className: 'num', textContent: `${profile.adventure} ` }), adv], ''],
-  ];
-  $('#taste').replaceChildren(...rows.flatMap(([k, v, empty]) => [el('dt', { textContent: k }), el('dd', { className: v ? '' : 'muted' }, ...(v || [empty]))]));
+  // Lately: one sentence from your loves and picks, not a stats table.
+  const and = xs => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+  const parts = [topOf(likes.filter(l => l.country).map(l => countryNames[l.country] || l.country)).map(([k]) => k),
+    topOf(likes.filter(l => l.decade).map(l => `the ${l.decade}s`), 2).map(([k]) => k),
+    profile.prefs.genres.slice(0, 2).map(g => g.name)].filter(x => x.length).map(and);
+  $('#lately').textContent = parts.length ? `Lately: ${parts.join('; ')}.` : 'Love a few records and your taste starts to show here.';
 
-  // Ways in: one card per route, each with a live line; the stamps tab is whatever the tab after Blind Test is called now.
+  // Other ways in: a quiet row (the tabs are the ways in); the stamps tab is whatever the tab after Blind Test is called now.
   const stampTab = tabs.find(b => !['home', 'blind', 'tree', 'saved', 'prefs'].includes(b.dataset.tab));
   const stamps = Object.keys(profile.stamps || {}).length, newest = likes[likes.length - 1];
-  const ways = [
-    ['blind', 'vinyl', 'One track, no names. Rate it first, then see who it was.', tonight.length ? `${tonight.length} revealed tonight` : 'A mystery is cued up'],
-    stampTab && [stampTab.dataset.tab, 'stamp', 'Pick a place and a time, love a track, collect the stamp.', `${stamps} stamp${stamps === 1 ? '' : 's'} collected`],
-    ['tree', 'branch', 'Start from a song and walk its scene, one explained step at a time.', newest ? `Grow from “${newest.title}”` : 'Start from any song'],
-  ].filter(Boolean);
-  $('#ways').replaceChildren(...ways.map(([tab, art, text, live]) => el('li', {}, el('button', { type: 'button', className: `way way-${art}`, onclick: () => showTab(tab) },
-    el('span', { className: 'way-art', ariaHidden: 'true' }), el('span', { className: 'way-name', textContent: tabName(tab) }),
-    el('span', { className: 'way-text', textContent: text }), el('span', { className: 'way-live', textContent: live })))));
+  const ways = [['blind', tonight.length ? `${tonight.length} revealed tonight` : 'a mystery is cued up'],
+    stampTab && [stampTab.dataset.tab, `${stamps} stamp${stamps === 1 ? '' : 's'} so far`],
+    ['tree', newest ? `grow one from “${newest.title}”` : 'start from any song']].filter(Boolean);
+  $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
+    el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
 
-  // Recent finds: tonight's reveals and your newest loves, one crate.
+  // Recent finds: tonight's reveals and your newest loves, one crate of sleeves.
   const seen = new Set(), finds = [];
-  for (const { t, kind, extra } of tonight) finds.push({ t, extra, reason: `You said ${VERDICT[kind]} · tonight` });
+  for (const { t, kind, extra } of tonight) finds.push({ t, extra, reason: `You said ${VERDICT[kind]} tonight` });
   for (const t of likes.slice().reverse()) finds.push({ t, extra: t.country ? { country: t.country, decade: t.decade } : undefined, reason: t.ts ? `Loved ${day(t.ts)}` : 'Loved' });
   const crate = finds.filter(({ t }) => !seen.has(likeKey(t)) && seen.add(likeKey(t))).slice(0, 8);
   $('#recent-count').textContent = crate.length || '';
   $('#recent').replaceChildren(...(crate.length ? crate.map(({ t, extra, reason }) => trackRow(t, { extra, reason }))
-    : [el('li', { className: 'state empty' }, el('p', { textContent: 'Nothing found yet. Rate a mystery or love a track anywhere and it lands here.' }))]));
+    : [el('li', { className: 'state empty' }, el('p', { textContent: 'Nothing in the crate yet. Rate a mystery or love a track anywhere and it lands here.' }))]));
 }
 
 // ---------- Preferences (first-launch step + tab) ----------
@@ -975,7 +976,7 @@ function renderPickedArtists() {
   const p = profile.prefs;
   $('#pref-artists').replaceChildren(...p.artists.map(a => el('li', {}, el('button', { type: 'button', className: 'chip picked-chip', ariaLabel: `Remove ${a.name}`,
     onclick: () => { p.artists = p.artists.filter(x => x.dzId !== a.dzId); renderPickedArtists(); prefsChanged(); $('#pref-artist-q').focus(); } },
-  a.name, el('span', { ariaHidden: 'true', className: 'x', textContent: '✕' })))));
+  a.name, icon('close')))));
   if (!p.artists.length) $('#pref-artists').append(el('li', { className: 'hint', textContent: 'None yet.' }));
 }
 function addArtist(a) {
@@ -1052,6 +1053,7 @@ $('#prefs-skip').onclick = () => openIntro();
   showAdventure();
   afterLikeChange();
   renderTonight();
+  syncPlayState(); // draws the play icons
   if (!introSeen() && !profile.likes.length) openPrefs(true); else showTab('home');
   fill();
   seedTaste(); // finishes seeding an interrupted earlier session; no-op otherwise
