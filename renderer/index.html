@@ -136,6 +136,7 @@
       <div class="panel-head">
         <h1>Family Tree</h1>
         <p class="muted">Start from a song you saved. Walk through its scene, step by step.</p>
+        <div class="sp-export"><button id="tree-export" type="button" class="ghost">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <div class="tree-picker">
         <form id="tree-pick" class="search">
@@ -159,6 +160,7 @@
       <div class="panel-head">
         <h1>Saved</h1>
         <p class="muted">Everything you loved, newest first.</p>
+        <div class="sp-export"><button id="saved-export" type="button" class="ghost">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <h2>Stamps <span id="saved-stamp-count" class="count">0</span></h2>
       <ul id="saved-stamps" class="stamps"></ul>
@@ -193,6 +195,26 @@
           <span id="pref-regions-label" class="label">Regions you're curious about <span class="muted">· optional</span></span>
           <div id="pref-regions" class="chips" role="group" aria-labelledby="pref-regions-label"></div>
         </div>
+      </div>
+      <div id="spotify-prefs" class="field sp-prefs" role="group" aria-labelledby="sp-title">
+        <h2 id="sp-title">Spotify</h2>
+        <p class="hint">Play the full song in your Spotify app and save playlists. Needs Spotify Premium. Previews and the Sound Fingerprint never use Spotify audio.</p>
+        <p id="sp-status" aria-live="polite"></p>
+        <form id="sp-connect" class="search">
+          <label for="sp-client">Client ID</label>
+          <input id="sp-client" autocomplete="off" spellcheck="false" placeholder="32 letters and digits from your Spotify app">
+          <button id="sp-go" class="primary">Connect</button>
+        </form>
+        <button id="sp-off" type="button" class="ghost" hidden>Disconnect</button>
+        <details id="sp-setup">
+          <summary>Set up (one time, about 3 minutes)</summary>
+          <ol class="hint">
+            <li>Open the <button id="sp-dash" type="button" class="ext">Spotify developer dashboard</button> and create an app. Tick <b>Web API</b>.</li>
+            <li>Add this Redirect URI exactly: <code id="sp-redirect"></code></li>
+            <li>Under <b>User Management</b>, add the email of your Spotify account (needed in development mode).</li>
+            <li>Copy the app's <b>Client ID</b> into the box above and press Connect. Log in in your browser, then come back here.</li>
+          </ol>
+        </details>
       </div>
       <p id="pref-status" class="hint" aria-live="polite"></p>
       <div class="row">
