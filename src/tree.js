@@ -1,7 +1,7 @@
 // Family Tree (docs/05-song-tree-spec.md): a small explained tree of songs around one root song.
 // Like src/music.js, everything takes `get(url)` so tests can feed recorded JSON. Runs in main; nodes stream out via `emit`.
 const COUNTRIES = require('./countries');
-const { norm, soleArtist, sharedNames, personTrail, dedupe, flows: { resolvePreview } } = require('./music');
+const { norm, soleArtist, sharedNames, personTrail, dedupe, baseTitle, flows: { resolvePreview } } = require('./music');
 
 const DZ = 'https://api.deezer.com';
 const MB = 'https://musicbrainz.org/ws/2';
@@ -99,8 +99,12 @@ function originalRecording(recs, artist, title) {
 
 // ---------- tree state ----------
 
-function newTree(get, root, { emit = () => {}, live = () => true, heard = [] } = {}) {
-  const T = { get, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0 };
+// Saved songs never come back as tree songs (the root is shown as given): by id, or artist + base title so a remaster counts too.
+const songKey = t => `${norm(t.artist)}|${baseTitle(t.title)}`;
+const isSaved = (T, t) => T.saved.has(`id:${t.source}:${t.id}`) || T.saved.has(songKey(t));
+function newTree(get, root, { emit = () => {}, live = () => true, heard = [], saved = [] } = {}) {
+  const T = { get, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0,
+    saved: new Set(saved.flatMap(s => [s.id != null && `id:${s.source}:${s.id}`, songKey(s)]).filter(Boolean)) };
   addNode(T, null, root, { label: '' });
   claim(T, { artist: root.artist, dzId: root.artistDzId });
   return T;
@@ -240,9 +244,9 @@ async function tryAdd(T, node, c) {
     const dzId = c.dzId ?? await dzArtist(T.get, c.artist);
     if (dzId == null || (c.dzId == null && T.used.has(`dz:${dzId}`))) return null;
     T.used.add(`dz:${dzId}`);
-    track = await topTrack(T.get, dzId);
+    track = await topTrack(T.get, dzId, x => isSaved(T, x)); // a saved hit: the artist's next track instead
   }
-  if (!track || !T.live() || (taken(T, { artist: track.artist }) && norm(track.artist) !== norm(c.artist))) return null;
+  if (!track || !T.live() || isSaved(T, track) || (taken(T, { artist: track.artist }) && norm(track.artist) !== norm(c.artist))) return null;
   claim(T, { artist: track.artist, dzId: track.artistDzId });
   if (c.kind === 'roots') T.roots++;
   return addNode(T, node, track, c);

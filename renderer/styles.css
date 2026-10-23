@@ -179,6 +179,7 @@ input::placeholder { color: var(--color-muted); opacity: 1; }
 .theme-toggle svg { width: 18px; height: 18px; }
 
 main { max-width: var(--content-w); margin: 0 auto; padding: var(--space-6) var(--space-5); }
+main:has(> #tree:not([hidden])) { padding-bottom: 0; } /* the tree ends at its last song; body padding alone clears the now-playing bar */
 .panel-head { margin-bottom: var(--space-5); }
 .panel-head .muted { font-size: 15px; max-width: 60ch; }
 
@@ -346,11 +347,15 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 .reason .edge-icon { vertical-align: -2px; margin-right: 5px; }
 
 .node-actions { display: flex; flex-wrap: wrap; align-items: center; margin-top: var(--space-1); }
-.node-actions > button, .node-actions summary { min-height: 28px; padding: 2px 6px; border: none; border-radius: var(--radius); background: none;
+.node-actions > button, .node-actions summary, .node-rate button { min-height: 28px; padding: 2px 4px; border: none; border-radius: var(--radius); background: none;
   color: var(--color-muted); font-size: var(--font-size-sm); font-weight: 600; width: auto; }
-.node-actions > button:hover:not(:disabled), .node-actions summary:hover { background: var(--color-surface-2); color: var(--color-text); }
+.node-actions > button:hover:not(:disabled), .node-actions summary:hover, .node-rate button:hover { background: var(--color-surface-2); color: var(--color-text); }
 .node-actions .love { min-width: 0; }
 .node-actions .love[aria-pressed=true] { background: none; color: var(--color-love); }
+.node-rate { display: inline-flex; }
+.node-rate button { padding-inline: 3px; }
+.node-rate button[aria-pressed=true]:not(.love) { background: var(--color-surface-2); color: var(--color-text); }
+.node-card.skipped > .track { opacity: .5; transition: opacity var(--dur); }
 .node-actions .more { margin-left: auto; color: var(--color-accent); }
 .node-actions summary { display: inline-flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; }
 .node-actions summary::-webkit-details-marker { display: none; }
