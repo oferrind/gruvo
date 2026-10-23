@@ -118,12 +118,16 @@ function addNode(T, parent, track, c) {
 // Exact-name Deezer artist; two different artists with that name = can't tell which was meant, so none ("Cast", "Gene").
 async function dzArtist(get, name) {
   const res = await get(`${DZ}/search/artist?q=${enc(`artist:"${name}"`)}&limit=10`);
-  const hit = soleArtist((res.data || []).filter(a => norm(a.name) === norm(name)), name, a => a.name, a => a.id);
+  const exact = (res.data || []).filter(a => norm(a.name) === norm(name)).sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
+  // Deezer keeps dead duplicate entries (a second "Beady Eye" with 2 fans): a 100x lead still means one real artist.
+  if (exact.length > 1 && (exact[0].nb_fan || 0) >= 100 * Math.max(1, exact[1].nb_fan || 0)) return exact[0].id;
+  const hit = soleArtist(exact, name, a => a.name, a => a.id);
   return hit.length ? hit[0].id : null;
 }
 
-const dzTrack = r => r && { source: 'dz', id: r.id, title: r.title_short || r.title, artist: r.artist.name, artistDzId: r.artist.id,
-  cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, previewUrl: r.preview };
+const dzTrack = r => r && { source: 'dz', id: r.id, artist: r.artist.name, artistDzId: r.artist.id,
+  cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, previewUrl: r.preview,
+  title: (r.title_short || r.title).replace(/\s*[([-][^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || r.title }; // "Beautiful Ones (Remastered)"
 
 // First top track with a preview that isn't a live/remix/demo cut.
 async function topTrack(get, dzId) {
@@ -219,7 +223,8 @@ async function fill(T, node, n) {
 async function recordingOf(T, node) {
   if (node.done.has('rec')) return node.rec;
   node.done.add('rec');
-  const { artist, title } = node.track;
+  const { artist } = node.track;
+  const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
   const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
   const hit = originalRecording((await T.get(`${MB}/recording?query=${enc(q)}&limit=10&fmt=json`)).recordings, artist, title);
   if (!hit) return (node.rec = null);

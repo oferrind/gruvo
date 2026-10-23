@@ -34,11 +34,13 @@ function world() {
       return { entities: { Q382890: { claims: { P737: ['Q1', 'Q2'].map(id => ({ mainsnak: { datavalue: { value: { id } } } })) } } } };
     if (u.includes('wikidata')) return { entities: { Q1: { labels: { en: { value: 'The Kinks' } } }, Q2: { labels: { en: { value: 'The Who' } } } } };
     if ((m = u.match(/search\/artist\?q=artist:"(.+?)"/)))
-      return { data: m[1] === 'Cast' ? [{ id: 900, name: 'Cast' }, { id: 901, name: 'Cast' }] : DZ_NAMES.includes(m[1]) ? [{ id: dzId(m[1]), name: m[1] }] : [] };
+      return { data: m[1] === 'Cast' ? [{ id: 900, name: 'Cast', nb_fan: 5000 }, { id: 901, name: 'Cast', nb_fan: 900 }] // two live bands: ambiguous
+        : m[1] === 'Beady Eye' ? [{ id: 999, name: 'Beady Eye', nb_fan: 2 }, { id: dzId(m[1]), name: m[1], nb_fan: 61170 }] // a dead duplicate entry
+        : DZ_NAMES.includes(m[1]) ? [{ id: dzId(m[1]), name: m[1] }] : [] };
     if ((m = u.match(/artist\/(\d+)\/top/))) {
       const artist = { id: +m[1], name: DZ_NAMES[m[1] - 1] };
       return { data: [{ id: m[1] * 10, title: 'Hit (Live)', preview: 'https://x.dzcdn.net/l.mp3', artist, album: {} },
-        { id: m[1] * 10 + 1, title: 'Hit (2011 Remaster)', title_short: 'Hit', preview: 'https://x.dzcdn.net/p.mp3', artist, album: {} }] };
+        { id: m[1] * 10 + 1, title: 'Hit (2011 Remaster)', preview: 'https://x.dzcdn.net/p.mp3', artist, album: {} }] };
     }
     if ((m = u.match(/artist\/(\d+)\/related/))) return { data: +m[1] === dzId('Oasis') ? [{ id: dzId('Blur'), name: 'Blur' }, { id: dzId('Liam Gallagher'), name: 'Liam Gallagher' }] : [] };
     return { error: { message: 'no route' } };
@@ -58,7 +60,7 @@ test('tree: 3 + 9 children, one artist once, tag guard, homonyms dropped, labels
   const names = T.nodes.map(n => norm(n.artist));
   assert.equal(new Set(names).size, names.length);
   for (const bad of ['metallica', 'cast', 'liamgallagher']) assert.ok(!names.includes(bad), bad);
-  assert.ok(T.nodes.slice(1).every(n => n.label && !SOURCE_WORDS.test(n.label) && n.track.title === 'Hit'));
+  assert.ok(T.nodes.slice(1).every(n => n.label && !SOURCE_WORDS.test(n.label) && n.track.title === 'Hit')); // no live cut, no "(Remaster)"
   const kids = T.nodes.filter(n => n.parent === 0);
   assert.equal(kids[0].artist, 'Blur');
   assert.equal(kids[0].label, 'Same scene: britpop, UK, formed 1990 · fans of Oasis play them too');
