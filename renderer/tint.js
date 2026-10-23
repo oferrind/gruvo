@@ -24,7 +24,7 @@
     }
     if (!px || total / px < 0.03) return null;
     const best = bins.reduce((a, b) => (b.w > a.w ? b : a));
-    return { h: Math.round(best.h / best.w), s: Math.round(Math.min(0.6, Math.max(0.3, best.s / best.w)) * 100) };
+    return { h: Math.round(best.h / best.w), s: Math.round(Math.min(0.35, Math.max(0.3, best.s / best.w)) * 100) };
   }
   const api = { tintOf };
   if (typeof module === 'object' && module.exports) module.exports = api;
