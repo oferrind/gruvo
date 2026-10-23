@@ -39,6 +39,8 @@ async function play(item, { label, onFail: failCb, extra, from } = {}) {
   $('#now-playing').textContent = label || `${item.artist} – ${item.title}`;
   renderNpLike(); renderNpMeta(); syncPlayState();
   remember(item);
+  // Stop the old track now: while the new preview is fetched (or turns out unavailable) its time must not drive the new scrubber or tonearm.
+  if (audio.getAttribute('src')) { audio.removeAttribute('src'); audio.load(); }
   // Saved likes have no preview URL (they expire); fetch one at play time.
   const url = item.previewUrl || await call('freshPreview', plain(item));
   if (current !== item) return;
@@ -88,7 +90,8 @@ function syncPlayState() {
 }
 ['play', 'pause', 'ended', 'emptied'].forEach(ev => audio.addEventListener(ev, syncPlayState));
 let scrubbing = false;
-audio.addEventListener('timeupdate', () => {
+const onTime = e => {
+  if (e.type === 'emptied') scrubbing = false;
   const p = audio.duration ? audio.currentTime / audio.duration : 0, seek = $('#np-progress');
   if (!scrubbing) seek.value = p;
   seek.style.setProperty('--v', seek.value);
@@ -96,7 +99,8 @@ audio.addEventListener('timeupdate', () => {
   seek.setAttribute('aria-valuetext', audio.duration ? `${fmt(audio.currentTime)} of ${fmt(audio.duration)}` : '');
   $('#np-time').textContent = audio.duration ? `${fmt(audio.currentTime)} / ${fmt(audio.duration)}` : '';
   if (current === mystery) { $('#mystery-progress').value = p; $('#deck').style.setProperty('--p', p); }
-});
+};
+['timeupdate', 'durationchange', 'emptied'].forEach(ev => audio.addEventListener(ev, onTime)); // emptied: a new track starts the bar at 0
 $('#np-progress').addEventListener('input', e => { scrubbing = true; e.target.style.setProperty('--v', e.target.value); if (audio.duration) audio.currentTime = e.target.value * audio.duration; });
 $('#np-progress').addEventListener('change', () => { scrubbing = false; });
 $('#deck').addEventListener('animationend', e => { if (e.target.classList.contains('tonearm')) $('#deck').classList.remove('needle-drop'); });
