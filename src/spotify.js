@@ -30,6 +30,13 @@ function stateOk(expected, got) {
   const a = Buffer.from(String(expected)), b = Buffer.from(String(got ?? ''));
   return a.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
 }
+// The user is sitting at this PC: its Spotify app wins over whichever device was last active (often the phone).
+// Then the device they last played on, then the active one, then the only one; otherwise null = ask.
+function pickDevice(list, last, host) {
+  const here = list.find(d => d.type === 'Computer' && String(d.name).toLowerCase() === String(host).toLowerCase());
+  const pick = here || list.find(d => d.id === last) || list.find(d => d.active) || (list.length === 1 ? list[0] : null);
+  return pick ? pick.id : null;
+}
 const chunk = (arr, n = 100) => Array.from({ length: Math.ceil(arr.length / n) }, (_, i) => arr.slice(i * n, i * n + n)); // add-items max 100
 
 function errorFor(status) {
@@ -49,7 +56,7 @@ const pickStrict = (items, t) => ((items || []).find(it => hasArtist(it, t) && b
 
 // ---------- the client ----------
 // deps: dir (userData), send (net.send), getJson (net.get, for Deezer ISRC), crypt {available, encrypt, decrypt}, openUrl, sleep, now.
-function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(r => setTimeout(r, ms)), now = Date.now }) {
+function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(r => setTimeout(r, ms)), now = Date.now, host = require('os').hostname() }) {
   const file = path.join(dir, 'spotify.json'), matchFile = path.join(dir, 'spotify-matches.json');
   const read = f => { try { return JSON.parse(fs.readFileSync(f, 'utf8')) || {}; } catch { return {}; } };
   const write = (f, o) => { try { fs.writeFileSync(f + '.tmp', JSON.stringify(o)); fs.renameSync(f + '.tmp', f); } catch (e) { console.error('spotify save failed', e.message); } };
@@ -175,17 +182,18 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
   async function play(t, deviceId) {
     const uri = await match(t);
     if (!uri) return { error: `Spotify doesn't seem to have "${t.title}".` };
-    let id = deviceId;
+    let id = deviceId, name;
     if (!id) {
       const list = (await devices()).devices;
       if (!list.length) return { error: NO_DEVICE, noDevice: true };
-      const active = list.find(d => d.active);
-      if (!active && list.length > 1) return { devices: list };
-      id = (active || list[0]).id;
+      id = pickDevice(list, st.device, host);
+      if (!id) return { devices: list };
+      name = list.find(d => d.id === id).name;
     }
     try { await api('PUT', `/me/player/play?device_id=${encodeURIComponent(id)}`, { uris: [uri] }); }
     catch (e) { if (e.status === 404) return { error: NO_DEVICE, noDevice: true }; throw e; }
-    return { ok: true };
+    if (st.device !== id) { st.device = id; write(file, st); }
+    return { ok: true, device: id, ...(name ? { name } : {}) };
   }
 
   // Private playlist in the given order. {url, added, total, unmatched: [{artist, title}]}
@@ -202,4 +210,4 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
   return { status, connect, disconnect, devices: wrap(devices), play: wrap(play), exportPlaylist: wrap(exportPlaylist), match, token };
 }
 
-module.exports = { create, pkce, authUrl, validClientId, stateOk, chunk, errorFor, pickIsrc, pickStrict, REDIRECT, SCOPES, PORT, NO_DEVICE };
+module.exports = { create, pkce, authUrl, validClientId, stateOk, chunk, pickDevice, errorFor, pickIsrc, pickStrict, REDIRECT, SCOPES, PORT, NO_DEVICE };

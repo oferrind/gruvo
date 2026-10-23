@@ -1111,7 +1111,7 @@ async function playInSpotify(t, b, deviceId) {
     ...r.devices.map(d => btn(d.name, () => playInSpotify(t, b, d.id), 'ext'))));
   if (r.error) return toast(r.error);
   audio.pause();
-  toast(`Playing “${t.title}” in Spotify`);
+  toast(`Playing “${t.title}” in Spotify${r.name ? ` on ${r.name}` : ''}`);
 }
 
 // Private playlist from tracks (in order); reports matches and the songs Spotify doesn't have. Genre Stamps can call it too.

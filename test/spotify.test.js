@@ -111,7 +111,7 @@ test('play: no device, several devices (ask), one active (plays exact URI there)
   assert.deepEqual(await mk([]).c.play(t), { error: S.NO_DEVICE, noDevice: true });
   assert.equal((await mk([{ id: 'a', name: 'PC' }, { id: 'b', name: 'Phone' }]).c.play(t)).devices.length, 2);
   const one = mk([{ id: 'a' }, { id: 'b', is_active: true }]);
-  assert.deepEqual(await one.c.play(t), { ok: true });
+  assert.deepEqual(await one.c.play(t), { ok: true, device: 'b' });
   const put = one.calls.find(x => x.method === 'PUT');
   assert.equal(put.url, 'https://api.spotify.com/v1/me/player/play?device_id=b');
   assert.deepEqual(JSON.parse(put.body), { uris: ['spotify:track:abc'] });
@@ -192,4 +192,15 @@ test('net.send: Spotify hosts only (the Authorization header can never reach ano
     assert.equal(seen.length, 2, 'no cache: each call hits the network');
     assert.equal(seen[0][1].redirect, 'error');
   } finally { global.fetch = orig; }
+});
+
+test('pickDevice: this PC beats the active phone; then the last used; several unknown -> ask', () => {
+  const S = require('../src/spotify');
+  const phone = { id: 'p', name: 'OnePlus 13', type: 'Smartphone', active: true }, pc = { id: 'c', name: 'OFER-PC', type: 'Computer', active: false };
+  const tv = { id: 't', name: 'Living room', type: 'TV', active: false };
+  assert.equal(S.pickDevice([phone, pc], undefined, 'Ofer-PC'), 'c');
+  assert.equal(S.pickDevice([phone, tv], 't', 'Ofer-PC'), 't');
+  assert.equal(S.pickDevice([phone], undefined, 'Ofer-PC'), 'p');
+  assert.equal(S.pickDevice([phone, tv], undefined, 'Ofer-PC'), 'p'); // no PC, no last: the active one
+  assert.equal(S.pickDevice([{ ...phone, active: false }, tv], undefined, 'Ofer-PC'), null);
 });
