@@ -143,3 +143,11 @@ test('built on looks back only: samples it uses and works it is based on, never 
   assert.deepEqual(t.lookBack(null, fx('mb_work_bss')).map(b => b.title), ['The Last Time']);
   assert.equal(t.originalRecording(fx('mb_recsearch_bss').recordings, 'The Verve', 'Bitter Sweet Symphony').id, '8b6d9029-1990-4660-bd57-24b5bc0fb626');
 });
+
+test('built on by title only: the work\'s first studio recording names the artist, so a namesake song never wins', () => {
+  const rec = (date, name, disambiguation = '') => ({ title: 'The Last Time', 'first-release-date': date, disambiguation, 'artist-credit': [{ name }] });
+  assert.equal(t.firstPerformer([rec('1967', 'The Who'), rec('1966-12-10', 'The Rolling Stones', 'live: Royal Albert Hall'),
+    rec('', 'Nobody'), rec('1965', 'The Rolling Stones')]), 'The Rolling Stones');
+  assert.equal(t.firstPerformer([]), null);
+  assert.deepEqual(t.lookBack(null, fx('mb_work_bss')).map(b => b.work), ['d12cf1ae-7feb-3f04-88e9-c4d7df3ff754']);
+});

@@ -77,9 +77,16 @@ function lookBack(rec, work) {
   }
   for (const r of (work && work.relations) || []) {
     if (r.type === 'based on' && r.direction === 'backward' && r.work && !out.some(o => norm(o.title) === norm(r.work.title)))
-      out.push({ title: r.work.title, kind: 'builton' });
+      out.push({ title: r.work.title, work: r.work.id, kind: 'builton' });
   }
   return out;
+}
+
+// Who first recorded a work: the credit on its earliest dated recording that isn't a live/demo/remix cut.
+function firstPerformer(recs) {
+  const ok = (recs || []).filter(r => r['first-release-date'] && !/(live|demo|remix|edit|version)/i.test(r.disambiguation || ''))
+    .sort((a, b) => a['first-release-date'].localeCompare(b['first-release-date']))[0];
+  return ok ? (ok['artist-credit'] || []).map(c => c.name + (c.joinphrase || '')).join('') || null : null;
 }
 
 // Earliest dated studio recording with this exact title: Saved can hold a 2025 live version, the tree wants the original.
@@ -135,11 +142,11 @@ async function topTrack(get, dzId) {
   return dzTrack((res.data || []).find(t => t.preview && !/\b(live|remix|demo|version)\b/i.test(t.title)));
 }
 
-// A work we only know by title ("based on" carries no performer): the most popular exact-title track.
-// shortcut: a famous same-title song by someone else can win; resolve the work's first recording on MB if that shows up.
-async function songByTitle(get, title) {
-  const res = await get(`${DZ}/search?q=${enc(`track:"${title}"`)}&limit=10`);
-  return dzTrack((res.data || []).filter(r => r.preview && norm(r.title_short || r.title) === norm(title)).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0]);
+// A work we only know by title ("based on" carries no performer): its first recording on MB names the artist.
+// shortcut: MB browse returns the first 100 recordings only; a much-covered work's original may be past them.
+async function workPerformer(get, workId) {
+  const res = await get(`${MB}/recording?work=${enc(workId)}&inc=artist-credits&limit=100&fmt=json`);
+  return firstPerformer(res.recordings);
 }
 
 const related = async (get, dzId) => dzId == null ? [] : ((await get(`${DZ}/artist/${enc(dzId)}/related?limit=25`)).data || []);
@@ -222,8 +229,11 @@ async function tryAdd(T, node, c) {
   claim(T, c);
   let track;
   if (c.title && !c.artist) {
-    track = await songByTitle(T.get, c.title);
-    if (track) c.label = `Built on ${track.artist}'s “${c.title}”`;
+    const artist = c.work && await workPerformer(T.get, c.work);
+    if (!artist || taken(T, { artist })) return null;
+    track = await resolvePreview(T.get, artist, c.title, true);
+    c.artist = artist;
+    c.label = `Built on ${artist}'s “${c.title}”`;
   } else if (c.title) {
     track = await resolvePreview(T.get, c.artist, c.title, true);
   } else {
@@ -368,4 +378,4 @@ async function labelEdge(T, node) {
   return names.map(n => ({ artist: n, kind: 'label', label: `Also on ${l.label.name}, ${y - 2}–${String(y + 2).slice(2)}` }));
 }
 
-module.exports = { topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, originalRecording, newTree, growTree, moreTree, CAP };
+module.exports = { topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, growTree, moreTree, CAP };
