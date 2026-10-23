@@ -124,6 +124,7 @@ $('#np-from').onclick = () => {
   if (current === mystery) return $('#mystery-play').focus();
   const row = current && $(`#${currentFrom.tab} .track[data-key="${CSS.escape(likeKey(current))}"]`);
   if (row) { row.scrollIntoView({ block: 'center' }); row.querySelector('.play').focus(); }
+  else $(`#tab-${currentFrom.tab}`)?.focus(); // the row is gone (a regrown tree, a cleared list): land on its tab, not on nothing
 };
 // Last played (never an unrated mystery), kept in the profile for Home's "continue where you left off".
 function remember(t) {
