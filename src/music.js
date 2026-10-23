@@ -121,17 +121,6 @@ function trailPicks(relations, excludeArtist, heard, n = 12, rand = Math.random)
   return [...fresh, ...seen].slice(0, n).map(g => pickOne(g, rand));
 }
 
-// Work recording rels -> shuffled distinct cover artists (excluding the original).
-function coverArtists(relations, originalArtist, rand = Math.random) {
-  const names = new Set();
-  for (const r of relations || []) {
-    if (!r.recording || !(r.attributes || []).includes('cover')) continue;
-    const a = creditName(r.recording);
-    if (a && !artistMatch(a, originalArtist)) names.add(a);
-  }
-  return shuffle([...names], rand);
-}
-
 const dedupe = names => {
   const seen = new Set();
   return names.filter(n => n && n !== 'Various Artists' && !seen.has(norm(n)) && seen.add(norm(n)));
@@ -246,7 +235,7 @@ async function neighbourCandidate(get, likes, heard, exclude, adventure, rand = 
 const ROLE_WORD = { instrument: 'musician', vocal: 'singer', mix: 'mixer', 'mix-DJ': 'DJ' };
 const roleWord = role => ROLE_WORD[role.split(' ')[0]] || role.split(' ')[0];
 
-// Liner-notes trail from a loved track: its producer (or engineer, player...) -> another artist they worked with.
+// Credits trail from a loved track: its producer (or engineer, player...) -> another artist they worked with.
 // Slow (MusicBrainz, 1.5 s/request) on first use per loved track; the disk cache makes repeats cheap.
 async function trailCandidate(get, likes, heard, exclude, rand = Math.random) {
   const loved = pickOne(likes.filter(l => l.title && l.artist), rand);
@@ -381,11 +370,6 @@ async function personTrail(get, mbid, excludeArtist, heard = []) {
   return trailPicks(res.relations, excludeArtist, heard);
 }
 
-async function covers(get, workId, originalArtist) {
-  const res = await get(`${MB}/work/${workId}?inc=recording-rels+artist-credits&fmt=json`);
-  return coverArtists(res.relations, originalArtist);
-}
-
 // ---------- About (reveal description) ----------
 
 const MUSIC = /\b(singer|band|musician|rapper|group|dj|composer|producer|songwriter|duo|trio|vocalist|guitarist|pianist|drummer|orchestra|ensemble|song|single|album)s?\b/i;
@@ -474,6 +458,6 @@ async function about(get, { source, id, albumId, title, artist }) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, coverArtists, dedupe, sharedNames, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
-  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, credits, personTrail, covers, genres, searchArtists, seedTracks, about },
+  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
+  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about },
 };

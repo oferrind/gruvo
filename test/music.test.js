@@ -181,8 +181,6 @@ test('trail picks exclude original artist, one per artist', () => {
   assert.ok(picks.length >= 8);
   assert.ok(picks.every(p => p.artist !== 'Radiohead' && p.title && p.recId));
   assert.equal(new Set(picks.map(p => p.artist)).size, picks.length);
-  const covers = m.coverArtists(fx('mb_work_creep_recs').relations, 'Radiohead');
-  assert.ok(covers.length > 5 && !covers.includes('Radiohead'));
 });
 
 test('heard is id-keyed: same-name artists stay apart, old name entries still match (R4)', async () => {
