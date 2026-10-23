@@ -116,3 +116,27 @@ merge. Its fake search returns artist = query, and `artistMatch` rejects names u
 which falls back to iTunes. The test is at fault, not the app: it should pin `rand` or use a realistic fake row.
 
 Screenshots (scratchpad): `verify-01-prefs.png`, `verify-02-liner.png`.
+
+## Round 3: Family Tree (after merging Builder, Bug Hunter, Designer and the 85% zoom)
+
+I tested it live with a temp profile holding the saved Oasis "Wonderwall (Remastered)" and Radiohead "Creep". The window
+was 1100 px at the default 0.85 zoom.
+
+1. **Grow the tree: PASS.** Cold network: first child after 12.0 s, full tree (13 nodes) after 39.6 s. A warm cache
+   takes 0.6 s. Trail line and category signs render. Each node's children come from its own scene: Blur gets
+   Suede and Supergrass, The Verve gets the Manics, the Stone Roses and the Charlatans, and Beady Eye gets Kaiser Chiefs,
+   The Vaccines and Bastille (2000s/2010s acts). No artist repeats. No source names appear in the page text.
+   Not exercised: this tree had no Roots or Built-on branch, so I could not do the "Beatles node gets 60s acts" check.
+2. **More keeps steps: PASS.** More on stop 1 (Blur) added 3 songs in 6.6 s, numbered 1.4, 1.5 and 1.6. None of the
+   14 existing labels changed.
+3. **Layout: PASS.** Connectors meet the cards after More (19 paths). scrollWidth equals clientWidth (1261 CSS px), so
+   there is no horizontal scroll. With the canvas narrowed to 700 px, the tree collapses to one column with aligned elbows.
+4. **Blind Test: PASS.** The first mystery played after 2.5 s, with the reveal still empty before rating. Love showed
+   the reveal with its description ("A band from Mali, formed in 2013…"), the chips and the full-song links. The smaller
+   scale reads well.
+5. **Tests:** `npm test` passes 58/58.
+
+No regression from the merge, so no code was changed. One point for the user to decide: More on Blur offered "Creep",
+which is one of the user's own saved songs, marked Loved. Should the tree skip songs the user already saved?
+
+Screenshots (scratchpad): `adv-more.png`, `adv-narrow.png`, `adv-blind.png`.
