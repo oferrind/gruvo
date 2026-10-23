@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { norm, COUNTRIES } = require('./music');
 
-const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, adventure: 50, ratings: [], prefs: validPrefs() });
+const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null });
 const MAX_RATINGS = 500;
 
 // Sound Fingerprint ratings: {id, rating, features}; anything malformed is dropped, newest MAX_RATINGS kept.
@@ -24,6 +24,18 @@ function validPrefs(p) {
     decades: uniq(list(p.decades, d => Number.isInteger(d) && d >= 1900 && d <= 2090 && d % 10 === 0, 20)),
     regions: uniq(list(p.regions, r => typeof r === 'string' && Object.hasOwn(COUNTRIES, r), 10)),
   };
+}
+// What was playing last ("continue where you left off" + the bar's "came from" chip). Anything malformed: null.
+function validLast(l) {
+  const t = l && l.track, f = l && l.from;
+  if (!t || !name(t.title) || !name(t.artist) || !['dz', 'it'].includes(t.source) || !(name(t.id) || Number.isFinite(t.id))) return null;
+  const track = { source: t.source, id: t.id, title: t.title, artist: t.artist };
+  for (const k of ['artistDzId', 'albumId', 'decade']) if (Number.isInteger(t[k])) track[k] = t[k];
+  if (typeof t.cover === 'string' && t.cover.startsWith('https://') && t.cover.length <= 500) track.cover = t.cover;
+  if (typeof t.isrc === 'string' && t.isrc.length <= 20) track.isrc = t.isrc;
+  if (typeof t.country === 'string' && /^[A-Z]{2}$/.test(t.country)) track.country = t.country;
+  const from = f && typeof f.tab === 'string' && /^[a-z]{1,16}$/.test(f.tab) ? { tab: f.tab, label: name(f.label) ? f.label.slice(0, 80) : '' } : null;
+  return { track, from, ts: Number.isFinite(l.ts) ? l.ts : 0 };
 }
 let file = null;
 
@@ -49,12 +61,13 @@ function load() {
     adventure: Number.isFinite(p.adventure) ? p.adventure : d.adventure,
     ratings: validRatings(p.ratings),
     prefs: validPrefs(p.prefs),
+    last: validLast(p.last),
   };
 }
 
 function save(p) {
   if (!p || typeof p !== 'object' || !Array.isArray(p.likes) || !Array.isArray(p.heard)) throw new Error('invalid profile');
-  const data = { likes: p.likes, heard: p.heard, stamps: p.stamps || {}, adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs) };
+  const data = { likes: p.likes, heard: p.heard, stamps: p.stamps || {}, adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last) };
   fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 1));
   fs.renameSync(file + '.tmp', file);
   return true;

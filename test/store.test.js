@@ -69,3 +69,19 @@ test('prefs survive save/load; malformed entries are dropped; seed ratings keep 
   assert.deepEqual(q.prefs, { genres: [{ id: 152, name: 'Rock' }], artists: [{ dzId: 27, name: 'Daft Punk' }], decades: [1970, 2010], regions: ['Africa', 'Asia'] });
   assert.deepEqual(q.ratings, [{ id: 'seed:27:1', rating: 'love', features: [0.5], seed: true }, { id: 'dz:2', rating: 'ok', features: [0.1] }]);
 });
+
+test('last-played survives save/load, keeps only known fields, and drops malformed entries', () => {
+  tmp();
+  assert.equal(store.load().last, null);
+  const last = { track: { source: 'dz', id: 3135556, title: 'Harder', artist: 'Daft Punk', artistDzId: 27, cover: 'https://cdn-images.dzcdn.net/x.jpg',
+    country: 'FR', decade: 2000, previewUrl: 'https://x', junk: 1 }, from: { tab: 'tree', label: 'Family Tree · 1.2' }, ts: 5 };
+  store.save({ likes: [], heard: [], last });
+  const t = { ...last.track }; delete t.previewUrl; delete t.junk;
+  assert.deepEqual(store.load().last, { track: t, from: last.from, ts: 5 });
+  for (const bad of [null, { track: { source: 'dz', id: 1, title: '', artist: 'A' } }, { track: { source: 'x', id: 1, title: 'T', artist: 'A' } }]) {
+    store.save({ likes: [], heard: [], last: bad });
+    assert.equal(store.load().last, null);
+  }
+  store.save({ likes: [], heard: [], last: { track: { source: 'it', id: 9, title: 'T', artist: 'A', cover: 'http://evil', country: 'xx' }, from: { tab: '<x>' } } });
+  assert.deepEqual(store.load().last, { track: { source: 'it', id: 9, title: 'T', artist: 'A' }, from: null, ts: 0 });
+});
