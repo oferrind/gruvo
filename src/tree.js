@@ -253,20 +253,21 @@ async function fill(T, node, n) {
 }
 
 // The original recording, its producers and what it looks back on. Cached per node (MB calls are 1.5 s each).
-async function recordingOf(T, node) {
-  if (node.done.has('rec')) return node.rec;
-  node.done.add('rec');
-  const { artist } = node.track;
-  const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
-  const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
-  const hit = originalRecording((await T.get(`${MB}/recording?query=${enc(q)}&limit=10&fmt=json`)).recordings, artist, title);
-  if (!hit) return (node.rec = null);
-  const rec = await T.get(`${MB}/recording/${hit.id}?inc=work-rels+recording-rels+artist-rels+artist-credits&fmt=json`);
-  if (rec.error) return (node.rec = null);
-  const perf = (rec.relations || []).find(r => r.type === 'performance' && r.work);
-  const work = perf ? await T.get(`${MB}/work/${perf.work.id}?inc=work-rels&fmt=json`) : null;
-  node.year = yearOf(hit['first-release-date']);
-  return (node.rec = { rec, work: work && !work.error ? work : null });
+// The promise is kept, so a More during the build waits for the lookup the build started instead of getting nothing.
+function recordingOf(T, node) {
+  return node.recP ??= (async () => {
+    const { artist } = node.track;
+    const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
+    const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
+    const hit = originalRecording((await T.get(`${MB}/recording?query=${enc(q)}&limit=10&fmt=json`)).recordings, artist, title);
+    if (!hit) return null;
+    const rec = await T.get(`${MB}/recording/${hit.id}?inc=work-rels+recording-rels+artist-rels+artist-credits&fmt=json`);
+    if (rec.error) return null;
+    const perf = (rec.relations || []).find(r => r.type === 'performance' && r.work);
+    const work = perf ? await T.get(`${MB}/work/${perf.work.id}?inc=work-rels&fmt=json`) : null;
+    node.year = yearOf(hit['first-release-date']);
+    return { rec, work: work && !work.error ? work : null };
+  })().catch(() => null);
 }
 
 // Special-slot candidates: Built on (root only) > Member moved > Roots. Started once, early, so the calls overlap.
@@ -282,7 +283,7 @@ function candsOf(T, node) {
       const band = { id: node.mbid, begin: yearOf((node.mb['life-span'] || {}).begin) };
       const members = parseMembers(rels.relations);
       members.forEach(m => claim(T, { artist: m.name })); // "Liam Gallagher" never shows up under Oasis
-      const infP = T.roots < MAX_ROOTS ? influences(T.get, rels) : Promise.resolve([]); // Wikidata runs beside the MB lookups
+      const infP = T.roots < MAX_ROOTS ? influences(T.get, rels).catch(() => []) : Promise.resolve([]); // Wikidata runs beside the MB lookups
       const mrs = T.live() ? await Promise.all(members.slice(0, node.depth === 0 ? 2 : 1).map(m => T.get(`${MB}/artist/${m.id}?inc=artist-rels&fmt=json`))) : [];
       mrs.forEach((mr, i) => cands.push(...otherBands(mr.relations, members[i], band)));
       const inf = (await infP).filter(n => !taken(T, { artist: n }));
