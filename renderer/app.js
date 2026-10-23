@@ -156,6 +156,30 @@ function loveButton(t, extra) {
   return b;
 }
 
+// Skip / OK / Love on a tree song: the Blind Test's rating into the same taste model (teach upserts one rating per
+// track, the latest wins; Love is the Saved button itself). Wraps the row's Love button so every sync updates the group.
+function rateGroup(t, love) {
+  const kind = () => isLiked(t) ? 'love' : t.rated || (profile.ratings.find(r => r.id === likeKey(t)) || {}).rating;
+  const bs = [['skip', 'Skip'], ['ok', 'OK']].map(([k, text]) => {
+    const b = btn(text, () => { if (isLiked(t)) unlike(t); t.rated = k; addHeard(t); teach(t, k); save(); love.sync(); });
+    b.dataset.rate = k; b.setAttribute('aria-label', `${text} ${t.artist} – ${t.title}`);
+    return b;
+  });
+  const group = el('div', { className: 'node-rate', role: 'group', ariaLabel: 'Rate this song' }, ...bs, love);
+  const sync = love.sync, toggle = love.onclick;
+  love.dataset.rate = 'love';
+  love.onclick = () => { t.rated = undefined; toggle(); };
+  love.sync = () => {
+    sync();
+    const k = kind();
+    bs.forEach(b => b.setAttribute('aria-pressed', b.dataset.rate === k));
+    const card = group.closest('.node-card');
+    if (card) card.classList.toggle('skipped', k === 'skip'); // dims in place: no layout change
+  };
+  love.sync();
+  return group;
+}
+
 // "Listen to the full song" (previews stop at 30 s): opens the default browser via main's https allowlist. Only for revealed tracks.
 function fullSong(t) {
   const q = encodeURIComponent(`${t.artist} ${t.title}`);
@@ -590,10 +614,12 @@ function placeNode(n, canvas) {
   if (EDGE_ICONS[n.edgeType]) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
   const more = btn('+ More', () => moreTree(n), 'more');
   more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
-  // Secondary actions sit in one quiet row under the song: Love, About, Full song (folded), More.
+  // Secondary actions sit in one quiet row under the song: Skip / OK / Love (Love alone on your song), About, Full song (folded), More.
   const full = el('details', { className: 'full-more' }, el('summary', { textContent: 'Full song' }), row.querySelector('.full-song'));
-  const actions = el('div', { className: 'node-actions' }, row.querySelector('.love'), row.querySelector('.about-more'), full, more);
+  const love = row.querySelector('.love');
+  const actions = el('div', { className: 'node-actions' }, n.parentId == null ? love : rateGroup(n.track, love), row.querySelector('.about-more'), full, more);
   const card = el('div', { className: 'node-card' }, el('span', { className: 'step' }), row, actions);
+  love.sync();
   const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node grow' }, card, el('div', { className: 'branches' }));
   Object.assign(node.dataset, { nodeId: n.id, parentId: n.parentId ?? '', edge: n.edgeType, depth: n.depth });
   trEls.set(n.id, node);
