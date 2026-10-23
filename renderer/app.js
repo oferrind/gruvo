@@ -553,7 +553,7 @@ async function growTree(root) {
 }
 api.onTreeNode((run, n) => { if (run === trRun) { trNodes[n.id] = n; renderTree({ nodes: trNodes }); } });
 
-// Render hook for the Family Tree. model.nodes: {id, parentId, depth, edgeType, label, track}; this adds `step` and `spine`.
+// Render hook for the Family Tree. model.nodes: {id, parentId, depth, edgeType, label, track}; this adds `step` (a stable label: 1, 1.2, 1.2.1) and `spine`.
 // Each node is built once (open About panels survive re-renders). Children sit in one .branch per edgeType under their
 // parent, so each category can be drawn as its own branch off the path. The spine is the root plus its children, in
 // step order. Fires 'tree:updated' on #tree-canvas after every change (stream or More) so connectors can be redrawn.
@@ -563,12 +563,11 @@ function renderTree(model) {
   for (const n of model.nodes) if (n && !trEls.has(n.id)) placeNode(n, canvas);
   // Guided path: document order is depth-first pre-order, so numbering the nodes in order reads like a walk.
   let stop = 0;
-  $$('#tree-canvas .tree-node').forEach((e, i) => {
+  $$('#tree-canvas .tree-node').forEach(e => {
     const n = model.nodes[e.dataset.nodeId];
-    n.step = i; n.spine = n.depth <= 1;
-    e.dataset.step = i; e.dataset.spine = n.spine;
+    n.step = e.dataset.step; n.spine = n.depth <= 1;
+    e.dataset.spine = n.spine;
     e.classList.toggle('alt', n.spine && stop++ % 2 === 1); // spine stops swap sides, so the path winds
-    e.querySelector('.step').textContent = i || '';
   });
   canvas.dispatchEvent(new CustomEvent('tree:updated', { detail: model }));
 }
@@ -588,7 +587,7 @@ const edgeIcon = edge => { const s = svgEl('svg', { viewBox: '0 0 16 16', class:
 
 function placeNode(n, canvas) {
   const row = trackRow(n.track, { reason: n.label || 'Your song', full: true, tag: 'div' });
-  if (n.edgeType) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
+  if (EDGE_ICONS[n.edgeType]) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
   const more = btn('+ More', () => moreTree(n), 'more');
   more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
   // Secondary actions sit in one quiet row under the song: Love, About, Full song (folded), More.
@@ -600,9 +599,15 @@ function placeNode(n, canvas) {
   trEls.set(n.id, node);
   trResize.observe(card);
   node.addEventListener('animationend', e => { if (e.target === card) node.classList.remove('grow'); });
-  if (n.parentId == null) return canvas.append(node);
+  if (n.parentId == null) { node.dataset.step = '0'; return canvas.append(node); }
+  // Stable guided steps: a parent's k-th child is k (spine) or <parent step>.k, in arrival order; More never renumbers.
   const parent = trEls.get(n.parentId), branches = parent.querySelector(':scope > .branches');
-  let branch = branches.querySelector(`:scope > .branch[data-edge="${n.edgeType}"]`);
+  const k = parent.dataset.kids = Number(parent.dataset.kids || 0) + 1;
+  node.dataset.step = n.step = n.depth === 1 ? `${k}` : `${parent.dataset.step}.${k}`;
+  card.querySelector('.step').textContent = n.step;
+  // The spine keeps arrival order: a stop joins the last sign only if it is the same category, else opens a new one.
+  let branch = n.depth === 1 ? branches.lastElementChild : branches.querySelector(`:scope > .branch[data-edge="${n.edgeType}"]`);
+  if (branch && branch.dataset.edge !== n.edgeType) branch = null;
   if (!branch) branches.append(branch = el('section', { className: 'branch' },
     el('h3', { className: 'branch-name' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol')));
   branch.dataset.edge = n.edgeType;
