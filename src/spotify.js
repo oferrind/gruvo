@@ -127,6 +127,7 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
     clientId = String(clientId || '').trim();
     if (!validClientId(clientId)) return Promise.resolve({ error: 'That is not a Client ID. Copy the 32-character Client ID from your Spotify app.' });
     if (login) login.cancel();
+    if (st.clientId !== clientId) { refreshMem = null; acc = null; st = { clientId }; write(file, st); } // remember the ID even if this login fails
     const { verifier, challenge } = pkce(), state = b64url(crypto.randomBytes(16));
     return new Promise(resolve => {
       let over = false;
