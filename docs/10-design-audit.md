@@ -73,10 +73,6 @@ Total stranger". "Tonight's reveals". The price-sticker idea ("Near Oasis"). The
 15. **Detector: radial halo plus repeating stripes** (see §5). The stamp guilloche (`styles.css:287`) reads as vinyl
     grooves, but across a full-width empty panel it is wallpaper. *Fix:* size the stamp panel to its content
     (`width: fit-content; min-width: 50%`), and show the grooves only behind stamps.
-16. **Low-information states.** "Nothing playing", "No family found yet.", "Can't reach the music services." *Fix:* "Nothing
-    on the platter.", "No relatives on record for this one. Try a song by a band, not a solo name.", "Offline: the shop's
-    radio can't reach Deezer. Retry."
-
 **In-progress pass, specific risks:**
 - **Home is the stock SaaS dashboard** (`index.html` worktree lines 45-61): a "Continue where you left off" card, a "Your taste
   so far" stats `dl`, "Ways in" (the intro's three cards a second time, `app.js:872`) and a "Recent finds" feed. Every AI app
@@ -118,8 +114,6 @@ Total stranger". "Tonight's reveals". The price-sticker idea ("Near Oasis"). The
 - Saved: heart icon instead of slabs. Group by month ("October: 4 records") rather than a flat list.
 - Preferences: a curated genre list written by a person (bins: "Highlife & Afrobeat", "Bossa & MPB", "Krautrock"…) instead of Deezer's.
 - Provenance correctness before any "from X" copy (item 12).
-- The edge inks: `--ink-4`/`--edge-producer` lilac `#c3a2ec` is the one AI-pastel in a walnut room. Shift it to a
-  stamp-pad violet `#a58bd0`, or replace it with oxblood.
 
 **Lessons for Genre Stamps (replacing Passport):**
 - A stamp earns its place only when it records something that happened (you loved a track there). Never show empty
@@ -130,7 +124,6 @@ Total stranger". "Tonight's reveals". The price-sticker idea ("Near Oasis"). The
   page reads like a passport, not a badge grid.
 - No full-width ruled panel for two stamps: let the page grow with the collection. The empty state is one line and one
   button ("Love a track and its genre gets stamped here").
-- No equal-size cards for genres, no pills, no emoji flags.
 
 ## 5. Raw detector output (`impeccable detect --json`)
 
