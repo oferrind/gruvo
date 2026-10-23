@@ -543,7 +543,7 @@ async function growTree(root) {
   trNodes = []; trBusy = 0; trEls = new Map();
   $('#tree-canvas').replaceChildren();
   trWork(1);
-  const ok = await api.tree(plain(root), profile.heard, run).catch(e => { console.error('tree', e); return null; });
+  const ok = await api.tree(plain(root), profile.heard, run, profile.likes.map(({ source, id, artist, title }) => ({ source, id, artist, title }))).catch(e => { console.error('tree', e); return null; });
   if (run !== trRun) return;
   trBusy--;
   if (ok === null) return trState('error', "Couldn't grow the tree right now. Check your connection.", { actions: [btn('Try again', () => growTree(root), 'primary')] });

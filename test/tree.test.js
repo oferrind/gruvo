@@ -104,6 +104,20 @@ test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', as
   assert.ok(!T2.nodes.some(n => n.artist === 'The Kinks'));
 });
 
+test('tree: saved songs are skipped (by id, or artist + base title) and the next candidate fills the gap', async () => {
+  const { get } = world();
+  const saved = [ROOT, { source: 'dz', id: dzId('Blur') * 10 + 1, artist: 'Blur', title: 'whatever' },
+    { source: 'it', id: 1, artist: 'The Verve', title: 'Hit (Remastered)' }, { source: 'dz', artist: 'The Kinks', title: 'Hit' }];
+  const T = t.newTree(get, ROOT, { saved });
+  await t.growTree(T);
+  assert.equal(T.nodes.length, 13);
+  assert.equal(T.nodes[0].artist, 'Oasis'); // the root itself is still shown
+  const names = () => T.nodes.slice(1).map(n => n.artist);
+  for (const gone of ['Blur', 'The Verve']) assert.ok(!names().includes(gone), gone);
+  assert.equal((await t.moreTree(T, 0)).added, 3); // More skips The Kinks' saved hit and still adds 3
+  assert.ok(!names().includes('The Kinks'));
+});
+
 test('tree: a cancelled build stops making calls', async () => {
   const { get, calls } = world();
   let n = 0, cut;
