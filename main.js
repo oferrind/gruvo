@@ -7,6 +7,7 @@ const store = require('./src/store');
 const { flows, COUNTRIES } = require('./src/music');
 const Tree = require('./src/tree');
 const Spotify = require('./src/spotify');
+const Stamps = require('./src/stamps');
 
 let win;
 
@@ -81,7 +82,31 @@ ipcMain.handle('tree:grow', async (e, root, heard, run, saved) => {
   await Tree.growTree(tree);
   return live();
 });
-ipcMain.handle('tree:more', (e, id) => tree ? Tree.moreTree(tree, Number(id)) : { added: 0 });
+// Genre Stamps: one playlist at a time, rows streamed as previews resolve. The id is rebuilt here, so only real stamps run.
+// Prefetch (the next Roll) runs to completion silently; opening that stamp then replays its rows at once.
+let stampRun = 0, prefetched = null;
+const runStamp = (id, opts) => { const s = Stamps.makeStamp(String(id)); if (!s || s.legacy) throw new Error('bad stamp'); return Stamps.stampSongs(net.get, s, opts); };
+ipcMain.handle('stamps:open', async (e, id, run) => {
+  const mine = ++stampRun;
+  const live = () => mine === stampRun && !e.sender.isDestroyed();
+  const emit = row => live() && e.sender.send('stamps:row', run, row);
+  if (prefetched && prefetched.id === id) {
+    const p = prefetched; prefetched = null;
+    p.rows.forEach(emit);
+    p.on = emit; // still resolving: the rest streams in
+    const res = await p.res;
+    if (res && !res.error) return live() ? res : null;
+  }
+  const res = await runStamp(id, { emit, live });
+  return live() ? res : null;
+});
+ipcMain.handle('stamps:prefetch', (e, id) => {
+  if (prefetched && prefetched.id === id) return;
+  const p = { id, rows: [], on: null };
+  p.res = Promise.resolve().then(() => runStamp(id, { emit: r => (p.on ? p.on(r) : p.rows.push(r)) })).catch(() => ({ error: true }));
+  prefetched = p;
+});
+ipcMain.handle('tree:more',(e, id) => tree ? Tree.moreTree(tree, Number(id)) : { added: 0 });
 // Full-song links open in the default browser, never in this window; only the https allowlist in src/links.js.
 ipcMain.handle('shell:open', (e, url) => {
   const ok = safeExternal(url);

@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('api', {
   tree: (root, heard, run, saved) => ipcRenderer.invoke('tree:grow', root, heard, run, saved),
   treeMore: id => ipcRenderer.invoke('tree:more', id),
   onTreeNode: cb => ipcRenderer.on('tree:node', (e, run, node) => cb(run, node)),
+  stamp: (id, run) => ipcRenderer.invoke('stamps:open', id, run),
+  prefetchStamp: id => ipcRenderer.invoke('stamps:prefetch', id),
+  onStampRow: cb => ipcRenderer.on('stamps:row', (e, run, row) => cb(run, row)),
 });
 contextBridge.exposeInMainWorld('spotify', {
   status: () => ipcRenderer.invoke('spotify:status'),

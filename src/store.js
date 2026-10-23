@@ -37,6 +37,15 @@ function validLast(l) {
   const from = f && typeof f.tab === 'string' && /^[a-z]{1,16}$/.test(f.tab) ? { tab: f.tab, label: name(f.label) ? f.label.slice(0, 80) : '' } : null;
   return { track, from, ts: Number.isFinite(l.ts) ? l.ts : 0 };
 }
+// Genre Stamps: {"<decade>-<CC>-<genre>": loves}. An old Passport key "JP-1980" becomes "1980-JP-" (legacy, no genre); idempotent.
+function validStamps(s) {
+  const out = {};
+  for (const [k, v] of Object.entries(s && typeof s === 'object' && !Array.isArray(s) ? s : {})) {
+    const m = /^([A-Z]{2})-(\d{4})$/.exec(k), key = m ? `${m[2]}-${m[1]}-` : k;
+    if (/^\d{4}-[A-Z]{2}-[a-z-]{0,20}$/.test(key) && Number.isInteger(v) && v > 0 && v < 1e6) out[key] = (out[key] || 0) + v;
+  }
+  return out;
+}
 let file = null;
 
 function init(dir) { file = path.join(dir, 'profile.json'); }
@@ -57,7 +66,7 @@ function load() {
   return {
     likes,
     heard: Array.isArray(p.heard) ? [...new Set(p.heard.flatMap(h => { const x = ids(h); return x.length ? x : [h]; }))] : d.heard,
-    stamps: p.stamps && typeof p.stamps === 'object' ? p.stamps : d.stamps,
+    stamps: validStamps(p.stamps),
     adventure: Number.isFinite(p.adventure) ? p.adventure : d.adventure,
     ratings: validRatings(p.ratings),
     prefs: validPrefs(p.prefs),
@@ -67,7 +76,7 @@ function load() {
 
 function save(p) {
   if (!p || typeof p !== 'object' || !Array.isArray(p.likes) || !Array.isArray(p.heard)) throw new Error('invalid profile');
-  const data = { likes: p.likes, heard: p.heard, stamps: p.stamps || {}, adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last) };
+  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last) };
   fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 1));
   fs.renameSync(file + '.tmp', file);
   return true;

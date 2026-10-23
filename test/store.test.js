@@ -7,6 +7,16 @@ const store = require('../src/store');
 
 const tmp = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'md-store-')); store.init(d); return d; };
 
+test('legacy Passport stamps migrate to "<decade>-<CC>-" once; new keys, counts and junk are validated', () => {
+  const d = tmp();
+  fs.writeFileSync(path.join(d, 'profile.json'), JSON.stringify({ likes: [], heard: [],
+    stamps: { 'JP-1980': 2, '1990-JP-rock': 3, 'NG-1970': 1, '1970-NG-': 1, 'x': 1, '2000-KR-pop': 0, '1960-US-soul': 1.5, '1960-GB-rock': '2' } }));
+  const once = store.load();
+  assert.deepEqual(once.stamps, { '1980-JP-': 2, '1990-JP-rock': 3, '1970-NG-': 2 });
+  store.save(once);
+  assert.deepEqual(store.load().stamps, once.stamps, 'loading twice changes nothing');
+});
+
 test('a corrupt profile is kept aside, not silently overwritten by the next save', () => {
   const d = tmp();
   fs.writeFileSync(path.join(d, 'profile.json'), '{"likes":[{"id":1');
