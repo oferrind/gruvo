@@ -9,12 +9,33 @@ const Tree = require('./src/tree');
 
 let win;
 
+const ZOOM_DEFAULT = 0.85;
+const zoomFile = () => path.join(app.getPath('userData'), 'zoom.json');
+const clampZoom = z => (Number.isFinite(z) ? Math.round(Math.min(2, Math.max(0.5, z)) * 20) / 20 : ZOOM_DEFAULT);
+function readZoom() {
+  try { return clampZoom(JSON.parse(fs.readFileSync(zoomFile(), 'utf8')).zoom); } catch { return ZOOM_DEFAULT; }
+}
+function setZoom(z) {
+  z = clampZoom(z);
+  win.webContents.setZoomFactor(z);
+  try { fs.writeFileSync(zoomFile(), JSON.stringify({ zoom: z })); } catch {} // losing the zoom pref is harmless
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1100, height: 800,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  // On high-DPI Windows scaling the UI read too big: start at 85%, Ctrl +/-/0 and Ctrl+wheel adjust, remembered.
+  const cur = () => win.webContents.getZoomFactor();
+  win.webContents.on('did-finish-load', () => win.webContents.setZoomFactor(readZoom()));
+  win.webContents.on('zoom-changed', (e, dir) => setZoom(cur() + (dir === 'in' ? 0.05 : -0.05)));
+  win.webContents.on('before-input-event', (e, i) => {
+    if (i.type !== 'keyDown' || !i.control) return;
+    const z = { '=': cur() + 0.05, '+': cur() + 0.05, '-': cur() - 0.05, '0': ZOOM_DEFAULT }[i.key];
+    if (z !== undefined) { e.preventDefault(); setZoom(z); }
+  });
   // Never leave the app page: a remote page in this window would get window.api / window.store.
   win.webContents.on('will-navigate', e => e.preventDefault());
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
