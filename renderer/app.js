@@ -560,7 +560,7 @@ $('#blind-retry').onclick = () => { fails = 0; $('#mystery-title').textContent =
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.target.matches?.('input, select, textarea')) return;
   // Space on a focused button presses it; elsewhere it is play/pause.
-  if (e.key === ' ' && !e.target.closest('button, a, [role=tab]')) { e.preventDefault(); return $('#blind').hidden ? togglePlay() : $('#mystery-play').click(); }
+  if (e.key === ' ' && !e.target.closest('button, a, summary, [role=tab]')) { e.preventDefault(); return $('#blind').hidden ? togglePlay() : $('#mystery-play').click(); }
   if ($('#blind').hidden) return;
   if (e.key in { 1: 1, 2: 1, 3: 1 }) rate(['skip', 'ok', 'love'][e.key - 1]);
   else if (e.key === 'Enter' && rated && e.target === document.body) showMystery();
@@ -739,7 +739,7 @@ const EDGE_ICONS = {
   related: 'M6 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
 };
 // Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
-const ICONS = { play: 'M5 3.2v9.6L12.8 8z', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
+const ICONS = { play: 'M5 3.2v9.6L12.8 8z', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
   heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z' };
 function icon(name, filled) {
   const s = svgEl('svg', { viewBox: '0 0 16 16', class: `icon i-${name}${filled ? ' filled' : ''}`, 'aria-hidden': 'true', focusable: 'false' });
@@ -749,15 +749,38 @@ function icon(name, filled) {
 const svgEl = (tag, attrs) => { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
 const edgeIcon = edge => { const s = svgEl('svg', { viewBox: '0 0 16 16', class: 'edge-icon', 'aria-hidden': 'true' }); s.append(svgEl('path', { d: EDGE_ICONS[edge] || EDGE_ICONS.related })); return s; };
 
+// "⋯": a disclosure for a card's secondary actions. Opens on hover or when focus enters it, stays open after a click,
+// closes on Esc (focus back on ⋯), outside click or when focus leaves.
+function overflowMenu(id, name, ...items) {
+  const menu = el('div', { className: 'node-menu', id, hidden: true }, ...items);
+  const b = el('button', { type: 'button', className: 'dots', ariaLabel: `More for ${name}` }, icon('more'));
+  b.setAttribute('aria-controls', id);
+  const wrap = el('div', { className: 'node-menu-wrap' }, b, menu);
+  let pinned = false;
+  const set = on => { menu.hidden = !on; b.setAttribute('aria-expanded', on); if (!on) pinned = false; };
+  wrap.close = () => set(false);
+  // A mouse click on a hover-opened menu pins it (rather than closing it under the pointer); a keyboard press toggles.
+  b.onclick = e => { if (menu.hidden || (e.detail && !pinned)) { pinned = true; set(true); } else set(false); };
+  wrap.addEventListener('mouseenter', () => set(true));
+  wrap.addEventListener('mouseleave', () => { if (!pinned && !wrap.contains(document.activeElement)) set(false); });
+  wrap.addEventListener('focusin', e => { if (!wrap.contains(e.relatedTarget)) set(true); });
+  wrap.addEventListener('focusout', e => { if (!wrap.contains(e.relatedTarget)) set(false); });
+  wrap.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { e.stopPropagation(); set(false); b.focus(); } });
+  set(false);
+  return wrap;
+}
+document.addEventListener('pointerdown', e => $$('.node-menu:not([hidden])').forEach(m => { if (!m.parentElement.contains(e.target)) m.parentElement.close(); }));
+
 function placeNode(n, canvas) {
   const row = trackRow(n.track, { reason: n.label || 'Your song', full: true, tag: 'div' });
   if (EDGE_ICONS[n.edgeType]) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
   const more = btn('+ More', () => moreTree(n), 'more');
   more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
-  // Secondary actions sit in one quiet row under the song: Skip / OK / Love (Love alone on your song), About, Full song (folded), More.
+  // Secondary actions sit in one quiet row under the song: Skip / OK / Love (Love alone on your song), ⋯ (About, Full song), More.
   const full = el('details', { className: 'full-more' }, el('summary', { textContent: 'Full song' }), row.querySelector('.full-song'));
   const love = row.querySelector('.love');
-  const actions = el('div', { className: 'node-actions' }, n.parentId == null ? love : rateGroup(n.track, love), row.querySelector('.about-more'), full, more);
+  const actions = el('div', { className: 'node-actions' }, n.parentId == null ? love : rateGroup(n.track, love),
+    overflowMenu(`node-menu-${n.id}`, `${n.track.artist} – ${n.track.title}`, row.querySelector('.about-more'), full), more);
   const card = el('div', { className: 'node-card' }, el('span', { className: 'step' }), row, actions);
   love.sync();
   const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node grow' }, card, el('div', { className: 'branches' }));
