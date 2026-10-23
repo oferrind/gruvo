@@ -109,19 +109,21 @@
         <h1>Family Tree</h1>
         <p class="muted">Start from a song you saved. Walk through its scene, step by step.</p>
       </div>
-      <form id="tree-pick" class="search">
-        <label for="tree-root">Song</label>
-        <select id="tree-root"></select>
-        <button class="primary">Grow tree</button>
-      </form>
-      <form id="tree-search" class="search" role="search">
-        <label for="tree-q">or search</label>
-        <input id="tree-q" type="search" placeholder="Artist and song, e.g. Oasis Wonderwall" autocomplete="off">
-        <button>Search</button>
-      </form>
+      <div class="tree-picker">
+        <form id="tree-pick" class="search">
+          <label for="tree-root">From your Saved songs</label>
+          <select id="tree-root"></select>
+          <button class="primary">Grow tree</button>
+        </form>
+        <form id="tree-search" class="search" role="search">
+          <label for="tree-q">Or any song</label>
+          <input id="tree-q" type="search" placeholder="Artist and song, e.g. Oasis Wonderwall" autocomplete="off">
+          <button>Search</button>
+        </form>
+      </div>
       <ul id="tree-hits" class="tracks"></ul>
       <div id="tree-state" class="state" aria-live="polite"></div>
-      <div id="tree-canvas" class="tree-canvas" aria-label="Family tree, in listening order"></div>
+      <div id="tree-canvas" class="tree-canvas" aria-label="Family tree, in listening order. Up and Down arrows move between songs."></div>
     </section>
 
     <!-- Saved -->

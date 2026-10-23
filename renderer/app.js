@@ -521,7 +521,8 @@ function renderTreePicker() {
   trRoots = profile.likes.slice().reverse(); // newest first
   $('#tree-root').replaceChildren(...trRoots.map((t, i) => el('option', { value: i, textContent: `${t.title} – ${t.artist}` })));
   $('#tree-pick').hidden = !trRoots.length;
-  if (!trRoots.length && !trNodes.length) trState('empty', 'Save songs in Blind Test or Passport to grow trees from them.');
+  if (!trRoots.length && !trNodes.length) trState('empty', 'Nothing saved yet. Search any song to grow its tree, or save songs in Blind Test or Passport.',
+    { actions: [btn('Search a song', () => $('#tree-q').focus(), 'primary')] });
 }
 $('#tree-pick').addEventListener('submit', e => { e.preventDefault(); const t = trRoots[$('#tree-root').value]; if (t) growTree(t); });
 $('#tree-search').addEventListener('submit', async e => {
@@ -561,34 +562,125 @@ function renderTree(model) {
   const canvas = $('#tree-canvas');
   for (const n of model.nodes) if (n && !trEls.has(n.id)) placeNode(n, canvas);
   // Guided path: document order is depth-first pre-order, so numbering the nodes in order reads like a walk.
+  let stop = 0;
   $$('#tree-canvas .tree-node').forEach((e, i) => {
     const n = model.nodes[e.dataset.nodeId];
     n.step = i; n.spine = n.depth <= 1;
     e.dataset.step = i; e.dataset.spine = n.spine;
+    e.classList.toggle('alt', n.spine && stop++ % 2 === 1); // spine stops swap sides, so the path winds
     e.querySelector('.step').textContent = i || '';
   });
   canvas.dispatchEvent(new CustomEvent('tree:updated', { detail: model }));
 }
 
+// Category icons: 16px stroke glyphs, so a branch reads by shape and label as well as colour.
+const EDGE_ICONS = {
+  scene: 'M8 14.5s-4.5-4.6-4.5-8a4.5 4.5 0 0 1 9 0c0 3.4-4.5 8-4.5 8zM8 8.2a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 0 0 0 3.4z',
+  member: 'M8 7a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 14c0-2.8 2.2-5 5-5s5 2.2 5 5',
+  builton: 'M8 2 2 5l6 3 6-3-6-3zM2 8l6 3 6-3M2 11l6 3 6-3',
+  roots: 'M8 2v6M8 8c0 2-2 3-4 5M8 8c0 2 2 3 4 5M8 10v4',
+  producer: 'M4 2v12M8 2v12M12 2v12M2.5 10h3M6.5 5h3M10.5 8h3',
+  label: 'M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
+  related: 'M6 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+};
+const svgEl = (tag, attrs) => { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+const edgeIcon = edge => { const s = svgEl('svg', { viewBox: '0 0 16 16', class: 'edge-icon', 'aria-hidden': 'true' }); s.append(svgEl('path', { d: EDGE_ICONS[edge] || EDGE_ICONS.related })); return s; };
+
 function placeNode(n, canvas) {
   const row = trackRow(n.track, { reason: n.label || 'Your song', full: true, tag: 'div' });
-  row.prepend(el('span', { className: 'step' }));
-  const more = btn('More from this branch', () => moreTree(n), 'ghost more');
+  if (n.edgeType) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
+  const more = btn('+ More', () => moreTree(n), 'more');
   more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
-  const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node' }, row, more, el('div', { className: 'branches' }));
+  // Secondary actions sit in one quiet row under the song: Love, About, Full song (folded), More.
+  const full = el('details', { className: 'full-more' }, el('summary', { textContent: 'Full song' }), row.querySelector('.full-song'));
+  const actions = el('div', { className: 'node-actions' }, row.querySelector('.love'), row.querySelector('.about-more'), full, more);
+  const card = el('div', { className: 'node-card' }, el('span', { className: 'step' }), row, actions);
+  const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node grow' }, card, el('div', { className: 'branches' }));
   Object.assign(node.dataset, { nodeId: n.id, parentId: n.parentId ?? '', edge: n.edgeType, depth: n.depth });
   trEls.set(n.id, node);
+  trResize.observe(card);
+  node.addEventListener('animationend', e => { if (e.target === card) node.classList.remove('grow'); });
   if (n.parentId == null) return canvas.append(node);
   const parent = trEls.get(n.parentId), branches = parent.querySelector(':scope > .branches');
   let branch = branches.querySelector(`:scope > .branch[data-edge="${n.edgeType}"]`);
   if (!branch) branches.append(branch = el('section', { className: 'branch' },
-    el('h3', { className: 'branch-name', textContent: EDGE_NAMES[n.edgeType] || n.edgeType }), el('ol')));
+    el('h3', { className: 'branch-name' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol')));
   branch.dataset.edge = n.edgeType;
   branch.querySelector('ol').append(node);
 }
 
+// Connectors: one SVG under the nodes (decorative, aria-hidden). The spine is a winding trail through the stops;
+// each stop's categories leave it on parallel rails; songs hang off a category by elbows. Paths are kept by key
+// so a line that is still drawing in is not restarted by the next streamed node.
+let trFrame = 0, trPaths = new Map();
+const trResize = new ResizeObserver(() => drawTree());
+trResize.observe($('#tree-canvas'));
+$('#tree-canvas').addEventListener('tree:updated', () => drawTree());
+function drawTree() { cancelAnimationFrame(trFrame); trFrame = requestAnimationFrame(drawLines); }
+function drawLines() {
+  const canvas = $('#tree-canvas');
+  let svg = canvas.querySelector(':scope > .tree-lines');
+  if (!svg) {
+    canvas.prepend(svg = svgEl('svg', { class: 'tree-lines', 'aria-hidden': 'true', focusable: 'false' }));
+    svg.addEventListener('animationend', e => e.target.classList.remove('grow')); // grow once, not on every tab switch
+    trPaths = new Map();
+  }
+  const o = canvas.getBoundingClientRect(), z = o.width / canvas.offsetWidth || 1; // client rects are zoomed, SVG units are not
+  const R = e => { const r = e.getBoundingClientRect(), l = (r.left - o.left) / z, t = (r.top - o.top) / z, w = r.width / z, h = r.height / z;
+    return { l, r: l + w, t, b: t + h, x: l + w / 2, y: t + h / 2 }; };
+  const card = n => n.querySelector(':scope > .node-card');
+  const seen = new Set();
+  const line = (key, d, cls, edge) => {
+    let p = trPaths.get(key);
+    if (!p) { trPaths.set(key, p = svgEl('path', { class: `${cls} grow`, pathLength: 1 })); if (edge) p.dataset.edge = edge; svg.append(p); }
+    p.setAttribute('d', d); seen.add(key);
+  };
+  // Spine: down from a stop's marker, across between rows (through the category sign, if one starts there), down to the next.
+  const stops = $$('#tree-canvas .tree-node[data-spine="true"]');
+  for (let i = 1; i < stops.length; i++) {
+    const a = R(stops[i - 1].querySelector('.step')), bNode = stops[i], b = R(bNode.querySelector('.step'));
+    const end = i === 1 ? R(card(stops[0])).b : R(stops[i - 1]).b, ol = bNode.parentElement;
+    const ym = ol.firstElementChild === bNode ? R(ol.previousElementSibling).y : (end + R(bNode).t) / 2;
+    const dx = b.x - a.x, s = Math.sign(dx), r = Math.max(0, Math.min(36, Math.abs(dx) / 2, ym - a.y, b.y - ym));
+    line(`s${bNode.dataset.nodeId}`, Math.abs(dx) < 1 ? `M${a.x} ${a.y}V${b.y}`
+      : `M${a.x} ${a.y}V${ym - r}Q${a.x} ${ym} ${a.x + s * r} ${ym}H${b.x - s * r}Q${b.x} ${ym} ${b.x} ${ym + r}V${b.y}`, 'trail');
+  }
+  // Branches off every node except the root (the root's branches are the spine itself).
+  for (const owner of $$('#tree-canvas .tree-node:not([data-depth="0"])')) {
+    const brs = [...owner.querySelectorAll(':scope > .branches > .branch')];
+    const c = R(card(owner));
+    brs.forEach((br, i) => {
+      const h = R(br.querySelector(':scope > .branch-name')), edge = br.dataset.edge, far = brs.length - 1 - i;
+      let d, hx;
+      if (h.t >= c.b - 2) { // stacked under the song: a trunk down its left side, elbow into the sign
+        const x = c.l + 18 + far * 6, r = Math.max(0, Math.min(10, h.l - x));
+        d = `M${x} ${c.b}V${h.y - r}Q${x} ${h.y} ${x + r} ${h.y}H${h.l}`; hx = h.l + 12;
+      } else { // beside the song: a rail out of its side, dropping onto the sign (farther signs ride higher rails)
+        const right = h.x > c.x, x0 = right ? c.r : c.l, y0 = c.t + 22 + far * 6, s = right ? 1 : -1, r = Math.max(0, Math.min(12, h.t - y0));
+        d = `M${x0} ${y0}H${h.x - s * r}Q${h.x} ${y0} ${h.x} ${y0 + r}V${h.t}`; hx = right ? h.l + 12 : h.r - 12;
+      }
+      line(`b${owner.dataset.nodeId}-${edge}`, d, 'rail', edge);
+      for (const kid of br.querySelectorAll(':scope > ol > .tree-node')) {
+        const k = R(card(kid)), y = k.t + 26, toL = k.l >= hx, xe = toL ? k.l : k.r, r = Math.min(10, Math.abs(xe - hx));
+        line(`k${kid.dataset.nodeId}`, `M${hx} ${h.b}V${y - r}Q${hx} ${y} ${hx + (toL ? r : -r)} ${y}H${xe}`, 'twig', edge);
+      }
+    });
+  }
+  for (const [k, p] of trPaths) if (!seen.has(k)) { p.remove(); trPaths.delete(k); }
+}
+// Up / Down (Home / End) move between songs; Tab still walks every control in reading order.
+$('#tree-canvas').addEventListener('keydown', e => {
+  const cur = e.target.closest('.node-card');
+  if (!cur || e.altKey || e.ctrlKey || e.metaKey || e.target.closest('.about')) return;
+  const plays = $$('#tree-canvas .node-card .play'), i = plays.indexOf(cur.querySelector('.play'));
+  const to = plays[{ ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: plays.length - 1 }[e.key]];
+  if (!to) return;
+  e.preventDefault();
+  to.focus();
+});
+
 async function moreTree(n) {
-  const run = trRun, more = trEls.get(n.id).querySelector(':scope > .more');
+  const run = trRun, more = trEls.get(n.id).querySelector(':scope > .node-card .more');
   more.disabled = true;
   trWork(1);
   const r = await api.treeMore(n.id).catch(() => null);
