@@ -96,3 +96,20 @@ Not done / for the renderer:
 - After a More, steps are renumbered: Beady Eye went from 9 to 10 when More added Radiohead under the root's scene branch. The spec (§5) asks for 1 / 1.1 / 1.2 numbering, which would keep existing numbers stable.
 - First children took 1.7–9.8 s. That time is the MB scene query alone (`tag + begin + country`, limit 50), and it varies with MB load.
 - `workPerformer` sees only the first 100 recordings of a much-covered work (shortcut comment).
+
+## Round 6 (design upgrade)
+
+Scope: `dddb0ae..14ed39d` (sleeve reveal, tonearm, bar 2.0, Tonight's reveals, Home, cover tint, icons). Live-checked in Electron (temp profile): rate → reveal → bar chip → Home, and a tree with the ⋯ menu open. No console errors; nothing names the mystery before rating (the bar shows "?", the rail is empty, `last` stays unset until the reveal).
+
+Fixed:
+- **Tint contrast**: saturation up to 60% put the 11.5px "From …" chip under 4.5:1 for blue covers (dark theme, 3.7:1) and yellow–cyan covers (light, 3.6:1). The cap is now 35%; a test sweeps every hue against both themes' surfaces.
+- **Track switch**: the old preview kept playing while the next one's URL was fetched (or failed), so its time drove the new track's scrubber, clock and tonearm. `play()` now unloads the old source; the bar resets on `emptied`.
+- **From chip after a regrow**: when the row is gone (new tree, cleared list) the chip now focuses the tab instead of leaving focus nowhere.
+- **Tint error path**: a failed cover load was cached as "no colour" for the whole session; it is retried on the next play.
+- **Space on `<summary>`** (About, Full song) toggled playback instead of opening it.
+
+Tree card ⋯ menu (approved): at rest Play, Skip / OK / Love and + More; About and Full song sit behind ⋯ (disclosure with `aria-expanded`/`aria-controls`; opens on hover, focus or click; closes on Esc with focus back on ⋯, outside click, or focus leaving). The menu hangs card-wide under the card so it never runs off the canvas. All `data-*` hooks and the rating logic are unchanged.
+
+Checked, no change: the tonearm uses `timeupdate` only (no rAF loop); pause and ended park the arm; reduced motion steps it. `last` validation in `src/store.js` is tight (fields whitelisted, https covers, tab regex). Love/Loved stays in sync across reveal, bar, rail, Home, Saved and tree via `afterLikeChange`.
+
+Not fixed (minor): `.needle-drop` is never removed under reduced motion (no animationend; harmless). A malformed stored `ts` of 0 would read "Played 1 Jan".
