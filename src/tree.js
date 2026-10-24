@@ -297,7 +297,7 @@ async function rank(T, node) {
     .sort((a, b) => b.score - a.score);
   const b = yearOf(((node.mb || {})['life-span'] || {}).begin), cc = node.mb && node.mb.country;
   if (has('era')) lists.push(rows(era, 'era', () => `Same era: ${[S_cc(T, cc), b && `${b - (b % 10)}s`].filter(Boolean).join(', ')}`));
-  if (has('place')) lists.push(rows(place, 'place', a => `Also from ${areaOf(a) && areaOf(a) === areaOf(node.mb || {}) ? areaOf(a) : ccName(cc)}`));
+  if (has('place')) lists.push(rows(place, 'place', a => `Also from ${areaOf(a) && areaOf(a) === areaOf(node.mb || {}) ? areaOf(a) : ccName(a.country || cc)}`));
   if (has('related') || (has('scene') && !lists[0].length)) lists.push(await relatedEdge(T, node, rel, scene, !has('related')));
   const out = []; // one from each kind in turn, so a tree with several edge types shows them all
   for (let i = 0; lists.some(l => i < l.length); i++) for (const l of lists) if (i < l.length) out.push(l[i]);
