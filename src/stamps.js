@@ -122,17 +122,19 @@ function stampRunner(get) {
         p.rows.forEach(emit); p.on = emit; p.live = live; // still resolving: the rest streams in, and stops if this open goes stale
         const res = await p.res;
         if (!live()) return null;
-        if (res && !res.error) return res;
+        if (res && !res.error && !res.thin) return res;
       } else drop();
       const res = await start(id, { emit, live });
       return live() ? res : null;
     },
     prefetch(id) {
-      if (pre && pre.id === id) return;
+      if (pre && pre.id === id) return pre.res;
       drop();
       const p = { id, rows: [], on: null, alive: true, live: () => p.alive };
-      p.res = Promise.resolve().then(() => start(id, { emit: r => (p.on ? p.on(r) : p.rows.push(r)), live: () => p.live() })).catch(() => ({ error: true }));
+      p.res = Promise.resolve().then(() => start(id, { emit: r => (p.on ? p.on(r) : p.rows.push(r)), live: () => p.live() })).catch(() => ({ error: true }))
+        .then(res => { if (pre === p && res && (res.thin || res.error)) pre = null; return res; }); // never keep a thin/failed prefetch to open on
       pre = p;
+      return p.res; // the caller learns a thin result and prefetches another combo
     },
   };
 }

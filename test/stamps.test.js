@@ -185,3 +185,13 @@ test('runner: a stale open sends nothing and returns null; a replaced prefetch i
   await run.open('1990-JP-rock', () => {}); // its prefetch was replaced, so this runs fresh
   assert.ok(calls.length > n);
 });
+
+test('runner: prefetch resolves with its result; a thin prefetch is discarded, never replayed', async () => {
+  const { get, calls } = fakeGet({ recordings: [], guard: [] });
+  const run = S.stampRunner(get);
+  const res = await run.prefetch('1960-KR-jazz');
+  assert.equal(res.thin, true);
+  const n = calls.length;
+  await run.open('1960-KR-jazz', () => {});
+  assert.ok(calls.length > n, 'thin prefetch was dropped, so open runs fresh');
+});

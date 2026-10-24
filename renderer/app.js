@@ -716,7 +716,17 @@ api.onStampRow((run, row) => {
   $('#stamp-songs').append(songRow(row));
 });
 
-async function openStamp(s) {
+const markShort = id => ls('stampShort', [...new Set([...(ls('stampShort') || []), id])].slice(-200));
+// Prefetch the next Roll; a thin one is remembered, discarded and replaced (3 tries at most), so the user never lands on it.
+function prefetchNext(s, tries = 3) {
+  const n = nextRoll = SD.roll({ ...rollState(), recent: [...(ls('stampRecent') || []), s.id].slice(-5) });
+  api.prefetchStamp(n.id).then(res => {
+    if (nextRoll !== n || !res || !res.thin) return;
+    markShort(n.id); nextRoll = null;
+    if (tries > 1) prefetchNext(s, tries - 1);
+  }).catch(() => {});
+}
+async function openStamp(s, rerolls = 0) {
   const run = ++stRun;
   stOpen = s; stSongs = [];
   $('#stamp-songs').replaceChildren(); $('#stamp-export-status').replaceChildren();
@@ -725,10 +735,12 @@ async function openStamp(s) {
   const res = await api.stamp(s.id, run).catch(() => ({ error: true }));
   if (run !== stRun || !res) return;
   if (res.error) return stState('error', "Couldn't reach the record stacks. Check your connection and try again.", { actions: [btn('Try again', () => openStamp(s), 'primary')] });
-  nextRoll = SD.roll({ ...rollState(), recent: [...(ls('stampRecent') || []), s.id].slice(-5) }); // prefetched: the next dice landing is instant
-  api.prefetchStamp(nextRoll.id).catch(() => {});
   if (res.thin) {
-    ls('stampShort', [...new Set([...(ls('stampShort') || []), s.id])].slice(-200));
+    markShort(s.id);
+    if (rerolls > 0) return land(SD.roll(rollState()), rerolls - 1);
+  }
+  prefetchNext(s); // prefetched: the next dice landing is instant
+  if (res.thin) {
     const near = [s.decade - 10, s.decade + 10].map(d => SD.makeStamp(`${d}-${s.cc}-${s.genre}`)).filter(Boolean);
     return stState('empty', `Only ${res.count} song${res.count === 1 ? '' : 's'} from ${s.label} made it.${near.length ? ` Try the ${near.map(x => SD.decadeName(x.decade)).join(' or ')}?` : ''}`,
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
@@ -745,11 +757,16 @@ function doRoll() {
   const st = rollState();
   const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
   nextRoll = null;
+  land(s, 2);
+}
+// Lands a rolled stamp; one that comes back thin is re-rolled (up to `left` times) before the suggestion screen shows.
+function land(s, left) {
+  const st = rollState();
   const heldC = new Set(Object.keys(profile.stamps).map(k => SD.continentOf(k.split('-')[1])));
   ls('stampRecent', [...st.recent, s.id].slice(-5));
   ls('stampStreak', heldC.has(SD.continentOf(s.cc)) ? st.streak + 1 : 0);
   spinReels(s);
-  openStamp(s);
+  openStamp(s, left);
 }
 function spinReels(s) {
   const vals = [SD.decadeName(s.decade), SD.DEMONYM[s.cc], scene(s)];
