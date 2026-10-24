@@ -860,7 +860,11 @@ const EDGE_ICONS = {
 // Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
 const ICONS = { play: 'M5 3.2v9.6L12.8 8z', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
   heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z',
-  mystery: 'M5.8 6a2.2 2.2 0 1 1 3.3 1.9c-.7.4-1.1.9-1.1 1.7v.3M8 12.6h.01', stamp: 'M2.5 2.5h11v11h-11zM5 5h6v6H5z', tree: 'M8 14V8M8 8C8 6 6 5 4 3M8 8c0-2 2-3 4-5M8 6V2' };
+  // Mode icons: Blind Test is a record with a closed eye for a label, Stamps a perforated stamp
+  // holding a record, Family Tree a parent node branching to two children.
+  mystery: 'M1.5 8a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0-13 0zM4.6 7.2c1.9 2 4.9 2 6.8 0M5.6 8.6l-.7 1.2M8 9.2v1.4M10.4 8.6l.7 1.2',
+  stamp: 'M2 2h1.65a.9 .9 0 0 0 1.8 0h1.65a.9 .9 0 0 0 1.8 0h1.65a.9 .9 0 0 0 1.8 0h1.65v1.65a.9 .9 0 0 0 0 1.8v1.65a.9 .9 0 0 0 0 1.8v1.65a.9 .9 0 0 0 0 1.8v1.65h-1.65a.9 .9 0 0 0-1.8 0h-1.65a.9 .9 0 0 0-1.8 0h-1.65a.9 .9 0 0 0-1.8 0h-1.65v-1.65a.9 .9 0 0 0 0-1.8v-1.65a.9 .9 0 0 0 0-1.8v-1.65a.9 .9 0 0 0 0-1.8v-1.65zM5.4 8a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0-5.2 0zM8 8h.01',
+  tree: 'M8 4.5V8M3.5 11.5V8h9v3.5M6.5 3a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0zM2 13a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0zM11 13a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0z' };
 function icon(name, filled) {
   const s = svgEl('svg', { viewBox: '0 0 16 16', class: `icon i-${name}${filled ? ' filled' : ''}`, 'aria-hidden': 'true', focusable: 'false' });
   s.append(svgEl('path', { d: ICONS[name] }));

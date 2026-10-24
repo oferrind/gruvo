@@ -293,7 +293,6 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .rate button { position: relative; min-height: 42px; font-size: 15px; font-weight: 650; }
 .rate [data-rate=love] { background: var(--color-love); border-color: var(--color-love); color: var(--color-on-accent); }
 .rate [data-rate=love]:hover:not(:disabled) { background: var(--color-love); border-color: var(--color-love); filter: brightness(1.08); }
-.rate kbd { opacity: .5; }
 .rate button[aria-pressed=true] { opacity: 1; cursor: default; color: var(--color-text); border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)); }
 .rate [data-rate=love][aria-pressed=true] { color: var(--color-on-accent); border-color: var(--color-love); background: var(--color-love); animation: press 160ms cubic-bezier(.16,1,.3,1); }
 .rate [data-rate=love][aria-pressed=true]::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; animation: pulse 160ms ease-out both; }
