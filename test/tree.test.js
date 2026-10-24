@@ -247,6 +247,8 @@ test('soundtrack: best pure, official, earliest release; film name cleaned; othe
   const best = t.bestSoundtrack(recs, 'Dick Dale', 'Misirlou');
   assert.deepEqual(best, { id: 'a', title: 'Pulp Fiction: Music From the Motion Picture', year: 1994 });
   assert.equal(t.bestSoundtrack(recs, 'Underworld', 'Born Slippy'), null);
+  recs[0].releases.push(rel('r', 'Riding Giants', '1993', ['Soundtrack'])); // older but one edition: the famous film still wins
+  assert.equal(t.bestSoundtrack(recs, 'Dick Dale', 'Misirlou').id, 'a');
   const tracks = t.soundtrackTracks({ media: [{ tracks: [{ title: 'Misirlou', 'artist-credit': [{ name: 'Dick Dale' }] },
     { title: 'Jungle Boogie', 'artist-credit': [{ name: 'Kool & the Gang' }] }, { title: 'Again', 'artist-credit': [{ name: 'Kool & the Gang' }] },
     { title: 'Dialogue', 'artist-credit': [{ name: 'Various Artists' }] }] }] }, 'Dick Dale', best);

@@ -131,7 +131,7 @@ function originalRecording(recs, artist, title) {
   return ok.sort((a, b) => a['first-release-date'].localeCompare(b['first-release-date']))[0] || null;
 }
 
-// The earliest official release of a pure soundtrack (not a "Soundtrack + Compilation" mix) that carries this song,
+// The best-known official pure soundtrack (not a "Soundtrack + Compilation" mix) that carries this song,
 // from recording-search rows (their releases carry the release-group's secondary types).
 function bestSoundtrack(recs, artist, title) {
   const out = [];
@@ -142,8 +142,10 @@ function bestSoundtrack(recs, artist, title) {
       if (rel.status === 'Official' && t.includes('Soundtrack') && !t.includes('Compilation')) out.push(rel);
     }
   }
-  const dated = out.filter(r => r.date).sort((a, b) => a.date.localeCompare(b.date));
-  const hit = dated[0] || out[0];
+  // The soundtrack with the most editions is the famous film (Pulp Fiction over Riding Giants); earliest edition breaks ties.
+  const group = r => (r['release-group'] || {}).id || norm(r.title), n = {};
+  for (const r of out) n[group(r)] = (n[group(r)] || 0) + 1;
+  const hit = out.sort((a, b) => n[group(b)] - n[group(a)] || (a.date || '9999').localeCompare(b.date || '9999'))[0];
   return hit ? { id: hit.id, title: hit.title, year: yearOf(hit.date) } : null;
 }
 // "Pulp Fiction: Music From the Motion Picture" -> "Pulp Fiction"
