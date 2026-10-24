@@ -17,6 +17,14 @@ test('legacy Passport stamps migrate to "<decade>-<CC>-" once; new keys, counts 
   assert.deepEqual(store.load().stamps, once.stamps, 'loading twice changes nothing');
 });
 
+test('rarity is remembered in the profile, validated', () => {
+  const d = tmp();
+  fs.writeFileSync(path.join(d, 'profile.json'), JSON.stringify({ likes: [], heard: [], rarity: { '1990-JP-rock': 'Rare', '1970-NG-afrobeat': 'Epic', x: 'Common', '1980-JP-': 'Legendary' } }));
+  assert.deepEqual(store.load().rarity, { '1990-JP-rock': 'Rare' });
+  store.save({ likes: [], heard: [], rarity: { '1960-US-soul': 'Common', '1960-GB-rock': 7 } });
+  assert.deepEqual(store.load().rarity, { '1960-US-soul': 'Common' });
+});
+
 test('a corrupt profile is kept aside, not silently overwritten by the next save', () => {
   const d = tmp();
   fs.writeFileSync(path.join(d, 'profile.json'), '{"likes":[{"id":1');

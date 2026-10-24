@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { norm, COUNTRIES } = require('./music');
 
-const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null });
+const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, rarity: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null });
 const MAX_RATINGS = 500;
 
 // Sound Fingerprint ratings: {id, rating, features}; anything malformed is dropped, newest MAX_RATINGS kept.
@@ -47,6 +47,13 @@ function validStamps(s) {
   }
   return out;
 }
+// Genre Stamps: the rarity each stamp last came back with, {"<decade>-<CC>-<genre>": 'Common' | 'Rare' | 'Legendary'}.
+function validRarity(r) {
+  const out = {};
+  for (const [k, v] of Object.entries(r && typeof r === 'object' && !Array.isArray(r) ? r : {}))
+    if (/^\d{4}-[A-Z]{2}-[a-z-]{1,20}$/.test(k) && ['Common', 'Rare', 'Legendary'].includes(v)) out[k] = v;
+  return out;
+}
 let file = null;
 
 function init(dir) { file = path.join(dir, 'profile.json'); }
@@ -68,6 +75,7 @@ function load() {
     likes,
     heard: Array.isArray(p.heard) ? [...new Set(p.heard.flatMap(h => { const x = ids(h); return x.length ? x : [h]; }))] : d.heard,
     stamps: validStamps(p.stamps),
+    rarity: validRarity(p.rarity),
     adventure: Number.isFinite(p.adventure) ? p.adventure : d.adventure,
     ratings: validRatings(p.ratings),
     prefs: validPrefs(p.prefs),
@@ -77,7 +85,7 @@ function load() {
 
 function save(p) {
   if (!p || typeof p !== 'object' || !Array.isArray(p.likes) || !Array.isArray(p.heard)) throw new Error('invalid profile');
-  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last) };
+  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), rarity: validRarity(p.rarity), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last) };
   fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 1));
   fs.renameSync(file + '.tmp', file);
   return true;

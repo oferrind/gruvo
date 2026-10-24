@@ -126,13 +126,13 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak
   const heldCont = new Set(Object.keys(held).map(k => continentOf(k.split('-')[1])));
   const fresh = CONTINENTS.filter(c => !heldCont.has(c));
   const only = adventurous && streak >= 2 && fresh.length ? new Set(fresh) : null;
-  const ok = s => s && !recent.includes(s.id) && (!only || only.has(continentOf(s.cc)));
+  const ok = s => s && !recent.includes(s.id) && !short.includes(s.id) && (!only || only.has(continentOf(s.cc)));
   const taste = new Set(topTags.map(norm));
   if (rand() < 0.3) {
     const ccs = Object.keys(ALL_CC), gs = Object.keys(GENRES);
     for (let i = 0; i < 30; i++) {
       const s = makeStamp(`${DECADES[Math.floor(rand() * 7)]}-${ccs[Math.floor(rand() * ccs.length)]}-${gs[Math.floor(rand() * gs.length)]}`);
-      if (ok(s) && !short.includes(s.id)) return s;
+      if (ok(s)) return s;
     }
   }
   const pool = CATALOGUE.filter(ok);

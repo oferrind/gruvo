@@ -113,3 +113,24 @@ Tree card ⋯ menu (approved): at rest Play, Skip / OK / Love and + More; About 
 Checked, no change: the tonearm uses `timeupdate` only (no rAF loop); pause and ended park the arm; reduced motion steps it. `last` validation in `src/store.js` is tight (fields whitelisted, https covers, tab regex). Love/Loved stays in sync across reveal, bar, rail, Home, Saved and tree via `afterLikeChange`.
 
 Not fixed (minor): `.needle-drop` is never removed under reduced motion (no animationend; harmless). A malformed stored `ts` of 0 would read "Played 1 Jan".
+
+## Round 7 (Genre Stamps)
+
+Scope: `8289f91..a445d7e` (`src/stamps.js`, `renderer/stamp-data.js`, the stamp UI in `renderer/app.js`, `src/store.js`, the 503 backoff in `src/net.js`). Tests 87 -> 91.
+
+Fixed:
+- **A catalogue stamp that came back thin could be rolled again.** `roll` only excluded `short` combos in the builder branch; the catalogue pool ignored it. Now one `ok()` filter covers both (test: every stamp thin but one, 400 rolls).
+- **Prefetch kept running for a stamp nobody opened.** The next-Roll prefetch had no cancel: opening a different stamp, or a newer prefetch, left it spending MusicBrainz slots (1.5 s each) against the stamp on screen. An adopted prefetch also ignored a stale open. The open/prefetch bookkeeping moved from `main.js` into `stampRunner` in `src/stamps.js`, so it is tested with a mocked `get`: a finished prefetch opens with zero new requests and replays all its rows; a different open or newer prefetch drops it; a stale open sends nothing and returns null.
+- **Rarity was per browser.** It lived in localStorage while stamps live in the profile. It is now `profile.rarity` (validated in `store.js`: stamp key shape, three values). The old localStorage value is merged in once and removed.
+- **Unlove / re-love asymmetry on old Passport likes.** Unloving an old like took its legacy stamp away, but re-loving it from Saved or Home passed `stamp: null` and never gave it back. Saved likes with no `stamp` field now re-earn their legacy stamp; Blind Test trip songs (no `ts`) still earn none.
+
+Live re-check of the two flagged catalogue entries (node, `src/net.js` pacing and User-Agent, `stampSongs` as the app runs it): 80s Mexican rock gave 10 songs from 7 artists (Legendary, 12 s); 80s Australian new wave gave 10 songs from 13 artists (Rare, 19 s). Neither is short, so both stay in the catalogue.
+
+Reviewed, no change needed:
+- Country guard, artist-first top-up, strict preview match: behave as the spec says. MB 503 backoff is 2, 4, 6, 6, 6 s over 6 tries; a final 503 is not cached and surfaces as `{error}`.
+- Stale runs: the renderer drops rows and results whose run number is old; main's `live()` stops the query loop.
+- Collection counting: the same song cannot be loved twice (Love toggles by `likeKey`); a song in two stamps counts for the stamp it was loved from, and unlove takes that one back. Legacy migration is idempotent (tested); keys and counts are validated.
+- R / 1 / 2 / 3 do not fire in an input, select or textarea. Reduced motion: the CSS kills all animation and the reels land without spinning. No Passport leftovers in HTML, CSS or Home.
+- Export to Spotify and Play in Spotify use the same paths as the Tree and Saved rows.
+
+Not done: no live Electron run (low memory); the prefetch is verified with a mocked `get`, not against the real window. Short stamps (5-7 songs) are not remembered, only thin ones (<5), as in the spec's wording.

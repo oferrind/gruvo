@@ -587,16 +587,17 @@ $('#adventure').addEventListener('change', save);
 // ---------- B. Genre Stamps (docs/06) ----------
 let SD, stRun = 0, stOpen = null, stSongs = [], nextRoll = null, thumpId = null;
 const stState = (kind, msg, opts) => setState($('#stamp-state'), kind, msg, opts);
-// Per-viewer conveniences only (rarity seen, last rolls, combos that came back thin); losing them is harmless.
+// Per-viewer conveniences only (last rolls, combos that came back thin); losing them is harmless. Rarity lives in the profile.
 const ls = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch { return null; } };
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const INK = { Africa: 1, Asia: 2, Europe: 3, 'North America': 4, 'Latin America & Caribbean': 5, Oceania: 6 };
 // A like's stamp: new likes carry it (null = none); an old Passport like (country + decade) counts toward its legacy stamp.
 const stampOf = e => ('stamp' in e ? e.stamp : e.country && e.decade ? `${e.decade}-${e.country}-` : null);
-const extraOf = t => (t.country ? { country: t.country, decade: t.decade, genre: t.genre, stamp: t.stamp || null } : undefined); // re-loving: same stamp
+// Re-loving keeps the stamp. A saved like with no stamp field is an old Passport like: it re-earns its legacy stamp, as unloving took it away.
+const extraOf = t => (t.country ? { country: t.country, decade: t.decade, genre: t.genre, stamp: 'stamp' in t ? t.stamp : t.ts ? stampOf(t) : null } : undefined);
 const scene = s => (s.legacy ? 'Passport' : s.label.replace(/^\S+\s/, '').replace(new RegExp(`^${SD.DEMONYM[s.cc]} `), ''));
 const tilt = id => ([...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997, 7) % 7) - 3; // same stamp, same angle, every render
-const rarityOf = id => (ls('stampRarity') || {})[id];
+const rarityOf = id => profile.rarity[id];
 
 function stampFace(s, count = 0) {
   const t = SD.tier(count), r = rarityOf(s.id);
@@ -616,6 +617,8 @@ function slotEl({ stamp: s, count }) {
 
 function buildStamps(regions) {
   SD = StampData(regions);
+  const old = ls('stampRarity'); // rarity used to live in localStorage: move it into the profile once
+  if (old && typeof old === 'object') { profile.rarity = { ...old, ...profile.rarity }; save(); try { localStorage.removeItem('stampRarity'); } catch {} }
   for (const list of Object.values(regions)) Object.assign(countryNames, list);
   const opt = (value, text) => el('option', { value, textContent: text });
   $('#b-decade').append(...SD.DECADES.map(d => opt(d, SD.decadeName(d))));
@@ -715,7 +718,7 @@ async function openStamp(s) {
     return stState('empty', `Only ${res.count} song${res.count === 1 ? '' : 's'} from ${s.label} made it.${near.length ? ` Try the ${near.map(x => SD.decadeName(x.decade)).join(' or ')}?` : ''}`,
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
-  ls('stampRarity', { ...(ls('stampRarity') || {}), [s.id]: res.rarity });
+  profile.rarity[s.id] = res.rarity; save();
   stState('done', `${res.count} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.${res.short ? ' A short stamp: always Legendary.' : ''}`);
   renderStamps();
 }
