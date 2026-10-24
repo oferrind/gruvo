@@ -140,3 +140,12 @@ test('collection: 1 love earns, 3 is gold; the book groups by continent, legacy 
   assert.deepEqual(b.legacy.map(s => [s.stamp.label, s.count]), [['80s Japan', 2]]);
   assert.deepEqual([b.catalogue, b.custom, b.decades], [2, 1, [1970, 1980, 1990, 2000]]);
 });
+
+test('Roll: a combo that came back thin is never rolled again, catalogue or builder', () => {
+  const rand = seeded(9), spare = '1990-NO-black-metal';
+  const short = S.CATALOGUE.map(s => s.id).filter(id => id !== spare);
+  for (let i = 0; i < 400; i++) {
+    const s = S.roll({ short }, rand);
+    assert.ok(!short.includes(s.id), `re-rolled thin ${s.id}`);
+  }
+});
