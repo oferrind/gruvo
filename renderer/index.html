@@ -230,6 +230,10 @@
           <span id="pref-regions-label" class="label">Regions you're curious about <span class="muted">· optional</span></span>
           <div id="pref-regions" class="chips" role="group" aria-labelledby="pref-regions-label"></div>
         </div>
+        <div class="field">
+          <span id="pref-scheme-label" class="label">Colour scheme</span>
+          <div id="pref-scheme" class="schemes" role="radiogroup" aria-labelledby="pref-scheme-label"></div>
+        </div>
       </div>
       <div id="spotify-prefs" class="field sp-prefs" role="group" aria-labelledby="sp-title">
         <h2 id="sp-title">Spotify</h2>
@@ -275,6 +279,13 @@
   <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
     <filter id="duo-dark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".1 .9"/><feFuncG type="table" tableValues=".07 .74"/><feFuncB type="table" tableValues=".05 .52"/></feComponentTransfer></filter>
     <filter id="duo-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".27 .97"/><feFuncG type="table" tableValues=".16 .9"/><feFuncB type="table" tableValues=".08 .76"/></feComponentTransfer></filter>
+    <!-- the other colour schemes: navy to cobalt-white (Blue label), blue-black to fluoro pink (Gig poster), black-green to phosphor (Night tuner) -->
+    <filter id="duo-bluelabel-dark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".05 .62"/><feFuncG type="table" tableValues=".08 .76"/><feFuncB type="table" tableValues=".13 .95"/></feComponentTransfer></filter>
+    <filter id="duo-bluelabel-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".1 .9"/><feFuncG type="table" tableValues=".15 .93"/><feFuncB type="table" tableValues=".28 .97"/></feComponentTransfer></filter>
+    <filter id="duo-riso-dark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".1 1"/><feFuncG type="table" tableValues=".12 .6"/><feFuncB type="table" tableValues=".22 .72"/></feComponentTransfer></filter>
+    <filter id="duo-riso-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".12 .98"/><feFuncG type="table" tableValues=".14 .9"/><feFuncB type="table" tableValues=".25 .86"/></feComponentTransfer></filter>
+    <filter id="duo-tuner-dark" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".03 .55"/><feFuncG type="table" tableValues=".07 .95"/><feFuncB type="table" tableValues=".05 .72"/></feComponentTransfer></filter>
+    <filter id="duo-tuner-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".06 .88"/><feFuncG type="table" tableValues=".16 .95"/><feFuncB type="table" tableValues=".11 .9"/></feComponentTransfer></filter>
   </svg>
   <script src="tint.js"></script>
   <script src="stamp-data.js"></script>

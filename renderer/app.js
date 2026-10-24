@@ -1205,6 +1205,20 @@ async function renderGenres() {
     on => { p.genres = setIn(p.genres, { id: g.id, name: g.name }, on, (a, b) => a.id === b.id); })));
 }
 
+// Colour scheme (profile.prefs.scheme): applied at once; mirrored in localStorage so a launch paints it before the profile loads.
+const SCHEMES = { shop: 'Record shop', bluelabel: 'Blue label', riso: 'Gig poster', tuner: 'Night tuner' };
+function applyScheme(s) { document.documentElement.dataset.scheme = s; try { localStorage.setItem('scheme', s); } catch {} }
+function renderSchemes() {
+  $('#pref-scheme').replaceChildren(...Object.entries(SCHEMES).map(([id, label]) => {
+    const sw = el('span', { className: 'swatch' }, ...Array.from({ length: 6 }, () => el('span')));
+    sw.dataset.scheme = id;
+    sw.setAttribute('aria-hidden', 'true');
+    return el('label', { className: 'scheme' },
+      el('input', { type: 'radio', name: 'scheme', value: id, checked: profile.prefs.scheme === id, onchange: () => { profile.prefs.scheme = id; applyScheme(id); save(); } }),
+      el('span', { className: 'scheme-name', textContent: label }), sw);
+  }));
+}
+
 let prefsBuilt = false;
 function renderPrefs() {
   const p = profile.prefs;
@@ -1213,6 +1227,7 @@ function renderPrefs() {
   renderGenres();
   if (prefsBuilt) return;
   prefsBuilt = true;
+  renderSchemes();
   $('#pref-decades').append(...DECADES.map(d => toggleChip(`${d}s`, p.decades.includes(d), on => { profile.prefs.decades = setIn(profile.prefs.decades, d, on); })));
   $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
 }
@@ -1298,6 +1313,7 @@ $('#tree-export').onclick = e => {
   sp = await spotify.status().catch(() => sp);
   renderSpotifyPrefs();
   profile = await store.load();
+  applyScheme(profile.prefs.scheme);
   regionList = await api.countries();
   buildStamps(regionList);
   $('#adventure').value = profile.adventure;
@@ -1314,6 +1330,7 @@ $('#tree-export').onclick = e => {
 {
   const root = document.documentElement, tbtn = document.getElementById('theme-toggle'), os = matchMedia('(prefers-color-scheme: light)');
   try { const t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') root.dataset.theme = t; } catch {}
+  try { const s = localStorage.getItem('scheme'); if (Object.hasOwn(SCHEMES, s)) root.dataset.scheme = s; } catch {}
   const dark = () => (root.dataset.theme || (os.matches ? 'light' : 'dark')) === 'dark';
   const sync = () => tbtn.setAttribute('aria-pressed', String(dark()));
   tbtn.onclick = () => { root.dataset.theme = dark() ? 'light' : 'dark'; try { localStorage.setItem('theme', root.dataset.theme); } catch {} sync(); };

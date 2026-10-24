@@ -17,6 +17,7 @@ const validRatings = r => (Array.isArray(r) ? r : []).filter(x => x && typeof x.
 const name = s => typeof s === 'string' && s.trim() !== '' && s.length <= 200;
 const list = (a, ok, max) => (Array.isArray(a) ? a : []).filter(ok).slice(0, max);
 const uniq = a => [...new Set(a)];
+const SCHEMES = ['shop', 'bluelabel', 'riso', 'tuner'];
 function validPrefs(p) {
   p = p && typeof p === 'object' ? p : {};
   return {
@@ -25,6 +26,7 @@ function validPrefs(p) {
     decades: uniq(list(p.decades, d => Number.isInteger(d) && d >= 1900 && d <= 2090 && d % 10 === 0, 20)),
     regions: uniq(list(p.regions, r => typeof r === 'string' && Object.hasOwn(COUNTRIES, r), 10)),
     tree: validSettings(p.tree), // Family Tree grow settings
+    scheme: SCHEMES.includes(p.scheme) ? p.scheme : 'shop', // colour scheme (renderer/styles.css [data-scheme])
   };
 }
 // What was playing last ("continue where you left off" + the bar's "came from" chip). Anything malformed: null.

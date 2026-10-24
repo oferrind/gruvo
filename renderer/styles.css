@@ -10,37 +10,12 @@
 
 :root {
   color-scheme: dark;
-  --color-bg: #19130f;          /* walnut, lights down */
-  --color-surface: #231b16;
-  --color-surface-2: #30261e;
-  --color-border: #4d3e31;
-  --color-text: #f2e7d7;        /* sleeve paper */
-  --color-muted: #bba88f;
-  --color-accent: #f0a63a;      /* valve amber */
-  --color-on-accent: #1e140a;
-  --color-love: #e8685a;
-  --color-focus: #f6c36a;
-  --color-error: #ff9c8f;
-  --color-error-bg: #3a1e1a;
-  --color-vinyl: #0f0b09;
-  /* stamp inks: one per continent in Genre Stamps */
-  --ink-1: #ee7b68;
-  --ink-2: #7db3e6;
-  --ink-3: #86c793;
-  --ink-4: #c3a2ec;
-  /* family tree: one ink per kind of relation (AA on bg and surface) */
-  --edge-scene: #86c793;
-  --edge-member: #ee7b68;
-  --edge-builton: #7db3e6;
-  --edge-roots: #d6b65c;
-  --edge-producer: #c3a2ec;
-  --edge-label: #5cc2b4;
-  --edge-related: #e692b8;
-  --edge-era: #e8914a;
-  --edge-place: #aebf4f;
-  --edge-soundtrack: #7fd3e6;
-  --page-line: rgb(242 231 215 / .05);
-  --ink-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* stamp inks: one per continent in Genre Stamps, shared with the tree relations */
+  --ink-1: var(--edge-member);
+  --ink-2: var(--edge-builton);
+  --ink-3: var(--edge-scene);
+  --ink-4: var(--edge-producer);
+  --page-line: color-mix(in srgb, var(--color-text) 5%, transparent);
 
   --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Big Shoulders Display", "Arial Narrow", system-ui, sans-serif;
@@ -70,7 +45,7 @@
   /* paper and print: a faint scan grain on the room, paper fibres on cards (static tiles, no animated filters) */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.94 0 0 0 0 0.86 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.88 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  --duotone: url(#duo-dark);
+  --duotone: var(--duo-d);
   /* cover-art accent: hue + saturation from the playing cover (JS), lightness from the theme so text stays AA */
   --tint-h: 35;
   --tint-s: 86%;
@@ -78,91 +53,172 @@
   --tint: hsl(var(--tint-h) var(--tint-s) var(--tint-l));
   --tint-glow: hsl(var(--tint-h) var(--tint-s) 52% / .5);
   --tint-wash: hsl(var(--tint-h) var(--tint-s) 50% / .13);
-  /* price stickers: cream paper and dark ink in both themes */
-  --sticker: #efe2c4;
-  --sticker-ink: #2b1f16;
 }
 :root[data-theme=light] {
   color-scheme: light;
-  --color-bg: #ebe0cb;          /* manila sleeve */
-  --color-surface: #f7f0e3;
-  --color-surface-2: #e0d2b9;
-  --color-border: #c2ae8c;
-  --color-text: #2b1f16;
-  --color-muted: #614e3b;
-  --color-accent: #8c4a0c;
-  --color-on-accent: #fff7ea;
-  --color-love: #b0372a;
-  --color-focus: #8c4a0c;
-  --color-error: #9b1c10;
-  --color-error-bg: #f8d9d2;
-  --ink-1: #ad3524;
-  --ink-2: #22579a;
-  --ink-3: #2c6b3b;
-  --ink-4: #6a3e9e;
-  --edge-scene: #2c6b3b;
-  --edge-member: #ad3524;
-  --edge-builton: #22579a;
-  --edge-roots: #6e5710;
-  --edge-producer: #6a3e9e;
-  --edge-label: #0f6359;
-  --edge-related: #94305e;
-  --edge-era: #8a4710;
-  --edge-place: #566a12;
-  --edge-soundtrack: #0e5f73;
-  --page-line: rgb(43 31 22 / .06);
   --shadow: 0 1px 2px rgb(60 40 20 / .08), 0 12px 28px -14px rgb(60 40 20 / .35);
   --shadow-art: 0 8px 20px -8px rgb(40 25 10 / .5);
   --shadow-bar: 0 -6px 18px -14px rgb(60 40 20 / .3);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.08 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  --duotone: url(#duo-light);
+  --duotone: var(--duo-l);
   --tint-l: 27%;
   --tint-glow: hsl(var(--tint-h) var(--tint-s) 35% / .35);
   --tint-wash: hsl(var(--tint-h) var(--tint-s) 40% / .1);
-  --sticker: #fffaee;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme=dark]) {
     color-scheme: light;
-    --color-bg: #ebe0cb;
-    --color-surface: #f7f0e3;
-    --color-surface-2: #e0d2b9;
-    --color-border: #c2ae8c;
-    --color-text: #2b1f16;
-    --color-muted: #614e3b;
-    --color-accent: #8c4a0c;
-    --color-on-accent: #fff7ea;
-    --color-love: #b0372a;
-    --color-focus: #8c4a0c;
-    --color-error: #9b1c10;
-    --color-error-bg: #f8d9d2;
-    --ink-1: #ad3524;
-    --ink-2: #22579a;
-    --ink-3: #2c6b3b;
-    --ink-4: #6a3e9e;
-    --edge-scene: #2c6b3b;
-    --edge-member: #ad3524;
-    --edge-builton: #22579a;
-    --edge-roots: #6e5710;
-    --edge-producer: #6a3e9e;
-    --edge-label: #0f6359;
-    --edge-related: #94305e;
-    --edge-era: #8a4710;
-    --edge-place: #566a12;
-    --edge-soundtrack: #0e5f73;
-    --page-line: rgb(43 31 22 / .06);
     --shadow: 0 1px 2px rgb(60 40 20 / .08), 0 12px 28px -14px rgb(60 40 20 / .35);
     --shadow-art: 0 8px 20px -8px rgb(40 25 10 / .5);
     --shadow-bar: 0 -6px 18px -14px rgb(60 40 20 / .3);
     --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.08 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-    --duotone: url(#duo-light);
+    --duotone: var(--duo-l);
     --tint-l: 27%;
     --tint-glow: hsl(var(--tint-h) var(--tint-s) 35% / .35);
     --tint-wash: hsl(var(--tint-h) var(--tint-s) 40% / .1);
-    --sticker: #fffaee;
   }
+}
+
+/* ---------- colour schemes ----------
+   Every colour token is light-dark(light, dark): the theme above only flips color-scheme, so one block per scheme
+   covers both. A bare [data-scheme=x] also paints that scheme inside any element (the Preferences swatches).
+   test/contrast.test.js reads these blocks: keep every value a #rrggbb pair. */
+
+/* Record shop (default): after hours at the record shop. Walnut room, valve amber; light is a manila sleeve. */
+:root, [data-scheme=shop] {
+  --color-bg: light-dark(#ebe0cb, #19130f);
+  --color-surface: light-dark(#f7f0e3, #231b16);
+  --color-surface-2: light-dark(#e0d2b9, #30261e);
+  --color-border: light-dark(#c2ae8c, #4d3e31);
+  --color-text: light-dark(#2b1f16, #f2e7d7);
+  --color-muted: light-dark(#614e3b, #bba88f);
+  --color-accent: light-dark(#8c4a0c, #f0a63a);
+  --color-on-accent: light-dark(#fff7ea, #1e140a);
+  --color-love: light-dark(#b0372a, #e8685a);
+  --color-focus: light-dark(#8c4a0c, #f6c36a);
+  --color-error: light-dark(#9b1c10, #ff9c8f);
+  --color-error-bg: light-dark(#f8d9d2, #3a1e1a);
+  --edge-scene: light-dark(#2c6b3b, #86c793);
+  --edge-member: light-dark(#ad3524, #ee7b68);
+  --edge-builton: light-dark(#22579a, #7db3e6);
+  --edge-roots: light-dark(#6e5710, #d6b65c);
+  --edge-producer: light-dark(#6a3e9e, #c3a2ec);
+  --edge-label: light-dark(#0f6359, #5cc2b4);
+  --edge-related: light-dark(#94305e, #e692b8);
+  --edge-era: light-dark(#8a4710, #e8914a);
+  --edge-place: light-dark(#566a12, #aebf4f);
+  --edge-soundtrack: light-dark(#0e5f73, #7fd3e6);
+  /* price stickers: paper and dark ink in both themes */
+  --sticker: light-dark(#fffaee, #efe2c4);
+  --sticker-ink: light-dark(#2b1f16, #2b1f16);
+  --color-vinyl: #0f0b09;
+  --color-groove: #2b221c;
+  --duo-d: url(#duo-dark);
+  --duo-l: url(#duo-light);
+}
+
+/* Blue label: a cold hard-bop jazz sleeve. Midnight navy, one flat cobalt block, cool proof-paper type. */
+:root[data-scheme=bluelabel], [data-scheme=bluelabel] {
+  --color-bg: light-dark(#e3e7ec, #0e131c);
+  --color-surface: light-dark(#f4f6f8, #151c28);
+  --color-surface-2: light-dark(#d3d9e1, #1e2736);
+  --color-border: light-dark(#a8b3c2, #34405a);
+  --color-text: light-dark(#121a26, #e8edf3);
+  --color-muted: light-dark(#46536a, #9aa8bd);
+  --color-accent: light-dark(#1747a6, #4f9dff);
+  --color-on-accent: light-dark(#f4f7ff, #06101f);
+  --color-love: light-dark(#b3302a, #ff7a70);
+  --color-focus: light-dark(#1747a6, #8cc2ff);
+  --color-error: light-dark(#a01d14, #ff9c8f);
+  --color-error-bg: light-dark(#f6dad6, #33191c);
+  --edge-scene: light-dark(#1f6b4c, #7fc8a9);
+  --edge-member: light-dark(#a63a2b, #f08a7a);
+  --edge-builton: light-dark(#1d55b0, #6fb0ff);
+  --edge-roots: light-dark(#6b5a12, #d9c070);
+  --edge-producer: light-dark(#5b45a8, #b8a4f0);
+  --edge-label: light-dark(#0b6470, #4fc6d0);
+  --edge-related: light-dark(#93306a, #e59ac4);
+  --edge-era: light-dark(#8c4a12, #f0a060);
+  --edge-place: light-dark(#4f6b1a, #a9c46a);
+  --edge-soundtrack: light-dark(#0a5e80, #8fd8f0);
+  --sticker: light-dark(#ffffff, #eef2f6);
+  --sticker-ink: light-dark(#121a26, #121a26);
+  --color-vinyl: #07090d;
+  --color-groove: #1c2230;
+  --duo-d: url(#duo-bluelabel-dark);
+  --duo-l: url(#duo-bluelabel-light);
+  --tint-h: 215;
+  --tint-s: 90%;
+}
+
+/* Gig poster: a faded 70s risograph gig poster. Blue-black ink on newsprint, fluoro pink, yellow price stickers. */
+:root[data-scheme=riso], [data-scheme=riso] {
+  --color-bg: light-dark(#efe8d8, #161314);
+  --color-surface: light-dark(#f9f4e8, #201b1c);
+  --color-surface-2: light-dark(#e2d8c2, #2c2526);
+  --color-border: light-dark(#c4b597, #4a3f40);
+  --color-text: light-dark(#1d2233, #f3ece0);
+  --color-muted: light-dark(#4e5266, #b7aba0);
+  --color-accent: light-dark(#c21d5b, #ff5f8f);
+  --color-on-accent: light-dark(#fff4f7, #1d0a10);
+  --color-love: light-dark(#b8321f, #ff7a59);
+  --color-focus: light-dark(#c21d5b, #ff9ab8);
+  --color-error: light-dark(#a01d14, #ff9c8f);
+  --color-error-bg: light-dark(#f8d9d2, #3a1a1f);
+  --edge-scene: light-dark(#156b50, #4fd1a8);
+  --edge-member: light-dark(#b23a22, #ff8066);
+  --edge-builton: light-dark(#2050a8, #6ea8ff);
+  --edge-roots: light-dark(#75600a, #ffd45c);
+  --edge-producer: light-dark(#6a3aa8, #c79bff);
+  --edge-label: light-dark(#0b6470, #3fc7d6);
+  --edge-related: light-dark(#b0246a, #ff7fb5);
+  --edge-era: light-dark(#95480b, #ffa24c);
+  --edge-place: light-dark(#4f6b12, #b7d957);
+  --edge-soundtrack: light-dark(#0b5f7d, #7fd6ff);
+  --sticker: light-dark(#ffe14d, #ffe14d);
+  --sticker-ink: light-dark(#1d2233, #1d2233);
+  --color-vinyl: #0c0a0a;
+  --color-groove: #2a2324;
+  --duo-d: url(#duo-riso-dark);
+  --duo-l: url(#duo-riso-light);
+  --tint-h: 340;
+  --tint-s: 90%;
+}
+
+/* Night tuner: the graveyard-shift radio booth. Black-green room, phosphor-green dial glow; light is the faceplate. */
+:root[data-scheme=tuner], [data-scheme=tuner] {
+  --color-bg: light-dark(#e1e7e1, #0a110e);
+  --color-surface: light-dark(#f2f6f2, #101a15);
+  --color-surface-2: light-dark(#d0d9d1, #17241d);
+  --color-border: light-dark(#a3b3a7, #2c4136);
+  --color-text: light-dark(#0f1d16, #e2efe6);
+  --color-muted: light-dark(#43564b, #93ad9e);
+  --color-accent: light-dark(#0a6a44, #58e6a0);
+  --color-on-accent: light-dark(#effff6, #04140b);
+  --color-love: light-dark(#b0302e, #ff7a7a);
+  --color-focus: light-dark(#0a6a44, #9bf5c6);
+  --color-error: light-dark(#a01d14, #ff9c8f);
+  --color-error-bg: light-dark(#f6dad6, #2e1517);
+  --edge-scene: light-dark(#1d6a32, #7ee08f);
+  --edge-member: light-dark(#a8323d, #ff7f8a);
+  --edge-builton: light-dark(#1e56a8, #6cb6ff);
+  --edge-roots: light-dark(#685a0e, #e8d36a);
+  --edge-producer: light-dark(#5e3fa6, #c3a0ff);
+  --edge-label: light-dark(#06655f, #4fd8d0);
+  --edge-related: light-dark(#9a2c69, #ff92cf);
+  --edge-era: light-dark(#8e4a10, #ffa65c);
+  --edge-place: light-dark(#4c6a10, #c2e05a);
+  --edge-soundtrack: light-dark(#0a5f7c, #86e0ff);
+  --sticker: light-dark(#fbfffb, #e8f3ea);
+  --sticker-ink: light-dark(#0f1d16, #0f1d16);
+  --color-vinyl: #050806;
+  --color-groove: #17231d;
+  --duo-d: url(#duo-tuner-dark);
+  --duo-l: url(#duo-tuner-light);
+  --tint-h: 150;
+  --tint-s: 70%;
 }
 
 * { box-sizing: border-box; }
@@ -265,7 +321,7 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
   background:
     radial-gradient(circle at 50% 37%, var(--color-vinyl) 0 2.2%, transparent 2.7%),
     radial-gradient(circle closest-side, var(--color-accent) 0 35%, var(--color-vinyl) 36% 39%, transparent 40%),
-    repeating-radial-gradient(circle, #2b221c 0 1px, var(--color-vinyl) 1.5px 4px);
+    repeating-radial-gradient(circle, var(--color-groove) 0 1px, var(--color-vinyl) 1.5px 4px);
   animation: spin 1.8s linear infinite paused; }
 .deck.is-playing .disc { animation-play-state: running; }
 .bigplay::before { content: ""; position: absolute; inset: 5%; z-index: 1; border-radius: 50%; /* the light stays put while the record turns */
@@ -735,6 +791,21 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .prefs { display: grid; gap: var(--space-6); max-width: 760px; }
 .prefs .field { margin: 0; }
 .prefs .field > .label .muted { font-weight: 400; }
+/* colour scheme picker: each swatch carries its own data-scheme, so it shows that scheme in the current theme */
+.schemes { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
+.scheme { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-2); min-width: 170px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: border-color var(--dur); }
+.scheme:hover { border-color: var(--color-muted); }
+.scheme:has(:checked) { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.scheme input { accent-color: var(--color-accent); margin: 0; }
+.scheme-name { font-weight: 600; }
+.swatch { grid-column: 1 / -1; display: flex; height: 14px; border-radius: 3px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--color-border); }
+.swatch span { flex: 1; }
+.swatch span:nth-child(1) { background: var(--color-bg); }
+.swatch span:nth-child(2) { background: var(--color-surface-2); }
+.swatch span:nth-child(3) { background: var(--color-accent); flex: 2; }
+.swatch span:nth-child(4) { background: var(--edge-member); }
+.swatch span:nth-child(5) { background: var(--edge-builton); }
+.swatch span:nth-child(6) { background: var(--edge-scene); }
 .picked { list-style: none; padding: 0; margin: 0 0 var(--space-3); }
 .picked-chip { display: inline-flex; align-items: center; gap: var(--space-2); background: var(--color-surface-2); font-weight: 600; }
 .picked-chip .x { font-size: 11px; color: var(--color-muted); }
@@ -765,7 +836,7 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .platter-art { --rec: 220px; position: relative; width: calc(var(--rec) * 1.45); height: var(--rec); }
 .platter-art::after { content: ""; position: absolute; z-index: 0; top: 4%; left: calc(var(--rec) * .5); width: calc(var(--rec) * .92); aspect-ratio: 1; border-radius: 50%; box-shadow: var(--shadow-art);
   background: radial-gradient(circle, var(--color-bg) 0 2.4%, transparent 2.8%), radial-gradient(circle closest-side, var(--tint) 0 33%, var(--color-vinyl) 34% 37%, transparent 38%),
-    repeating-radial-gradient(circle, #2b221c 0 1px, var(--color-vinyl) 1.5px 4px); }
+    repeating-radial-gradient(circle, var(--color-groove) 0 1px, var(--color-vinyl) 1.5px 4px); }
 .platter-art > :is(img, .sleeve-blank) { position: relative; z-index: 1; display: block; width: var(--rec); height: var(--rec); border-radius: 3px; object-fit: cover; box-shadow: 10px 14px 28px -10px rgb(0 0 0 / .7); }
 .platter h1 { font-size: 20px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 var(--space-3); }
 .platter .track { padding: 0; align-items: flex-start; gap: var(--space-4); }
