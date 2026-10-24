@@ -132,6 +132,20 @@ Load it in index.html before stamp-data.js. `src/stamps.js` requires it and pass
 4. Write `renderer/genre-data.js` and print a summary: total, per tier, per family, the drop list with reasons.
    Keep the pure helpers (`slugify`, `familyOf`, `tierOf`) exported for tests.
 
+**How to run the full build (built; only the slice below has been run).**
+```
+node scripts/build-genre-stamps.js --no-itunes
+```
+- Run it from the repo root, in the background (about 2,200 genres, roughly 4-5 h). It paces MusicBrainz at 1.5 s through `src/net.js`.
+- **Checkpoint:** `scripts/.genre-verify.json` (git-ignored). It holds the genre list, the Wikidata parents and every result so far, and is
+  written atomically after each genre. Kill it any time and run the same command again: it continues with the genres that are not
+  checked yet. Genres that hit a network error are not recorded, so the next run retries them. `--fresh` throws the checkpoint away.
+- `renderer/genre-data.js` is rewritten at the end of every run (also after a `--limit` or `--only` run) from everything in the checkpoint,
+  so a partial run ships only verified genres (≥6 playable songs on one fetch). Nothing unverified is ever written.
+- Other flags: `--only "zeuhl,gqom"` (names or slugs), `--limit N`. Without `--no-itunes` the iTunes fallback is used too (3 s per call, about 12 h).
+- **Status (2026-10-24):** the script and the UI are done. `genre-data.js` currently holds only the verified 17-genre slice (18 tried; kayōkyoku dropped as thin)
+  (see the commit message); the 500+ entry check in `test/genre-atlas.test.js` is reported as a diagnostic until the full run is committed.
+
 ### 4.6 UI (renderer/app.js, index.html, styles.css)
 - **Left panel:** a two-way switch above the catalogue: **Scenes** (the 43, as today) | **Genres (N)**.
   - Genres view: a search box (`#genre-q`, debounced 150 ms), a family select and tier chips (All/Common/Deep/Obscure).

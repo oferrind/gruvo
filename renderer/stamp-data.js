@@ -1,7 +1,7 @@
 // Genre Stamps data shared by main (src/stamps.js) and the renderer (no bundler, so a factory over the country list):
 // catalogue, builder genres, labels, Roll and the stamp book. docs/06.
 (function (root) {
-function StampData(COUNTRIES) {
+function StampData(COUNTRIES, GENRE_DATA = []) {
 const norm = s => String(s || '').normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 const ALL_CC = Object.assign({}, ...Object.values(COUNTRIES));
 const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
@@ -108,27 +108,61 @@ const continentOf = cc => (LATIN.has(cc) ? 'Latin America & Caribbean' : Object.
 
 const decadeName = d => (d >= 2000 ? `${d}s` : `${d % 100}s`.padStart(3, '0'));
 
-// id -> stamp, or null. Catalogue first, then a builder combo; "1980-JP-" is a legacy Passport stamp (no genre).
+// ---------- genre atlas (docs/12): [slug, MB name, family, tier C/D/O, parent slug, songs, "artist|artist|artist"] ----------
+const FAMILIES = { rock: 'Rock', metal: 'Metal', punk: 'Punk', pop: 'Pop', electronic: 'Electronic', 'hip-hop': 'Hip hop', 'rnb-soul': 'R&B / soul', jazz: 'Jazz',
+  blues: 'Blues', folk: 'Folk', country: 'Country', reggae: 'Reggae', latin: 'Latin', classical: 'Classical', experimental: 'Experimental', ambient: 'Ambient', other: 'Other' };
+const TIERS = { C: 'Common', D: 'Deep', O: 'Obscure' };
+const ATLAS = new Map(GENRE_DATA.map(([slug, name, family, tier, parent, songs, artists]) =>
+  [slug, { slug, name, label: name.charAt(0).toUpperCase() + name.slice(1), family, tier, parent, songs, artists: artists ? artists.split('|') : [] }]));
+const kids = new Map();
+for (const e of ATLAS.values()) if (ATLAS.has(e.parent)) kids.set(e.parent, [...(kids.get(e.parent) || []), e.slug]);
+
+// Key: "<decade>-<CC>-<genre>", each part optional but not all empty ("--zeuhl" is genre-only).
+const KEY = /^(\d{4})?-([A-Z]{2})?-([a-z0-9-]{0,40})$/;
+const atlasCache = new Map();
+function atlasStamp(id, e, decade, cc) {
+  if (atlasCache.has(id)) return atlasCache.get(id);
+  const par = ATLAS.get(e.parent), heard = e.artists.length ? ` Heard here: ${e.artists.join(', ')}.` : '';
+  const s = { id, decade: decade || null, cc, genre: e.slug, tags: [e.name], atlas: true, family: e.family, tier: e.tier, parent: e.parent, artists: e.artists,
+    label: `${decade ? `${decadeName(decade)} ` : ''}${cc ? `${DEMONYM[cc]} ${e.name}` : e.label}`,
+    blurb: `A branch of ${par ? par.label : FAMILIES[e.family].toLowerCase()}.${heard}` };
+  atlasCache.set(id, s);
+  return s;
+}
+
+// id -> stamp, or null. Catalogue first, then an atlas genre ("--zeuhl"), then a builder combo; "1980-JP-" is a legacy Passport stamp (no genre).
 function makeStamp(id) {
   if (BY_ID.has(id)) return BY_ID.get(id);
-  const m = /^(\d{4})-([A-Z]{2})-([a-z-]*)$/.exec(String(id));
-  if (!m || !Object.hasOwn(ALL_CC, m[2])) return null;
-  const decade = Number(m[1]), cc = m[2], genre = m[3];
+  const m = KEY.exec(String(id));
+  if (!m || (!m[1] && !m[2] && !m[3]) || (m[2] && !Object.hasOwn(ALL_CC, m[2]))) return null;
+  const decade = Number(m[1] || 0), cc = m[2] || '', genre = m[3];
+  if (genre && ATLAS.has(genre) && !(decade && cc && Object.hasOwn(GENRES, genre))) return !decade || DECADES.includes(decade) ? atlasStamp(id, ATLAS.get(genre), decade, cc) : null;
+  if (!decade || !cc) return null;
   if (!genre) return decade >= 1900 && decade % 10 === 0 ? { id, decade, cc, genre, tags: [], label: `${decadeName(decade)} ${ALL_CC[cc]}`, legacy: true } : null;
   if (!DECADES.includes(decade) || !Object.hasOwn(GENRES, genre)) return null;
   return { id, decade, cc, genre, tags: GENRES[genre][1], label: `${decadeName(decade)} ${DEMONYM[cc]} ${GENRES[genre][0]}`, custom: true };
 }
 
 // ---------- Roll ----------
-// 70% catalogue, 30% builder combo. Weights: taste-tag overlap x3, uncollected x2; the last 5 rolls never repeat.
-// Adventurous: after 2 rolls in a row on continents you already hold, the 3rd is forced onto one you don't.
-function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak = 0, short = [] } = {}, rand = Math.random) {
+// 50% place catalogue, 30% genre atlas, 20% builder combo (no atlas: 70/30). Weights: taste-tag overlap x3, uncollected x2; the last 5 rolls never repeat.
+// Atlas weights also favour Deep/Obscure x2. Adventurous: after 2 rolls in a row on continents (atlas: families) you already hold, the 3rd is forced onto one you don't.
+function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak = 0, gstreak = 0, short = [], genreOnly = false } = {}, rand = Math.random) {
   const heldCont = new Set(Object.keys(held).map(k => continentOf(k.split('-')[1])));
   const fresh = CONTINENTS.filter(c => !heldCont.has(c));
-  const only = adventurous && streak >= 2 && fresh.length ? new Set(fresh) : null;
+  const only = !genreOnly && adventurous && streak >= 2 && fresh.length ? new Set(fresh) : null;
   const ok = s => s && !recent.includes(s.id) && !short.includes(s.id) && (!only || only.has(continentOf(s.cc)));
   const taste = new Set(topTags.map(norm));
-  if (rand() < 0.3) {
+  if (ATLAS.size && !only && (genreOnly || rand() < 0.3)) {
+    const heldFam = new Set(Object.keys(held).map(k => (ATLAS.get(k.replace(/^-+/, '')) || {}).family).filter(Boolean));
+    const all = [...ATLAS.values()].filter(e => !recent.includes(`--${e.slug}`) && !short.includes(`--${e.slug}`));
+    const newFam = all.filter(e => !heldFam.has(e.family));
+    const pool = adventurous && gstreak >= 2 && newFam.length ? newFam : all;
+    const w = pool.map(e => (e.tier === 'C' ? 1 : 2) * (taste.has(norm(e.name)) || taste.has(norm(e.parent)) ? 3 : 1) * (held[`--${e.slug}`] ? 1 : 2));
+    let r = rand() * w.reduce((a, b) => a + b, 0);
+    const e = pool.find((x, i) => (r -= w[i]) < 0) || pool[pool.length - 1];
+    if (e) return makeStamp(`--${e.slug}`);
+  }
+  if (rand() < (ATLAS.size && !only ? 0.2 / 0.7 : 0.3)) {
     const ccs = Object.keys(ALL_CC), gs = Object.keys(GENRES);
     for (let i = 0; i < 30; i++) {
       const s = makeStamp(`${DECADES[Math.floor(rand() * 7)]}-${ccs[Math.floor(rand() * ccs.length)]}-${gs[Math.floor(rand() * gs.length)]}`);
@@ -141,6 +175,21 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak
   return pool.find((s, i) => (r -= w[i]) < 0) || pool[pool.length - 1] || CATALOGUE[0];
 }
 
+
+// Genres to browse: normalised substring match on the name, prefix hits first, then A-Z. {total, stamps}.
+function searchGenres(q = '', { family = '', tier = '' } = {}, limit = 60) {
+  const n = norm(q);
+  const hits = [...ATLAS.values()].filter(e => (!family || e.family === family) && (!tier || e.tier === tier) && norm(e.name).includes(n));
+  hits.sort((a, b) => (norm(b.name).startsWith(n) - norm(a.name).startsWith(n)) || a.name.localeCompare(b.name));
+  return { total: hits.length, stamps: hits.slice(0, limit).map(e => makeStamp(`--${e.slug}`)) };
+}
+// The parent, then up to 4 more (2 children first, siblings fill the rest). Never the genre itself.
+function nearby(slug) {
+  const e = ATLAS.get(slug);
+  if (!e) return [];
+  const par = ATLAS.has(e.parent) ? e.parent : '', own = kids.get(slug) || [], sib = par ? (kids.get(par) || []).filter(x => x !== slug) : [];
+  return [par, ...[...own.slice(0, 2), ...sib, ...own.slice(2)].slice(0, 4)].filter(Boolean).map(x => makeStamp(`--${x}`));
+}
 
 // ---------- collection ----------
 const tier = n => (n >= 3 ? 'gold' : n >= 1 ? 'bronze' : null); // 1 love earns a stamp, 3 make it gold
@@ -155,11 +204,14 @@ function book(held = {}) {
     const earned = stamps.filter(s => continentOf(s.cc) === continent).length; // legacy counts toward the continent, not the genre
     return { continent, slots: [...cat, ...own].map(slot), earned, total: cat.length };
   });
-  return { groups, legacy: stamps.filter(s => s.legacy).map(slot), catalogue: stamps.filter(s => BY_ID.has(s.id)).length,
-    custom: stamps.filter(s => s.custom).length, decades: [...new Set(stamps.map(s => s.decade))].sort() };
+  const atlas = stamps.filter(s => s.atlas && !s.decade && !s.cc);
+  const families = Object.keys(FAMILIES).map(family => ({ family, slots: atlas.filter(s => s.family === family).map(slot),
+    earned: atlas.filter(s => s.family === family).length, total: [...ATLAS.values()].filter(e => e.family === family).length })).filter(f => f.total);
+  return { groups, legacy: stamps.filter(s => s.legacy).map(slot), catalogue: stamps.filter(s => BY_ID.has(s.id)).length, families,
+    atlas: atlas.length, atlasTotal: ATLAS.size, custom: stamps.filter(s => s.custom).length, decades: [...new Set(stamps.map(s => s.decade).filter(Boolean))].sort() };
 }
 
-return { GENRES, DEMONYM, CATALOGUE, CONTINENTS, DECADES, ALL_CC, continentOf, decadeName, makeStamp, roll, tier, book };
+return { ATLAS, FAMILIES, TIERS, nearby, searchGenres, GENRES, DEMONYM, CATALOGUE, CONTINENTS, DECADES, ALL_CC, continentOf, decadeName, makeStamp, roll, tier, book };
 }
 if (typeof module === 'object' && module.exports) module.exports = StampData;
 else root.StampData = StampData;

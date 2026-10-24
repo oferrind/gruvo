@@ -29,6 +29,9 @@ function validPrefs(p) {
     scheme: SCHEMES.includes(p.scheme) ? p.scheme : 'shop', // colour scheme (renderer/styles.css [data-scheme])
   };
 }
+// A stamp key "<decade>-<CC>-<genre>": every part optional, not all empty ("--zeuhl" is a genre-only stamp).
+const STAMP_KEY = /^(\d{4})?-([A-Z]{2})?-([a-z0-9-]{0,40})$/;
+const validKey = k => { const m = STAMP_KEY.exec(k); return !!m && (!!m[1] || !!m[2] || !!m[3]); };
 // What was playing last ("continue where you left off" + the bar's "came from" chip). Anything malformed: null.
 function validLast(l) {
   const t = l && l.track, f = l && l.from;
@@ -38,7 +41,8 @@ function validLast(l) {
   if (typeof t.cover === 'string' && t.cover.startsWith('https://') && t.cover.length <= 500) track.cover = t.cover;
   if (typeof t.isrc === 'string' && t.isrc.length <= 20) track.isrc = t.isrc;
   if (typeof t.country === 'string' && /^[A-Z]{2}$/.test(t.country)) track.country = t.country;
-  if (typeof t.stamp === 'string' && /^\d{4}-[A-Z]{2}-[a-z-]{1,20}$/.test(t.stamp)) Object.assign(track, { stamp: t.stamp, genre: t.stamp.slice(8) }); // re-loving from Home keeps the stamp
+  const sk = typeof t.stamp === 'string' && STAMP_KEY.exec(t.stamp);
+  if (sk && sk[3]) Object.assign(track, { stamp: t.stamp, genre: sk[3] }); // re-loving from Home keeps the stamp
   const from = f && typeof f.tab === 'string' && /^[a-z]{1,16}$/.test(f.tab) ? { tab: f.tab, label: name(f.label) ? f.label.slice(0, 80) : '' } : null;
   return { track, from, ts: Number.isFinite(l.ts) ? l.ts : 0 };
 }
@@ -47,7 +51,7 @@ function validStamps(s) {
   const out = {};
   for (const [k, v] of Object.entries(s && typeof s === 'object' && !Array.isArray(s) ? s : {})) {
     const m = /^([A-Z]{2})-(\d{4})$/.exec(k), key = m ? `${m[2]}-${m[1]}-` : k;
-    if (/^\d{4}-[A-Z]{2}-[a-z-]{0,20}$/.test(key) && Number.isInteger(v) && v > 0 && v < 1e6) out[key] = (out[key] || 0) + v;
+    if (validKey(key) && Number.isInteger(v) && v > 0 && v < 1e6) out[key] = (out[key] || 0) + v;
   }
   return out;
 }
@@ -55,7 +59,7 @@ function validStamps(s) {
 function validRarity(r) {
   const out = {};
   for (const [k, v] of Object.entries(r && typeof r === 'object' && !Array.isArray(r) ? r : {}))
-    if (/^\d{4}-[A-Z]{2}-[a-z-]{1,20}$/.test(k) && ['Common', 'Rare', 'Legendary'].includes(v)) out[k] = v;
+    if (validKey(k) && k.split('-').slice(2).join('') && ['Common', 'Rare', 'Legendary'].includes(v)) out[k] = v;
   return out;
 }
 let file = null;

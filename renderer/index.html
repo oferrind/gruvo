@@ -131,13 +131,30 @@
             <span class="builder-end"><select id="b-genre" aria-label="Genre"></select><button class="builder-go" aria-label="Play" title="Play">&rarr;</button></span>
           </form>
           <div class="catalogue">
-            <div class="catalogue-head">
-              <h2 id="cat-title">Catalogue</h2>
-              <select id="cat-filter" aria-label="Show stamps from"><option value="">Everywhere</option></select>
+            <div class="chips browse-switch" role="group" aria-label="Browse by">
+              <button id="br-scenes" type="button" class="chip" aria-pressed="true">Scenes</button>
+              <button id="br-genres" type="button" class="chip" aria-pressed="false">Genres <span id="genre-total"></span></button>
             </div>
-            <ul id="catalogue" class="cat-list" aria-labelledby="cat-title"></ul>
-            <button id="cat-more" type="button" class="link cat-more" hidden></button>
-          </div>
+            <div id="scenes-view">
+              <div class="catalogue-head">
+                <h2 id="cat-title">Catalogue</h2>
+                <select id="cat-filter" aria-label="Show stamps from"><option value="">Everywhere</option></select>
+              </div>
+              <ul id="catalogue" class="cat-list" aria-labelledby="cat-title"></ul>
+              <button id="cat-more" type="button" class="link cat-more" hidden></button>
+            </div>
+            <div id="genres-view" hidden>
+              <div class="catalogue-head">
+                <h2 id="genre-title">Genres</h2>
+                <select id="genre-family" aria-label="Family"><option value="">All families</option></select>
+              </div>
+              <input id="genre-q" type="search" class="genre-q" placeholder="Search genres: zeuhl, shoegaze..." aria-label="Search genres" autocomplete="off" spellcheck="false">
+              <div id="genre-tiers" class="chips" role="group" aria-label="How deep MusicBrainz goes"></div>
+              <p id="genre-dig" class="hint genre-dig"></p>
+              <ul id="genre-list" class="cat-list" aria-labelledby="genre-title"></ul>
+              <button id="genre-more" type="button" class="link cat-more" hidden></button>
+              <button id="genre-roll" type="button" class="genre-roll">Roll a genre</button>
+            </div>
         </div>
         <div class="stamp-main">
           <div id="stamp-head" class="stamp-head"></div>
@@ -288,6 +305,7 @@
     <filter id="duo-tuner-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".06 .88"/><feFuncG type="table" tableValues=".16 .95"/><feFuncB type="table" tableValues=".11 .9"/></feComponentTransfer></filter>
   </svg>
   <script src="tint.js"></script>
+  <script src="genre-data.js"></script>
   <script src="stamp-data.js"></script>
   <script src="app.js"></script>
 </body>

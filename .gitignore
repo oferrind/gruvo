@@ -4,3 +4,5 @@ out/
 .claude/
 *.log
 graphify-out/
+
+scripts/.genre-verify.json*
