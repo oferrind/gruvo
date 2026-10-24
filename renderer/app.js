@@ -826,7 +826,7 @@ function renderGrowSettings() {
   const s = growSet();
   $('#grow-edges').replaceChildren(...GROW_EDGES.map(([e, hint]) => {
     const box = el('input', { type: 'checkbox', value: e, checked: s.edges.includes(e) });
-    return el('label', { className: 'grow-edge' }, box, edgeIcon(e), el('span', { className: 'grow-name', textContent: EDGE_NAMES[e] }), el('span', { className: 'grow-hint', textContent: hint }));
+    return el('label', { className: 'grow-edge' }, box, el('span', { className: 'grow-name', textContent: EDGE_NAMES[e] }), el('span', { className: 'grow-hint', textContent: hint }));
   }));
   $$('#grow-edges .grow-edge').forEach((l, i) => l.dataset.edge = GROW_EDGES[i][0]);
   Object.assign($('#grow-era'), { value: s.era }); $('#grow-place').value = s.place; $('#grow-width').value = String(s.width); $('#grow-fame').value = s.fame;
@@ -896,12 +896,7 @@ const EDGE_ICONS = {
 };
 // Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
 const ICONS = { play: 'M5 3.2v9.6L12.8 8z', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
-  heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z',
-  // Mode icons: Blind Test is a record with a closed eye for a label, Stamps a perforated stamp
-  // holding a record, Family Tree a parent node branching to two children.
-  mystery: 'M1.5 8a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0-13 0zM4.6 7.2c1.9 2 4.9 2 6.8 0M5.6 8.6l-.7 1.2M8 9.2v1.4M10.4 8.6l.7 1.2',
-  stamp: 'M2 2h1.65a.9 .9 0 0 0 1.8 0h1.65a.9 .9 0 0 0 1.8 0h1.65a.9 .9 0 0 0 1.8 0h1.65v1.65a.9 .9 0 0 0 0 1.8v1.65a.9 .9 0 0 0 0 1.8v1.65a.9 .9 0 0 0 0 1.8v1.65h-1.65a.9 .9 0 0 0-1.8 0h-1.65a.9 .9 0 0 0-1.8 0h-1.65a.9 .9 0 0 0-1.8 0h-1.65v-1.65a.9 .9 0 0 0 0-1.8v-1.65a.9 .9 0 0 0 0-1.8v-1.65a.9 .9 0 0 0 0-1.8v-1.65zM5.4 8a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0-5.2 0zM8 8h.01',
-  tree: 'M8 4.5V8M3.5 11.5V8h9v3.5M6.5 3a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0zM2 13a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0zM11 13a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0-3 0z' };
+  heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z' };
 function icon(name, filled) {
   const s = svgEl('svg', { viewBox: '0 0 16 16', class: `icon i-${name}${filled ? ' filled' : ''}`, 'aria-hidden': 'true', focusable: 'false' });
   s.append(svgEl('path', { d: ICONS[name] }));
@@ -1097,9 +1092,8 @@ function renderHome() {
   const ways = [['blind', tonight.length ? `${tonight.length} revealed tonight` : 'a mystery is cued up'],
     stampTab && [stampTab.dataset.tab, `${stamps} stamp${stamps === 1 ? '' : 's'} so far`],
     ['tree', newest ? `grow one from “${newest.title}”` : 'start from any song']].filter(Boolean);
-  const wayIcon = tab => icon(tab === 'blind' ? 'mystery' : tab === 'tree' ? 'tree' : 'stamp');
   $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
-    wayIcon(tab), el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
+    el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
 
   // Recent finds: tonight's reveals and your newest loves, one crate of sleeves.
   const seen = new Set(), finds = [];
