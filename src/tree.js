@@ -62,11 +62,11 @@ function eraQuery(a, S) {
   return b ? [span(eraWindow(S.era === 'any' ? 'near' : S.era, b)), S.place === 'same' && a.country && `country:${a.country}`].filter(Boolean).join(' AND ') : '';
 }
 const areaOf = a => ((a['begin-area'] || a.area || {}).name || '').replace(/["\\]/g, ' ').trim();
-// Same place: its city/area when MB has one, else its country; any genre; the Era filter still narrows the years.
+// Same place: its city/area OR its country (a city alone finds ~2 artists; the OR ranks city matches first); any genre; the Era filter still narrows the years.
 function placeQuery(a, S) {
   const b = yearOf((a['life-span'] || {}).begin), area = areaOf(a);
-  const where = area ? `beginarea:"${area}"` : a.country && `country:${a.country}`;
-  return where ? [where, span(eraWindow(S.era, b))].filter(Boolean).join(' AND ') : '';
+  const where = [area && `beginarea:"${area}"`, a.country && `country:${a.country}`].filter(Boolean).join(' OR ');
+  return where ? [`(${where})`, span(eraWindow(S.era, b))].filter(Boolean).join(' AND ') : '';
 }
 
 const sceneLabel = (tag, a, fansOf) => {
@@ -259,7 +259,12 @@ function sceneOf(T, node) {
   return node.sceneP ??= (node.mb ? scan(T, node.mb) : mbOf(T, node).then(mb => scan(T, mb))).catch(() => []);
 }
 
-const scan = async (T, mb) => mb && topTags(mb).length ? search(T, mb, sceneQuery(mb, T.S), true) : [];
+// A narrow Era window leaves old or niche artists with a scene of 1-2 (Dick Dale): one retry without the years.
+const scan = async (T, mb) => {
+  if (!mb || !topTags(mb).length) return [];
+  const rows = await search(T, mb, sceneQuery(mb, T.S), true);
+  return rows.length < 3 && T.S.era !== 'any' && T.live() ? search(T, mb, sceneQuery(mb, { ...T.S, era: 'any' }), true) : rows;
+};
 
 // One MB artist query (50 rows) around `mb`; `guard` = the scene's shared-tag check.
 async function search(T, mb, q, guard) {
@@ -292,7 +297,7 @@ async function rank(T, node) {
     .sort((a, b) => b.score - a.score);
   const b = yearOf(((node.mb || {})['life-span'] || {}).begin), cc = node.mb && node.mb.country;
   if (has('era')) lists.push(rows(era, 'era', () => `Same era: ${[S_cc(T, cc), b && `${b - (b % 10)}s`].filter(Boolean).join(', ')}`));
-  if (has('place')) lists.push(rows(place, 'place', () => `Also from ${areaOf(node.mb || {}) || ccName(cc)}`));
+  if (has('place')) lists.push(rows(place, 'place', a => `Also from ${areaOf(a) && areaOf(a) === areaOf(node.mb || {}) ? areaOf(a) : ccName(cc)}`));
   if (has('related') || (has('scene') && !lists[0].length)) lists.push(await relatedEdge(T, node, rel, scene, !has('related')));
   const out = []; // one from each kind in turn, so a tree with several edge types shows them all
   for (let i = 0; lists.some(l => i < l.length); i++) for (const l of lists) if (i < l.length) out.push(l[i]);
@@ -309,21 +314,22 @@ async function relatedEdge(T, node, rel, scene, fallback) {
   const inScene = new Set(scene.map(a => norm(a.name)));
   const pool = rel.filter(x => !taken(T, { artist: x.name, dzId: x.id }));
   if (S.fame !== 50) pool.sort((x, y) => S.fame < 50 ? (y.nb_fan || 0) - (x.nb_fan || 0) : (x.nb_fan || 0) - (y.nb_fan || 0));
-  const out = [];
+  const out = [], rest = []; // rest: Deezer's own picks that failed or skipped the Era/Place check; they fill up what the check left short
   let checks = 0;
   for (const r of pool) {
     if (out.length >= T.S.width + 2) break;
     const c = { artist: r.name, dzId: r.id, fans: r.nb_fan, kind: 'related', label: `Fans of ${node.artist} also play` };
     if ((w || sameCc) && !inScene.has(norm(r.name))) {
-      if (checks++ >= 3 || !T.live()) break;
+      if (checks++ >= 3 || !T.live()) { rest.push(c); continue; }
       const a = await mbArtist(T.get, r.name);
       const y = a && yearOf((a['life-span'] || {}).begin);
-      if (!a || (w && !(y && y >= w[0] && y <= w[1])) || (sameCc && a.country && a.country !== cc)) continue;
+      if (!a || (w && !(y && y >= w[0] && y <= w[1])) || (sameCc && a.country && a.country !== cc)) { rest.push(c); continue; }
       Object.assign(c, { mbid: a.id, mb: a });
     }
     out.push(c);
   }
-  return out;
+  // Related is the only edge that keeps Deezer's picks past the check, and only when the user chose it (the fallback stays a strict "family").
+  return fallback ? out : out.concat(rest).slice(0, T.S.width + 2);
 }
 
 // Turns a candidate into a child node. Claims first so a concurrent More can't add the same artist.
