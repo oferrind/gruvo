@@ -144,7 +144,7 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
         if (u.pathname !== '/callback' || !stateOk(state, u.searchParams.get('state'))) { res.writeHead(404).end(); return; }
         const code = u.searchParams.get('code');
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
-          .end(code ? 'Connected to Spotify. You can close this tab and go back to After Hours.' : 'Spotify login was cancelled. You can close this tab.');
+          .end(code ? 'Connected to Spotify. You can close this tab and go back to Stumble.' : 'Spotify login was cancelled. You can close this tab.');
         if (!code) return done({ error: 'Spotify login was cancelled.' });
         st = { clientId };
         const r = await tokenReq({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT, client_id: clientId, code_verifier: verifier });
@@ -201,7 +201,7 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
     const uris = [], unmatched = [];
     for (const t of tracks) { const u = await match(t); if (u) uris.push(u); else unmatched.push({ artist: t.artist, title: t.title }); }
     if (!uris.length) return { error: 'None of these songs were found on Spotify.', unmatched };
-    const pl = await api('POST', '/me/playlists', { name, public: false, description: 'Made with After Hours' });
+    const pl = await api('POST', '/me/playlists', { name, public: false, description: 'Made with Stumble' });
     if (!/^[A-Za-z0-9]+$/.test(pl.id || '')) throw new SpotifyError(0);
     for (const part of chunk(uris)) await api('POST', `/playlists/${pl.id}/items`, { uris: part });
     return { url: (pl.external_urls && pl.external_urls.spotify) || `https://open.spotify.com/playlist/${pl.id}`, added: uris.length, total: tracks.length, unmatched };

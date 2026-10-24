@@ -784,7 +784,7 @@ function spinReels(s) {
   });
 }
 $('#roll').onclick = doRoll;
-$('#stamp-export').onclick = e => stOpen && exportToSpotify(`After Hours: ${stOpen.label}`, stSongs, $('#stamp-export-status'), e.currentTarget);
+$('#stamp-export').onclick = e => stOpen && exportToSpotify(`Stumble: ${stOpen.label}`, stSongs, $('#stamp-export-status'), e.currentTarget);
 
 // ---------- C. Family Tree ----------
 // main builds the tree (src/tree.js) and streams nodes over 'tree:node'; a newer tree's run number drops the old one's.
@@ -1246,10 +1246,10 @@ async function exportToSpotify(name, tracks, out, b) {
   out.replaceChildren(`Added ${r.added} of ${r.total} songs to the private playlist “${name}”.${miss} `,
     btn('Open in Spotify', () => api.open(r.url).catch(() => toast('Could not open the browser')), 'ext'));
 }
-$('#saved-export').onclick = e => exportToSpotify('After Hours: Loved', profile.likes.slice().reverse(), $('#saved-export-status'), e.currentTarget);
+$('#saved-export').onclick = e => exportToSpotify('Stumble: Loved', profile.likes.slice().reverse(), $('#saved-export-status'), e.currentTarget);
 $('#tree-export').onclick = e => {
   const steps = $$('#tree-canvas .tree-node').map(n => trNodes[n.dataset.nodeId]?.track).filter(Boolean); // guided-step (document) order
-  exportToSpotify(steps.length ? `After Hours: ${steps[0].title} family tree` : 'After Hours', steps, $('#tree-export-status'), e.currentTarget);
+  exportToSpotify(steps.length ? `Stumble: ${steps[0].title} family tree` : 'Stumble', steps, $('#tree-export-status'), e.currentTarget);
 };
 
 // ---------- start ----------

@@ -156,7 +156,7 @@ test('export: private playlist via POST /me/playlists, items in ≤100 chunks, u
   assert.equal(r.total, 205);
   assert.deepEqual(r.unmatched.map(u => u.title), ['T7', 'T57', 'T107', 'T157']);
   const create = calls.find(x => x.url.endsWith('/me/playlists'));
-  assert.deepEqual(JSON.parse(create.body), { name: 'Loved', public: false, description: 'Made with After Hours' });
+  assert.deepEqual(JSON.parse(create.body), { name: 'Loved', public: false, description: 'Made with Stumble' });
   const adds = calls.filter(x => x.url.endsWith('/playlists/PL1/items')).map(x => JSON.parse(x.body).uris);
   assert.deepEqual(adds.map(a => a.length), [100, 100, 1]);
   assert.equal(adds[0][0], 'spotify:track:t0');

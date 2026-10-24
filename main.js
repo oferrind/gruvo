@@ -106,7 +106,7 @@ ipcMain.handle('spotify:devices', () => spotify.devices());
 ipcMain.handle('spotify:play', (e, t, deviceId) => spotify.play(trackIn(t), deviceId == null ? undefined : String(deviceId)));
 ipcMain.handle('spotify:export', (e, name, tracks) => {
   if (!Array.isArray(tracks)) throw new Error('bad tracks');
-  return spotify.exportPlaylist(String(name || 'After Hours').slice(0, 100), tracks.slice(0, 500).map(trackIn));
+  return spotify.exportPlaylist(String(name || 'Stumble').slice(0, 100), tracks.slice(0, 500).map(trackIn));
 });
 ipcMain.handle('store:load', () => store.load());
 ipcMain.handle('store:save', (e, profile) => store.save(profile));
