@@ -134,3 +134,8 @@ Reviewed, no change needed:
 - Export to Spotify and Play in Spotify use the same paths as the Tree and Saved rows.
 
 Not done: no live Electron run (low memory); the prefetch is verified with a mocked `get`, not against the real window. Short stamps (5-7 songs) are not remembered, only thin ones (<5), as in the spec's wording.
+
+## Round 8
+
+- Thin Roll landing: a prefetched Roll ("60s Korean jazz") opened with 0 songs. Fix: the prefetch now reports its result; a thin one is remembered (`stampShort`), discarded and replaced (max 3 tries), and a non-prefetched Roll that comes back thin re-rolls up to 2 times before the suggestion screen shows. `test/stamps.test.js`.
+- Stamp ink contrast: all six continent inks measured against page and card, both themes, as small text. Min ratio 6.19:1 (dark), 4.85:1 (light); no token needed changing. Locked by `test/contrast.test.js`.
