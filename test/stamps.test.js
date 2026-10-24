@@ -149,3 +149,39 @@ test('Roll: a combo that came back thin is never rolled again, catalogue or buil
     assert.ok(!short.includes(s.id), `re-rolled thin ${s.id}`);
   }
 });
+
+test('runner: a finished prefetch opens instantly (rows replayed, no new requests); opening another stamp drops it', async () => {
+  const a = Array.from({ length: 9 }, (_, i) => A(`j${i}`, `Band${i}`, 'JP'));
+  const { get, calls } = fakeGet({ recordings: a.map((x, i) => rec(`r${i}`, x, `Song${i}`, '1994')), guard: a });
+  const run = S.stampRunner(get), wait = () => new Promise(r => setTimeout(r, 50));
+  run.prefetch('1990-JP-rock');
+  await wait();
+  const before = calls.length, rows = [];
+  const res = await run.open('1990-JP-rock', r => rows.push(r));
+  assert.equal(calls.length, before, 'no request after opening a prefetched stamp');
+  assert.deepEqual([rows.length, res.count], [9, 9]);
+  run.prefetch('1990-JP-rock');
+  await wait();
+  const n = calls.length;
+  await run.open('1990-JP-pop', () => {}); // a different stamp: the prefetch is dropped and this one runs fresh
+  assert.ok(calls.length > n);
+  assert.equal(await run.open('1980-JP-', () => {}).catch(e => e.message), 'bad stamp');
+});
+
+test('runner: a stale open sends nothing and returns null; a replaced prefetch is not reused',async () => {
+  const a = Array.from({ length: 9 }, (_, i) => A(`j${i}`, `Band${i}`, 'JP'));
+  const { get, calls } = fakeGet({ recordings: a.map((x, i) => rec(`r${i}`, x, `Song${i}`, '1994')), guard: a });
+  const slow = async u => { await new Promise(r => setTimeout(r, 5)); return get(u); };
+  const run = S.stampRunner(slow), rows = [];
+  const first = run.open('1990-JP-rock', r => rows.push(r));
+  const second = run.open('1990-JP-pop', () => {});
+  assert.equal(await first, null);
+  assert.equal(rows.length, 0);
+  assert.ok((await second).count > 0);
+  run.prefetch('1990-JP-rock');
+  run.prefetch('1990-JP-punk'); // replaces it: the first stops
+  await new Promise(r => setTimeout(r, 300));
+  const n = calls.length;
+  await run.open('1990-JP-rock', () => {}); // its prefetch was replaced, so this runs fresh
+  assert.ok(calls.length > n);
+});

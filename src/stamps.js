@@ -107,4 +107,34 @@ async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand
   return { count, artists, short: count < 8, rarity: count < 8 || artists < 8 ? 'Legendary' : artists < 15 ? 'Rare' : 'Common' };
 }
 
-module.exports = { ...data, addGuard, songsFrom, order, strictPick, stampSongs };
+// Open/prefetch bookkeeping for main.js. One open is live at a time; the prefetch (the next Roll) runs silently,
+// is replayed at once when opened, and is stopped when another stamp is opened or prefetched.
+function stampRunner(get) {
+  let seq = 0, pre = null;
+  const start = (id, opts) => { const s = data.makeStamp(String(id)); if (!s || s.legacy) throw new Error('bad stamp'); return stampSongs(get, s, opts); };
+  const drop = () => { if (pre) pre.alive = false; pre = null; };
+  return {
+    async open(id, send, alive = () => true) {
+      const mine = ++seq, live = () => mine === seq && alive();
+      const emit = row => live() && send(row);
+      if (pre && pre.id === id) {
+        const p = pre; pre = null;
+        p.rows.forEach(emit); p.on = emit; p.live = live; // still resolving: the rest streams in, and stops if this open goes stale
+        const res = await p.res;
+        if (!live()) return null;
+        if (res && !res.error) return res;
+      } else drop();
+      const res = await start(id, { emit, live });
+      return live() ? res : null;
+    },
+    prefetch(id) {
+      if (pre && pre.id === id) return;
+      drop();
+      const p = { id, rows: [], on: null, alive: true, live: () => p.alive };
+      p.res = Promise.resolve().then(() => start(id, { emit: r => (p.on ? p.on(r) : p.rows.push(r)), live: () => p.live() })).catch(() => ({ error: true }));
+      pre = p;
+    },
+  };
+}
+
+module.exports = { ...data, addGuard, songsFrom, order, strictPick, stampSongs, stampRunner };
