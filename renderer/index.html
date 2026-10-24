@@ -34,8 +34,8 @@
       </ol>
       <div class="row">
         <button id="intro-start" type="button" class="primary">Start the Blind Test</button>
-        <button type="button" class="ghost" data-goto="stamps">Open Genre Stamps</button>
-        <button type="button" class="ghost" data-goto="tree">Open Family Tree</button>
+        <button type="button" data-goto="stamps">Open Genre Stamps</button>
+        <button type="button" data-goto="tree">Open Family Tree</button>
       </div>
     </section>
 
@@ -143,7 +143,7 @@
           <div id="stamp-head" class="stamp-head"></div>
           <div id="stamp-state" class="state" aria-live="polite"></div>
           <ul id="stamp-songs" class="tracks"></ul>
-          <div class="sp-export" id="stamp-export-box" hidden><button id="stamp-export" type="button" class="link">Export to Spotify</button><p id="stamp-export-status" class="hint" aria-live="polite"></p></div>
+          <div class="sp-export" id="stamp-export-box" hidden><button id="stamp-export" type="button">Export to Spotify</button><p id="stamp-export-status" class="hint" aria-live="polite"></p></div>
         </div>
         <aside class="stamp-book" aria-labelledby="book-title">
           <h2 id="book-title">Stamp book</h2>
@@ -158,7 +158,7 @@
       <div class="panel-head">
         <h1>Family Tree</h1>
         <p class="muted">Start from a song you saved. Walk through its scene, step by step.</p>
-        <div class="sp-export"><button id="tree-export" type="button" class="ghost">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
+        <div class="sp-export"><button id="tree-export" type="button">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <div class="tree-picker">
         <form id="tree-pick" class="search">
@@ -182,7 +182,7 @@
       <div class="panel-head">
         <h1>Saved</h1>
         <p class="muted">Everything you loved, newest first.</p>
-        <div class="sp-export"><button id="saved-export" type="button" class="ghost">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
+        <div class="sp-export"><button id="saved-export" type="button">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <h2>Stamps <span id="saved-stamp-count" class="count">0</span></h2>
       <ul id="saved-stamps" class="book-slots"></ul>

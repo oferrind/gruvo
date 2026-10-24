@@ -177,6 +177,7 @@ button:hover:not(:disabled) { background: var(--color-surface-2); border-color: 
 button:disabled { opacity: .45; cursor: not-allowed; }
 button.primary { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); font-weight: 650; }
 button.primary:hover:not(:disabled) { background: var(--color-accent); border-color: var(--color-accent); filter: brightness(1.08); }
+button:not(.way, .link, .ext, .ghost, .builder-go, [role=tab]):active:not(:disabled) { translate: 0 1px; filter: brightness(.94); }
 button.ghost { border-color: transparent; background: transparent; }
 button.link { border: none; background: none; padding: 0; min-height: 0; text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; text-underline-offset: 3px; text-align: left; font-weight: 600; }
 button.link:hover:not(:disabled) { background: none; color: var(--color-accent); }
@@ -725,7 +726,7 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .platter-art::after { content: ""; position: absolute; z-index: 0; top: 4%; left: calc(var(--rec) * .5); width: calc(var(--rec) * .92); aspect-ratio: 1; border-radius: 50%; box-shadow: var(--shadow-art);
   background: radial-gradient(circle, var(--color-bg) 0 2.4%, transparent 2.8%), radial-gradient(circle closest-side, var(--tint) 0 33%, var(--color-vinyl) 34% 37%, transparent 38%),
     repeating-radial-gradient(circle, #2b221c 0 1px, var(--color-vinyl) 1.5px 4px); }
-.platter-art > :is(img, .cover-ph) { position: relative; z-index: 1; display: block; width: var(--rec); height: var(--rec); border-radius: 3px; object-fit: cover; box-shadow: 10px 14px 28px -10px rgb(0 0 0 / .7); }
+.platter-art > :is(img, .sleeve-blank) { position: relative; z-index: 1; display: block; width: var(--rec); height: var(--rec); border-radius: 3px; object-fit: cover; box-shadow: 10px 14px 28px -10px rgb(0 0 0 / .7); }
 .platter h1 { font-size: 20px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 var(--space-3); }
 .platter .track { padding: 0; align-items: flex-start; gap: var(--space-4); }
 .platter .track:hover, .platter .track.is-playing { background: none; }
@@ -737,17 +738,23 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .platter .track .meta { flex: 0 1 auto; }
 .platter .track .love { margin-top: 10px; }
 .platter .row { margin-top: var(--space-5); }
-.platter.is-empty .platter-art > .cover-ph { background: var(--paper), var(--color-surface-2); }
+/* No cover to show: a plain kraft inner sleeve, its die-cut hole showing the record's label; never a fake cover. */
+.sleeve-blank { --kraft: color-mix(in oklab, var(--color-accent) 30%, var(--color-surface-2));
+  background: radial-gradient(circle, var(--color-bg) 0 1.3%, var(--tint) 1.7% 12.5%, rgb(0 0 0 / .45) 13% 14%, transparent 14.6%),
+    linear-gradient(transparent 6%, rgb(0 0 0 / .12) 6% 6.6%, transparent 6.6%), var(--paper), var(--kraft); }
 .lately { max-width: 52ch; margin: var(--space-5) 0 0; padding-top: var(--space-4); border-top: 1px dashed var(--color-border); font-size: 15px; text-wrap: pretty; }
-.ways-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-5); padding: var(--space-3) 0; border-block: 1px solid var(--color-border); }
+.ways-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); padding: var(--space-4) 0; border-block: 1px solid var(--color-border); }
 .ways-label { color: var(--color-muted); font-size: var(--font-size-sm); }
 .ways { display: contents; list-style: none; }
-.ways li { display: inline; }
-.way { display: inline-flex; align-items: baseline; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-1); border: none; background: none; }
-.way:hover:not(:disabled) { background: none; }
-.way-name { font: 700 18px/1 var(--font-display); letter-spacing: .02em; text-decoration: underline; text-decoration-color: var(--color-border); text-underline-offset: 4px; }
-.way:hover .way-name { text-decoration-color: var(--color-accent); }
-.way-live { color: var(--color-muted); font-size: var(--font-size-sm); }
+/* Other ways in: real buttons, a raised crate divider each; the platter row above holds the one amber primary. */
+.way { display: grid; grid-template-columns: auto auto; align-items: center; gap: 2px var(--space-3); min-height: 48px; padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
+  text-align: left; background: var(--paper), var(--color-surface); border-color: var(--color-border); box-shadow: inset 0 1px 0 rgb(255 255 255 / .05), 0 3px 6px -2px rgb(0 0 0 / .35);
+  transition: background var(--dur), border-color var(--dur), box-shadow var(--dur), translate var(--dur); }
+.way:hover:not(:disabled) { background: var(--paper), var(--color-surface-2); border-color: var(--color-accent); }
+.way:active:not(:disabled) { translate: 0 1px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .3); }
+.way .icon { grid-row: span 2; width: 20px; height: 20px; color: var(--color-accent); }
+.way-name { font: 700 18px/1.1 var(--font-display); letter-spacing: .02em; }
+.way-live { grid-column: 2; color: var(--color-muted); font-size: var(--font-size-sm); }
 .home > h2 { margin-top: 36px; }
 @media (max-width: 720px) { .platter { grid-template-columns: 1fr; } .platter-art { --rec: 170px; } .platter .track .title { font-size: 32px; } }
 

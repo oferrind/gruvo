@@ -859,7 +859,8 @@ const EDGE_ICONS = {
 };
 // Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
 const ICONS = { play: 'M5 3.2v9.6L12.8 8z', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
-  heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z' };
+  heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z',
+  mystery: 'M5.8 6a2.2 2.2 0 1 1 3.3 1.9c-.7.4-1.1.9-1.1 1.7v.3M8 12.6h.01', stamp: 'M2.5 2.5h11v11h-11zM5 5h6v6H5z', tree: 'M8 14V8M8 8C8 6 6 5 4 3M8 8c0-2 2-3 4-5M8 6V2' };
 function icon(name, filled) {
   const s = svgEl('svg', { viewBox: '0 0 16 16', class: `icon i-${name}${filled ? ' filled' : ''}`, 'aria-hidden': 'true', focusable: 'false' });
   s.append(svgEl('path', { d: ICONS[name] }));
@@ -1024,19 +1025,23 @@ const day = ts => new Date(ts).toLocaleDateString(undefined, { month: 'short', d
 const topOf = (xs, n = 3) => Object.entries(xs.reduce((a, x) => ((a[x] = (a[x] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, n);
 function renderHome() {
   if (!profile) return;
-  if (!current) setTint(profile.last && profile.last.track.cover);
   const { last, likes } = profile, f = last && last.from && $(`#tab-${last.from.tab}`) ? last.from : null;
-  // Last on the platter: the record you played last, as a sleeve on the counter, and the way back to where it came from.
-  $('#platter').classList.toggle('is-empty', !last);
-  $('#platter-title').textContent = last ? 'Last on the platter' : 'Nothing on the platter yet';
-  $('#platter-art').replaceChildren(last && last.track.cover ? el('img', { src: bigCover(last.track.cover), alt: '' }) : el('span', { className: 'cover-ph' }));
-  $('#platter-body').replaceChildren(...(last ? [
-    trackRow(last.track, { tag: 'div', from: f || undefined, extra: extraOf(last.track),
-      reason: `Played ${day(last.ts)}${f ? ` from ${f.label || tabName(f.tab)}` : ''}` }),
-    el('div', { className: 'row' }, btn(tonight.length ? 'Next mystery' : 'Open the Blind Test', () => showTab('blind'), 'primary'),
-      f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab), 'ghost') : null)]
+  // Last on the platter: the record you played last; before any play, the newest love; before any love, a blank inner sleeve.
+  const loved = !last && likes[likes.length - 1], shown = last ? last.track : loved;
+  if (!current) setTint(shown && shown.cover);
+  const blank = () => el('span', { className: 'sleeve-blank' });
+  const art = shown && shown.cover ? el('img', { src: bigCover(shown.cover), alt: '' }) : blank();
+  if (art.tagName === 'IMG') art.onerror = () => art.replaceWith(blank());
+  $('#platter').classList.toggle('is-empty', !shown);
+  $('#platter-title').textContent = last ? 'Last on the platter' : loved ? 'Last you loved' : 'Nothing on the platter yet';
+  $('#platter-art').replaceChildren(art);
+  $('#platter-body').replaceChildren(...(shown ? [
+    trackRow(shown, { tag: 'div', from: f || undefined, extra: extraOf(shown),
+      reason: last ? `Played ${day(last.ts)}${f ? ` from ${f.label || tabName(f.tab)}` : ''}` : loved.ts ? `Loved ${day(loved.ts)}` : 'Loved' }),
+    el('div', { className: 'row' }, btn(tonight.length ? 'Next mystery' : 'Start a Blind Test', () => showTab('blind'), 'primary'),
+      f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab)) : null)]
     : [el('p', { className: 'muted', textContent: 'Start with a mystery: one track, no names, and you rate it before you find out who it was.' }),
-      el('div', { className: 'row' }, btn('Start the Blind Test', () => showTab('blind'), 'primary'))]));
+      el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'))]));
 
   // Lately: one sentence from your loves and picks, not a stats table.
   const and = xs => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
@@ -1051,8 +1056,9 @@ function renderHome() {
   const ways = [['blind', tonight.length ? `${tonight.length} revealed tonight` : 'a mystery is cued up'],
     stampTab && [stampTab.dataset.tab, `${stamps} stamp${stamps === 1 ? '' : 's'} so far`],
     ['tree', newest ? `grow one from “${newest.title}”` : 'start from any song']].filter(Boolean);
+  const wayIcon = tab => icon(tab === 'blind' ? 'mystery' : tab === 'tree' ? 'tree' : 'stamp');
   $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
-    el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
+    wayIcon(tab), el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
 
   // Recent finds: tonight's reveals and your newest loves, one crate of sleeves.
   const seen = new Set(), finds = [];
