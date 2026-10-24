@@ -172,6 +172,19 @@
           <button>Search</button>
         </form>
       </div>
+      <details id="grow-settings" class="grow-settings">
+        <summary><span class="grow-title">Grow settings</span><span id="grow-summary" class="grow-summary"></span></summary>
+        <div class="grow-body">
+          <fieldset class="grow-edges"><legend>Connect songs by</legend><div id="grow-edges"></div></fieldset>
+          <div class="grow-filters">
+            <label>Years <select id="grow-era"><option value="near">Same years (±5)</option><option value="decade">Same decade</option><option value="any">Any era</option></select></label>
+            <label>Place <select id="grow-place"><option value="same">Same country</option><option value="any">Anywhere</option></select></label>
+            <label>Branch size <select id="grow-width"><option value="3">3 songs per node</option><option value="5">5 songs per node</option></select></label>
+            <label class="grow-fame">Fame <input id="grow-fame" type="range" min="0" max="100" step="10"><span class="grow-ends" aria-hidden="true"><span>Famous</span><span>Obscure</span></span></label>
+          </div>
+          <div class="grow-actions"><button id="grow-regrow" type="button" class="primary" hidden>Regrow with these settings</button></div>
+        </div>
+      </details>
       <ul id="tree-hits" class="tracks"></ul>
       <div id="tree-state" class="state" aria-live="polite"></div>
       <div id="tree-canvas" class="tree-canvas" aria-label="Family tree, in listening order. Up and Down arrows move between songs."></div>

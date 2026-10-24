@@ -5,7 +5,7 @@ const block = h => css.slice(css.indexOf(h) + h.length, css.indexOf('\n}', css.i
 const themes = { dark: block(':root {'), light: block(':root[data-theme=light] {'), 'light (OS)': block(':root:not([data-theme=dark]) {') };
 const lum = hex => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(c => (c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4)); return .2126 * r + .7152 * g + .0722 * b; };
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
-const INKS = ['ink-1', 'ink-2', 'ink-3', 'edge-related', 'edge-label', 'ink-4']; // Africa, Asia, Europe, N. America, Latin America, Oceania
+const INKS = ['ink-1', 'ink-2', 'ink-3', 'edge-related', 'edge-label', 'ink-4', 'edge-era', 'edge-place', 'edge-soundtrack']; // Africa, Asia, Europe, N. America, Latin America, Oceania
 const tok = (b, n) => (b.match(new RegExp(`--${n}:\\s*(#[0-9a-f]{6})`, 'i')) || [])[1];
 
 test('continent stamp inks are readable as small text (4.5:1) on the page and the card, in both themes', () => {

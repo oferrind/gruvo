@@ -796,6 +796,7 @@ function renderTreePicker() {
   trRoots = profile.likes.slice().reverse(); // newest first
   $('#tree-root').replaceChildren(...trRoots.map((t, i) => el('option', { value: i, textContent: `${t.title} – ${t.artist}` })));
   $('#tree-pick').hidden = !trRoots.length;
+  renderGrowSettings();
   if (!trRoots.length && !trNodes.length) trState('empty', 'Nothing saved yet. Search any song to grow its tree, or save songs in Blind Test or Genre Stamps.',
     { actions: [btn('Search a song', () => $('#tree-q').focus(), 'primary')] });
 }
@@ -813,12 +814,45 @@ $('#tree-search').addEventListener('submit', async e => {
   $('#tree-hits').replaceChildren(...hits.map(t => trackRow(t, { onOpen: () => { $('#tree-hits').replaceChildren(); growTree(t); } })));
 });
 
+// Grow settings (profile.prefs.tree): saved on change, applied only when the tree is regrown.
+const GROW_EDGES = [ // [edge, hint], in the order they are listed
+  ['scene', 'Same genre, years and country'], ['related', 'What fans of the artist also play'], ['era', 'Any genre, the same years'],
+  ['place', 'Same city or country, any genre'], ['soundtrack', 'Songs from the same film'], ['producer', 'Records the same producer made'],
+  ['label', 'Signed to the same label then'], ['member', 'Bands a member went on to or came from'],
+  ['builton', 'Songs it samples or is based on'], ['roots', 'Artists it names as an influence']];
+let trRoot = null, trUsed = '';
+const growSet = () => profile.prefs.tree;
+function renderGrowSettings() {
+  const s = growSet();
+  $('#grow-edges').replaceChildren(...GROW_EDGES.map(([e, hint]) => {
+    const box = el('input', { type: 'checkbox', value: e, checked: s.edges.includes(e) });
+    return el('label', { className: 'grow-edge' }, box, edgeIcon(e), el('span', { className: 'grow-name', textContent: EDGE_NAMES[e] }), el('span', { className: 'grow-hint', textContent: hint }));
+  }));
+  $$('#grow-edges .grow-edge').forEach((l, i) => l.dataset.edge = GROW_EDGES[i][0]);
+  Object.assign($('#grow-era'), { value: s.era }); $('#grow-place').value = s.place; $('#grow-width').value = String(s.width); $('#grow-fame').value = s.fame;
+  growSummary();
+}
+function growSummary() {
+  const s = growSet(), on = s.edges.map(e => EDGE_NAMES[e].replace(/^Same /, '').toLowerCase());
+  $('#grow-summary').textContent = `${on.length > 3 ? `${on.length} connections` : on.join(', ')} · ${{ near: 'same years', decade: 'same decade', any: 'any era' }[s.era]} · ${s.place === 'same' ? 'same country' : 'anywhere'}`
+    + (s.fame < 40 ? ' · famous' : s.fame > 60 ? ' · obscure' : '') + (s.width === 5 ? ' · 5 per node' : '');
+  $('#grow-regrow').hidden = !trRoot || JSON.stringify(s) === trUsed;
+}
+$('#grow-settings').addEventListener('change', e => {
+  const boxes = $$('#grow-edges input'), on = boxes.filter(b => b.checked).map(b => b.value);
+  if (!on.length) { e.target.checked = true; return toast('Keep at least one way to connect songs.'); } // the last one stays on
+  profile.prefs.tree = { edges: on, era: $('#grow-era').value, place: $('#grow-place').value, fame: Number($('#grow-fame').value), width: Number($('#grow-width').value) };
+  save(); growSummary();
+});
+$('#grow-regrow').onclick = () => trRoot && growTree(trRoot);
+
 async function growTree(root) {
   const run = ++trRun;
   trNodes = []; trBusy = 0; trEls = new Map();
+  trRoot = root; trUsed = JSON.stringify(growSet()); $('#grow-regrow').hidden = true;
   $('#tree-canvas').replaceChildren();
   trWork(1);
-  const ok = await api.tree(plain(root), profile.heard, run, profile.likes.map(({ source, id, artist, title }) => ({ source, id, artist, title }))).catch(e => { console.error('tree', e); return null; });
+  const ok = await api.tree(plain(root), profile.heard, run, profile.likes.map(({ source, id, artist, title }) => ({ source, id, artist, title })), plain(growSet())).catch(e => { console.error('tree', e); return null; });
   if (run !== trRun) return;
   trBusy--;
   if (ok === null) return trState('error', "Couldn't grow the tree right now. Check your connection.", { actions: [btn('Try again', () => growTree(root), 'primary')] });
@@ -832,7 +866,7 @@ api.onTreeNode((run, n) => { if (run === trRun) { trNodes[n.id] = n; renderTree(
 // Each node is built once (open About panels survive re-renders). Children sit in one .branch per edgeType under their
 // parent, so each category can be drawn as its own branch off the path. The spine is the root plus its children, in
 // step order. Fires 'tree:updated' on #tree-canvas after every change (stream or More) so connectors can be redrawn.
-const EDGE_NAMES = { scene: 'Same scene', member: 'Member moved', builton: 'Built on', roots: 'Roots', producer: 'Same producer', label: 'Same label', related: 'Fans also play' };
+const EDGE_NAMES = { era: 'Same era', place: 'Same place', soundtrack: 'Same soundtrack', scene: 'Same scene', member: 'Member moved', builton: 'Built on', roots: 'Roots', producer: 'Same producer', label: 'Same label', related: 'Fans also play' };
 function renderTree(model) {
   const canvas = $('#tree-canvas');
   for (const n of model.nodes) if (n && !trEls.has(n.id)) placeNode(n, canvas);
@@ -856,6 +890,9 @@ const EDGE_ICONS = {
   producer: 'M4 2v12M8 2v12M12 2v12M2.5 10h3M6.5 5h3M10.5 8h3',
   label: 'M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
   related: 'M6 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  era: 'M2.5 3.5h11v10h-11zM2.5 6.5h11M5.5 2v3M10.5 2v3',
+  place: 'M2 4l4-1.5 4 1.5 4-1.5v9.5L10 13.5 6 12 2 13.5zM6 2.5V12M10 4v9.5',
+  soundtrack: 'M3 2.5h10v11H3zM6 2.5v11M10 2.5v11M3 6h3M10 6h3M3 10h3M10 10h3',
 };
 // Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
 const ICONS = { play: 'M5 3.2v9.6L12.8 8z', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
