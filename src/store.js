@@ -34,6 +34,7 @@ function validLast(l) {
   if (typeof t.cover === 'string' && t.cover.startsWith('https://') && t.cover.length <= 500) track.cover = t.cover;
   if (typeof t.isrc === 'string' && t.isrc.length <= 20) track.isrc = t.isrc;
   if (typeof t.country === 'string' && /^[A-Z]{2}$/.test(t.country)) track.country = t.country;
+  if (typeof t.stamp === 'string' && /^\d{4}-[A-Z]{2}-[a-z-]{1,20}$/.test(t.stamp)) Object.assign(track, { stamp: t.stamp, genre: t.stamp.slice(8) }); // re-loving from Home keeps the stamp
   const from = f && typeof f.tab === 'string' && /^[a-z]{1,16}$/.test(f.tab) ? { tab: f.tab, label: name(f.label) ? f.label.slice(0, 80) : '' } : null;
   return { track, from, ts: Number.isFinite(l.ts) ? l.ts : 0 };
 }

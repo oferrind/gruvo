@@ -14,7 +14,7 @@
     <nav id="tabs" role="tablist" aria-label="Modes">
       <button role="tab" id="tab-home" data-tab="home" aria-controls="home" aria-selected="true">Home</button>
       <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="false" tabindex="-1">Blind Test</button>
-      <button role="tab" id="tab-passport" data-tab="passport" aria-controls="passport" aria-selected="false" tabindex="-1">Passport</button>
+      <button role="tab" id="tab-stamps" data-tab="stamps" aria-controls="stamps" aria-selected="false" tabindex="-1">Stamps</button>
       <button role="tab" id="tab-tree" data-tab="tree" aria-controls="tree" aria-selected="false" tabindex="-1">Family Tree</button>
       <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
       <button role="tab" id="tab-prefs" data-tab="prefs" aria-controls="prefs" aria-selected="false" tabindex="-1">Preferences</button>
@@ -29,12 +29,12 @@
       <p class="muted">Three ways in. Each one starts from somewhere different.</p>
       <ol class="modes">
         <li><h2>Blind Test</h2><p>Hear a track with no name, no cover, no hype. Rate it first, then see who it was.</p><p class="why">Why: you judge the sound, not the name.</p></li>
-        <li><h2>Passport</h2><p>Pick a country and a decade, get ten playable tracks from there and then.</p><p class="why">Why: no algorithm, just a place and a time.</p></li>
+        <li><h2>Genre Stamps</h2><p>A decade, a place and a genre: ten songs first released there and then. Love one to stamp it.</p><p class="why">Why: no algorithm, just a scene you have never been to.</p></li>
         <li><h2>Family Tree</h2><p>Start from a song you saved. Walk through its scene, step by step.</p><p class="why">Why: every step says how it is related.</p></li>
       </ol>
       <div class="row">
         <button id="intro-start" type="button" class="primary">Start the Blind Test</button>
-        <button type="button" class="ghost" data-goto="passport">Open Passport</button>
+        <button type="button" class="ghost" data-goto="stamps">Open Genre Stamps</button>
         <button type="button" class="ghost" data-goto="tree">Open Family Tree</button>
       </div>
     </section>
@@ -104,31 +104,53 @@
       </div>
     </section>
 
-    <!-- B. Sonic Passport -->
-    <section id="passport" class="panel" role="tabpanel" aria-labelledby="tab-passport" hidden>
+    <!-- B. Genre Stamps -->
+    <section id="stamps" class="panel" role="tabpanel" aria-labelledby="tab-stamps" hidden>
       <div class="panel-head">
-        <h1>Passport</h1>
-        <p class="muted">Pick a decade and a country. Love a track to collect that stamp.</p>
+        <h1>Genre Stamps</h1>
+        <p class="muted">Collect the world's music scenes, one stamp at a time.</p>
       </div>
-      <div class="passport-layout">
-      <div class="picker">
-        <div class="field">
-          <span id="decade-label" class="label">1. Decade</span>
-          <div id="decades" class="chips" role="group" aria-labelledby="decade-label"></div>
+      <div class="stamps-layout">
+        <div class="stamp-side">
+          <div class="roll">
+            <div id="reels" class="reels" aria-hidden="true">
+              <span class="reel reel-decade"><span class="reel-strip"><span>&ndash;</span></span></span>
+              <span class="reel reel-place"><span class="reel-strip"><span>&ndash;</span></span></span>
+              <span class="reel reel-genre"><span class="reel-strip"><span>&ndash;</span></span></span>
+            </div>
+            <p id="roll-said" class="sr-only" aria-live="polite"></p>
+            <div class="roll-row">
+              <button id="roll" type="button" class="primary roll-btn">Roll a stamp <kbd>R</kbd></button>
+              <label class="adventurous" title="At least one roll in three lands on a continent you have no stamp from"><input id="adventurous" type="checkbox" checked> Adventurous</label>
+            </div>
+          </div>
+          <form id="builder" class="builder" aria-label="Build your own stamp">
+            <span class="builder-lead">Play me</span>
+            <select id="b-decade" aria-label="Decade"></select>
+            <select id="b-place" aria-label="Place"></select>
+            <select id="b-genre" aria-label="Genre"></select>
+            <button class="builder-go">Play</button>
+          </form>
+          <div class="catalogue">
+            <div class="catalogue-head">
+              <h2 id="cat-title">Catalogue</h2>
+              <select id="cat-filter" aria-label="Show stamps from"><option value="">Everywhere</option></select>
+            </div>
+            <ul id="catalogue" class="cat-list" aria-labelledby="cat-title"></ul>
+          </div>
         </div>
-        <div class="field">
-          <label for="country-q">2. Country</label>
-          <input id="country-q" type="search" placeholder="Type to filter, e.g. Japan" autocomplete="off" aria-controls="countries">
-          <div id="countries" class="chips-groups" aria-label="Countries"></div>
+        <div class="stamp-main">
+          <div id="stamp-head" class="stamp-head"></div>
+          <div class="sp-export" id="stamp-export-box" hidden><button id="stamp-export" type="button" class="ghost">Export to Spotify</button><p id="stamp-export-status" class="hint" aria-live="polite"></p></div>
+          <div id="stamp-state" class="state" aria-live="polite"></div>
+          <ul id="stamp-songs" class="tracks"></ul>
         </div>
+        <aside class="stamp-book" aria-labelledby="book-title">
+          <h2 id="book-title">Stamp book</h2>
+          <p id="book-line" class="book-line"></p>
+          <div id="book"></div>
+        </aside>
       </div>
-      <div class="results">
-        <div id="passport-state" class="state" aria-live="polite"></div>
-        <ul id="passport-results" class="tracks"></ul>
-      </div>
-      </div>
-      <h2>Your stamps <span id="stamp-count" class="count">0</span></h2>
-      <ul id="stamps" class="stamps"></ul>
     </section>
 
     <!-- C. Family Tree -->
@@ -163,7 +185,7 @@
         <div class="sp-export"><button id="saved-export" type="button" class="ghost">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <h2>Stamps <span id="saved-stamp-count" class="count">0</span></h2>
-      <ul id="saved-stamps" class="stamps"></ul>
+      <ul id="saved-stamps" class="book-slots"></ul>
       <h2>Loved tracks <span id="saved-like-count" class="count">0</span></h2>
       <ul id="saved-list" class="tracks"></ul>
     </section>
@@ -242,6 +264,7 @@
     <filter id="duo-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".27 .97"/><feFuncG type="table" tableValues=".16 .9"/><feFuncB type="table" tableValues=".08 .76"/></feComponentTransfer></filter>
   </svg>
   <script src="tint.js"></script>
+  <script src="stamp-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
