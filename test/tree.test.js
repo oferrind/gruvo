@@ -21,15 +21,16 @@ const DZ_NAMES = [...SCENE.map(a => a.name), ...EARLY.map(a => a.name), ...LATE.
 const dzId = n => DZ_NAMES.indexOf(n) + 1;
 
 // A tiny recorded-shape world behind a fake `get`: no network.
-function world() {
+function world(over = () => undefined) {
   const calls = [];
   const get = async url => {
     calls.push(url);
     const u = decodeURIComponent(url);
-    let m;
+    let m, o = over(u);
+    if (o !== undefined) return o;
     if (u.includes('/ws/2/artist?query=artist:"Oasis"')) return { artists: [oasis] };
-    if (u.includes('/ws/2/artist?query=tag:') && u.includes('begin:[1984 ')) return { artists: EARLY };
-    if (u.includes('/ws/2/artist?query=tag:') && u.includes('begin:[2003 ')) return { artists: LATE };
+    if (u.includes('/ws/2/artist?query=tag:') && u.includes('begin:[1985 ')) return { artists: EARLY };
+    if (u.includes('/ws/2/artist?query=tag:') && u.includes('begin:[2004 ')) return { artists: LATE };
     if (u.includes('/ws/2/artist?query=tag:')) return { artists: SCENE };
     if (u.includes(`/ws/2/artist/${BEADY.id}`)) return BEADY;
     if (u.includes('/ws/2/artist?query=')) return { artists: [] };
@@ -49,7 +50,7 @@ function world() {
       return { data: [{ id: m[1] * 10, title: 'Hit (Live)', preview: 'https://x.dzcdn.net/l.mp3', artist, album: {} },
         { id: m[1] * 10 + 1, title: 'Hit (2011 Remaster)', preview: 'https://x.dzcdn.net/p.mp3', artist, album: {} }] };
     }
-    if ((m = u.match(/artist\/(\d+)\/related/))) return { data: +m[1] === dzId('Oasis') ? [{ id: dzId('Blur'), name: 'Blur' }, { id: dzId('Liam Gallagher'), name: 'Liam Gallagher' }] : [] };
+    if ((m = u.match(/artist\/(\d+)\/related/))) return { data: +m[1] === dzId('Oasis') ? [{ id: dzId('Blur'), name: 'Blur', nb_fan: 3000000 }, { id: dzId('Liam Gallagher'), name: 'Liam Gallagher', nb_fan: 100000 }, { id: dzId('Pulp'), name: 'Pulp', nb_fan: 9000 }] : [] };
     return { error: { message: 'no route' } };
   };
   return { get, calls };
@@ -136,7 +137,7 @@ test('scene guard: 2 shared top tags, or the top tag plus the country', () => {
   assert.ok(t.sceneGuard(oasis, row('x', 'X', { tags: tags(['britpop', 2], ['shoegaze', 1]) })));
   assert.ok(!t.sceneGuard(oasis, row('x', 'X', { country: 'IE', tags: tags(['britpop', 2], ['shoegaze', 1]) })));
   assert.ok(!t.sceneGuard(oasis, SCENE.find(a => a.name === 'Metallica')));
-  assert.equal(t.sceneQuery(oasis), 'tag:"britpop" AND begin:[1985 TO 1995] AND country:GB AND type:group');
+  assert.equal(t.sceneQuery(oasis), 'tag:"britpop" AND begin:[1986 TO 1996] AND country:GB AND type:group');
 });
 
 test('member moved: singers first, "went on to" vs "came from", era guard', () => {
@@ -164,4 +165,102 @@ test('built on by title only: the work\'s first studio recording names the artis
     rec('', 'Nobody'), rec('1965', 'The Rolling Stones')]), 'The Rolling Stones');
   assert.equal(t.firstPerformer([]), null);
   assert.deepEqual(t.lookBack(null, fx('mb_work_bss')).map(b => b.work), ['d12cf1ae-7feb-3f04-88e9-c4d7df3ff754']);
+});
+
+// ---------- Grow settings ----------
+const grow = async (settings, over) => {
+  const w = world(over), T = t.newTree(w.get, ROOT, { settings });
+  await t.growTree(T);
+  return { T, calls: w.calls.map(decodeURIComponent) };
+};
+const ERA = SCENE.slice(0, 6).map(a => ({ ...a, tags: [] }));
+const eraRoute = u => (u.includes('/ws/2/artist?query=begin:') || u.includes('/ws/2/artist?query=country:') ? { artists: ERA } : undefined);
+const artistQueries = calls => calls.filter(u => u.includes('/ws/2/artist?query=') && !u.includes('artist:"'));
+
+test('settings: validation clamps, allowlists, and falls back to today\'s behaviour', () => {
+  assert.deepEqual(t.validSettings(undefined), { edges: ['scene', 'member', 'builton', 'roots'], era: 'near', place: 'same', fame: 50, width: 3 });
+  const v = t.validSettings({ edges: ['roots', 'bogus', 'soundtrack', 'scene', 7], era: 'x', place: 'any', fame: 999, width: 4 });
+  assert.deepEqual(v, { edges: ['scene', 'soundtrack', 'roots'], era: 'near', place: 'any', fame: 100, width: 3 });
+  assert.equal(t.validSettings({ edges: [] }).edges.length, 4, 'at least one edge stays on');
+  assert.equal(t.validSettings({ width: 5, fame: -4, edges: 'scene' }).width, 5);
+  assert.equal(t.validSettings({ fame: NaN }).fame, 50);
+});
+
+test('settings: only the chosen edge types appear', async () => {
+  for (const edge of ['era', 'place', 'related']) {
+    const { T } = await grow({ edges: [edge], place: 'any', era: 'any' }, eraRoute);
+    const kids = T.nodes.slice(1);
+    assert.ok(kids.length >= 3, edge);
+    assert.ok(kids.every(n => n.label.startsWith({ era: 'Same era', place: 'Also from', related: 'Fans of' }[edge])), `${edge}: ${kids.map(n => n.label)}`);
+  }
+  const { calls } = await grow({ edges: ['related'], era: 'any', place: 'any' });
+  assert.ok(!calls.some(u => u.includes('query=tag:')), 'no scene query when Same scene is off');
+});
+
+test('settings: Era and Place shape the MB queries; Same era is any genre, Same place prefers the city', async () => {
+  const q = async s => artistQueries((await grow(s, eraRoute)).calls)[0];
+  assert.match(await q({ edges: ['scene'], era: 'near' }), /tag:"britpop" AND begin:\[1986 TO 1996\] AND country:GB/);
+  assert.match(await q({ edges: ['scene'], era: 'decade' }), /begin:\[1990 TO 1999\]/);
+  assert.doesNotMatch(await q({ edges: ['scene'], era: 'any', place: 'any' }), /begin:|country:/);
+  assert.match(await q({ edges: ['era'], era: 'near', place: 'same' }), /query=begin:\[1986 TO 1996\] AND country:GB&limit=50/);
+  assert.match(await q({ edges: ['era'], era: 'any', place: 'any' }), /query=begin:\[1986 TO 1996\]&limit=50/, 'Same era never goes wider than the near window');
+  assert.equal(t.placeQuery({ country: 'GB', 'begin-area': { name: 'Manchester' }, 'life-span': { begin: '1991' } }, t.SETTINGS()), 'beginarea:"Manchester" AND begin:[1986 TO 1996]');
+  assert.equal(t.placeQuery({ country: 'GB' }, { ...t.SETTINGS(), era: 'any' }), 'country:GB');
+  const { T } = await grow({ edges: ['place'], era: 'any' }, eraRoute);
+  assert.equal(T.nodes[1].label, 'Also from UK');
+});
+
+test('settings: related artists need no MB check when Era and Place are open, and at most 3 per node when they are not', async () => {
+  const open = await grow({ edges: ['related'], era: 'any', place: 'any' });
+  assert.ok(open.T.nodes.length > 1);
+  assert.ok(!open.calls.some(u => u.includes('/ws/2/artist?query=artist:"') && !u.includes('"Oasis"') && !u.includes('"Blur"') && !u.includes('"Pulp"') && !u.includes('"Liam') && !u.includes('"Cast"')));
+  const strict = await grow({ edges: ['related'], era: 'near', place: 'same' });
+  assert.ok(strict.calls.filter(u => u.includes('/ws/2/artist?query=artist:"')).length <= 1 + 3 * 4, 'root lookup plus 3 checks per node that grew');
+});
+
+test('settings: Fame caps obscure runs and floors famous ones; 50 changes nothing', async () => {
+  assert.ok(t.fameOk(3e6, 50) && t.fameOk(undefined, 100));
+  assert.ok(!t.fameOk(3e6, 100) && t.fameOk(9000, 100) && !t.fameOk(900000, 80));
+  assert.ok(t.fameOk(3e6, 0) && !t.fameOk(9000, 0) && !t.fameOk(100000, 0));
+  const names = async fame => (await grow({ edges: ['related'], era: 'any', place: 'any', fame })).T.nodes.filter(n => n.parent === 0).map(n => n.artist);
+  assert.deepEqual(await names(100), ['Pulp']);
+  assert.deepEqual(await names(0), ['Blur']);
+  assert.deepEqual(await names(50), ['Blur', 'Liam Gallagher', 'Pulp']);
+});
+
+test('settings: width 5 grows five children per node, 3 stays three, and the MB budget holds with every edge on', async () => {
+  const kidsOf = (T, id) => T.nodes.filter(n => n.parent === id).length;
+  const five = await grow({ edges: ['scene'], width: 5 });
+  assert.equal(kidsOf(five.T, 0), 5);
+  assert.ok(five.T.nodes.filter(n => n.depth === 1).every(n => kidsOf(five.T, n.id) <= 5));
+  assert.equal(kidsOf((await grow({ edges: ['scene'], width: 3 })).T, 0), 3);
+  const all = await grow({ edges: t.EDGES, width: 5 }, eraRoute);
+  assert.ok(all.calls.filter(u => u.includes('musicbrainz.org')).length <= 60, 'the MB budget is a hard cap');
+});
+
+test('soundtrack: best pure, official, earliest release; film name cleaned; other artists only, once each', () => {
+  const rel = (id, title, date, types, status = 'Official') => ({ id, title, date, status, 'release-group': { 'secondary-types': types } });
+  const recs = [{ title: 'Misirlou', 'artist-credit': [{ name: 'Dick Dale' }], releases: [
+    rel('c', 'Classic Movies', '1999', ['Compilation', 'Soundtrack']), rel('b', 'Pulp Fiction: Music From the Motion Picture', '1995', ['Soundtrack']),
+    rel('a', 'Pulp Fiction: Music From the Motion Picture', '1994-09-27', ['Soundtrack']), rel('x', 'Bootleg', '1990', ['Soundtrack'], 'Bootleg')] },
+  { title: 'Misirlou', 'artist-credit': [{ name: 'Other Band' }], releases: [rel('z', 'Elsewhere', '1980', ['Soundtrack'])] }];
+  const best = t.bestSoundtrack(recs, 'Dick Dale', 'Misirlou');
+  assert.deepEqual(best, { id: 'a', title: 'Pulp Fiction: Music From the Motion Picture', year: 1994 });
+  assert.equal(t.bestSoundtrack(recs, 'Underworld', 'Born Slippy'), null);
+  const tracks = t.soundtrackTracks({ media: [{ tracks: [{ title: 'Misirlou', 'artist-credit': [{ name: 'Dick Dale' }] },
+    { title: 'Jungle Boogie', 'artist-credit': [{ name: 'Kool & the Gang' }] }, { title: 'Again', 'artist-credit': [{ name: 'Kool & the Gang' }] },
+    { title: 'Dialogue', 'artist-credit': [{ name: 'Various Artists' }] }] }] }, 'Dick Dale', best);
+  assert.deepEqual(tracks.map(x => [x.artist, x.title, x.label]), [['Kool & the Gang', 'Jungle Boogie', 'Also on the Pulp Fiction soundtrack (1994)']]);
+});
+
+test('soundtrack: grows from the song\'s soundtrack tracklist with one tracklist call and a strict song match', async () => {
+  const over = u => {
+    if (u.includes('/ws/2/recording?query')) return { recordings: [{ id: 'r1', title: 'Wonderwall', 'artist-credit': [{ name: 'Oasis' }], releases: [
+      { id: 'rel1', title: 'The Film: Music From the Motion Picture', date: '1998', status: 'Official', 'release-group': { 'secondary-types': ['Soundtrack'] } }] }] };
+    if (u.includes('/ws/2/release/rel1')) return { media: [{ tracks: [{ title: 'Hit', 'artist-credit': [{ name: 'Blur' }] }, { title: 'Hit', 'artist-credit': [{ name: 'Oasis' }] }] }] };
+    if (u.includes('/search?q=')) return { data: [{ id: 77, title: 'Hit', preview: 'https://x.dzcdn.net/p.mp3', artist: { id: 2, name: 'Blur' }, album: {} }] };
+  };
+  const { T, calls } = await grow({ edges: ['soundtrack'], width: 3 }, over);
+  assert.deepEqual(T.nodes.slice(1).map(n => [n.artist, n.label]), [['Blur', 'Also on the The Film soundtrack (1998)']]);
+  assert.equal(calls.filter(u => u.includes('/ws/2/release/rel1')).length, 1);
 });

@@ -1,13 +1,14 @@
 // Family Tree (docs/05-song-tree-spec.md): a small explained tree of songs around one root song.
 // Like src/music.js, everything takes `get(url)` so tests can feed recorded JSON. Runs in main; nodes stream out via `emit`.
 const COUNTRIES = require('./countries');
-const { norm, soleArtist, sharedNames, personTrail, dedupe, baseTitle, flows: { resolvePreview } } = require('./music');
+const { norm, soleArtist, sharedNames, personTrail, dedupe, baseTitle, adventureMix, flows: { resolvePreview } } = require('./music');
 
 const DZ = 'https://api.deezer.com';
 const MB = 'https://musicbrainz.org/ws/2';
 const WD = 'https://www.wikidata.org/w/api.php';
 const enc = encodeURIComponent;
-const CAP = 60, KIDS = 3, MAX_ROOTS = 2;
+const FAMED = new Set(['scene', 'related', 'era', 'place', 'label']); // edges the Fame setting gates; members, roots and songs are chosen on purpose
+const CAP = 60, MORE = 3, MAX_ROOTS = 2, MB_BUDGET = 60; // MB_BUDGET: paced MusicBrainz calls per build (60 x 1.5 s); each More gets up to 12 more
 const CC = Object.assign({}, ...Object.values(COUNTRIES));
 const ccName = cc => ({ GB: 'UK', US: 'US' }[cc] || CC[cc] || cc);
 const yearOf = s => parseInt(String(s || '').slice(0, 4), 10) || null;
@@ -29,10 +30,43 @@ function sceneGuard(root, cand) {
   return rt.filter(t => ct.includes(t)).length >= 2 || (ct.includes(rt[0]) && !!cand.country && cand.country === root.country);
 }
 
-function sceneQuery(a) {
+// ---------- Grow settings (prefs.tree) ----------
+// Every edge type a tree can grow along. The default is the original behaviour (related is only a ranking boost there).
+const EDGES = ['scene', 'related', 'era', 'place', 'soundtrack', 'producer', 'label', 'member', 'builton', 'roots'];
+const SETTINGS = () => ({ edges: ['scene', 'member', 'builton', 'roots'], era: 'near', place: 'same', fame: 50, width: 3 });
+// Allowlist + clamp: used by the profile store and the IPC boundary, so nothing odd reaches the query builders.
+function validSettings(s) {
+  s = s && typeof s === 'object' ? s : {};
+  const d = SETTINGS(), edges = EDGES.filter(e => Array.isArray(s.edges) && s.edges.includes(e));
+  return { edges: edges.length ? edges : d.edges, era: ['near', 'decade', 'any'].includes(s.era) ? s.era : d.era,
+    place: ['same', 'any'].includes(s.place) ? s.place : d.place,
+    fame: Number.isFinite(s.fame) ? Math.max(0, Math.min(100, Math.round(s.fame))) : d.fame, width: s.width === 5 ? 5 : 3 };
+}
+// Fame slider 0 (famous) .. 100 (obscure), 50 = no preference. Obscure reuses the Blind Test's fan cap; famous is a fan floor.
+function fameOk(fans, fame) {
+  if (!Number.isFinite(fans) || fame === 50) return true;
+  return fame > 50 ? fans <= adventureMix((fame - 50) * 2).fanCap : fans >= (50 - fame) * 4000;
+}
+// Begin-year window for the Era filter ('any' = none).
+const eraWindow = (era, b) => !b || era === 'any' ? null : era === 'decade' ? [b - (b % 10), b - (b % 10) + 9] : [b - 5, b + 5];
+const span = w => w && `begin:[${w[0]} TO ${w[1]}]`;
+
+function sceneQuery(a, S = SETTINGS()) {
   const b = yearOf((a['life-span'] || {}).begin);
-  return [`tag:"${topTags(a)[0]}"`, b && `begin:[${b - 6} TO ${b + 4}]`, a.country && `country:${a.country}`, a.type === 'Group' && 'type:group']
+  return [`tag:"${topTags(a)[0]}"`, span(eraWindow(S.era, b)), S.place === 'same' && a.country && `country:${a.country}`, a.type === 'Group' && 'type:group']
     .filter(Boolean).join(' AND ');
+}
+// Same era: any genre, the node's years (the Era filter's window, never "any"), its country unless Place = Anywhere.
+function eraQuery(a, S) {
+  const b = yearOf((a['life-span'] || {}).begin);
+  return b ? [span(eraWindow(S.era === 'any' ? 'near' : S.era, b)), S.place === 'same' && a.country && `country:${a.country}`].filter(Boolean).join(' AND ') : '';
+}
+const areaOf = a => ((a['begin-area'] || a.area || {}).name || '').replace(/["\\]/g, ' ').trim();
+// Same place: its city/area when MB has one, else its country; any genre; the Era filter still narrows the years.
+function placeQuery(a, S) {
+  const b = yearOf((a['life-span'] || {}).begin), area = areaOf(a);
+  const where = area ? `beginarea:"${area}"` : a.country && `country:${a.country}`;
+  return where ? [where, span(eraWindow(S.era, b))].filter(Boolean).join(' AND ') : '';
 }
 
 const sceneLabel = (tag, a, fansOf) => {
@@ -97,13 +131,44 @@ function originalRecording(recs, artist, title) {
   return ok.sort((a, b) => a['first-release-date'].localeCompare(b['first-release-date']))[0] || null;
 }
 
+// The earliest official release of a pure soundtrack (not a "Soundtrack + Compilation" mix) that carries this song,
+// from recording-search rows (their releases carry the release-group's secondary types).
+function bestSoundtrack(recs, artist, title) {
+  const out = [];
+  for (const r of recs || []) {
+    if (norm(r.title) !== norm(title) || !(r['artist-credit'] || []).some(c => norm(c.name) === norm(artist))) continue;
+    for (const rel of r.releases || []) {
+      const t = (rel['release-group'] || {})['secondary-types'] || [];
+      if (rel.status === 'Official' && t.includes('Soundtrack') && !t.includes('Compilation')) out.push(rel);
+    }
+  }
+  const dated = out.filter(r => r.date).sort((a, b) => a.date.localeCompare(b.date));
+  const hit = dated[0] || out[0];
+  return hit ? { id: hit.id, title: hit.title, year: yearOf(hit.date) } : null;
+}
+// "Pulp Fiction: Music From the Motion Picture" -> "Pulp Fiction"
+const filmName = t => t.replace(/\s*[:(–-]\s*(music from|original|motion picture|ost|soundtrack|\w+ (motion picture|soundtrack))\b.*$/i, '').replace(/\s+soundtrack$/i, '').trim() || t;
+// Other artists' tracks on a release's tracklist, one per artist.
+function soundtrackTracks(rel, artist, sound) {
+  const seen = new Set([norm(artist)]), out = [];
+  for (const m of (rel && rel.media) || []) for (const t of m.tracks || []) {
+    const a = (t['artist-credit'] || []).map(c => c.name + (c.joinphrase || '')).join('');
+    if (!a || !t.title || /^various/i.test(a) || seen.has(norm(a))) continue;
+    seen.add(norm(a));
+    out.push({ artist: a, title: t.title, kind: 'soundtrack', label: `Also on the ${filmName(sound.title)} soundtrack${sound.year ? ` (${sound.year})` : ''}` });
+  }
+  return out;
+}
+
 // ---------- tree state ----------
 
 // Saved songs never come back as tree songs (the root is shown as given): by id, or artist + base title so a remaster counts too.
 const songKey = t => `${norm(t.artist)}|${baseTitle(t.title)}`;
 const isSaved = (T, t) => T.saved.has(`id:${t.source}:${t.id}`) || T.saved.has(songKey(t));
-function newTree(get, root, { emit = () => {}, live = () => true, heard = [], saved = [] } = {}) {
-  const T = { get, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0,
+function newTree(get, root, { emit = () => {}, live = () => true, heard = [], saved = [], settings } = {}) {
+  // MusicBrainz is paced, so the build gets a fixed call budget: past it MB calls answer {error} and that edge is skipped.
+  const T = { S: validSettings(settings), fans: new Map(), rels: new Map(), mbLeft: MB_BUDGET, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0,
+    get: url => String(url).startsWith(MB) && T.mbLeft-- <= 0 ? Promise.resolve({ error: 'budget' }) : get(url),
     saved: new Set(saved.flatMap(s => [s.id != null && `id:${s.source}:${s.id}`, songKey(s)]).filter(Boolean)) };
   addNode(T, null, root, { label: '' });
   claim(T, { artist: root.artist, dzId: root.artistDzId });
@@ -127,13 +192,14 @@ function addNode(T, parent, track, c) {
 // ---------- network steps (each skips its edge on failure, never fails the tree) ----------
 
 // Exact-name Deezer artist; two different artists with that name = can't tell which was meant, so none ("Cast", "Gene").
-async function dzArtist(get, name) {
+async function dzArtist(get, name, fans) {
   const res = await get(`${DZ}/search/artist?q=${enc(`artist:"${name}"`)}&limit=10`);
   const exact = (res.data || []).filter(a => norm(a.name) === norm(name)).sort((a, b) => (b.nb_fan || 0) - (a.nb_fan || 0));
+  const pick = a => { if (fans && Number.isFinite(a.nb_fan)) fans.set(a.id, a.nb_fan); return a.id; }; // fan counts feed the Fame setting
   // Deezer keeps dead duplicate entries (a second "Beady Eye" with 2 fans): a 100x lead still means one real artist.
-  if (exact.length > 1 && (exact[0].nb_fan || 0) >= 100 * Math.max(1, exact[1].nb_fan || 0)) return exact[0].id;
+  if (exact.length > 1 && (exact[0].nb_fan || 0) >= 100 * Math.max(1, exact[1].nb_fan || 0)) return pick(exact[0]);
   const hit = soleArtist(exact, name, a => a.name, a => a.id);
-  return hit.length ? hit[0].id : null;
+  return hit.length ? pick(hit[0]) : null;
 }
 
 const dzTrack = r => r && { source: 'dz', id: r.id, artist: r.artist.name, artistDzId: r.artist.id,
@@ -163,7 +229,7 @@ async function mbArtist(get, name, like) {
   return a;
 }
 
-const mbRels = (get, mbid) => get(`${MB}/artist/${mbid}?inc=artist-rels+url-rels+label-rels+tags&fmt=json`);
+const relsOf = (T, mbid) => T.rels.get(mbid) || T.rels.set(mbid, T.get(`${MB}/artist/${mbid}?inc=artist-rels+url-rels+label-rels+tags&fmt=json`)).get(mbid);
 
 async function influences(get, rels) {
   const url = ((rels && rels.relations) || []).find(r => r.type === 'wikidata' && r.url);
@@ -180,7 +246,7 @@ async function influences(get, rels) {
 // The node's MB row (tags, era, country): from the scene search, its rels, or an exact-name lookup like the root's.
 async function mbOf(T, node) {
   if (node.mb) return node.mb;
-  if (node.mbid) { const r = await mbRels(T.get, node.mbid); if (!r.error) node.mb = r; }
+  if (node.mbid) { const r = await relsOf(T, node.mbid); if (!r.error) node.mb = r; }
   else { const a = await mbArtist(T.get, node.artist, T.nodes[0].mb); if (a) { node.mb = a; node.mbid = a.id; claim(T, { mbid: a.id }); } }
   return node.mb;
 }
@@ -191,38 +257,69 @@ function sceneOf(T, node) {
   return node.sceneP ??= (node.mb ? scan(T, node.mb) : mbOf(T, node).then(mb => scan(T, mb))).catch(() => []);
 }
 
-async function scan(T, mb) {
-  if (!mb || !topTags(mb).length || !T.live()) return [];
-  const res = await T.get(`${MB}/artist?query=${enc(sceneQuery(mb))}&limit=50&fmt=json`);
-  const rows = (res.artists || []).filter(a => a.id !== mb.id && sceneGuard(mb, a));
-  const shared = sharedNames(rows, rows.map(a => a.name)); // two scene artists with one name: can't tell them apart on Deezer
+const scan = async (T, mb) => mb && topTags(mb).length ? search(T, mb, sceneQuery(mb, T.S), true) : [];
+
+// One MB artist query (50 rows) around `mb`; `guard` = the scene's shared-tag check.
+async function search(T, mb, q, guard) {
+  if (!mb || !q || !T.live()) return [];
+  const res = await T.get(`${MB}/artist?query=${enc(q)}&limit=50&fmt=json`);
+  const rows = (res.artists || []).filter(a => a.id !== mb.id && (!guard || sceneGuard(mb, a)));
+  const shared = sharedNames(rows, rows.map(a => a.name)); // two artists with one name: can't tell them apart on Deezer
   return rows.filter(a => !shared.has(norm(a.name)));
 }
+// Same era / Same place: one cached query per node, like the scene's.
+const laneOf = (T, node, key, queryOf) => node[key] ??= mbOf(T, node).then(mb => search(T, mb, mb && queryOf(mb, T.S))).catch(() => []);
 
 // Ranked scene candidates for `node`: its own scene, boosted when the node's fans also play them.
 async function rank(T, node) {
-  const [rel, scene] = await Promise.all([related(T.get, node.dzId), sceneOf(T, node)]);
+  const has = k => T.S.edges.includes(k);
+  const [rel, scene, era, place] = await Promise.all([has('scene') || has('related') ? related(T.get, node.dzId) : [],
+    has('scene') ? sceneOf(T, node) : [], has('era') ? laneOf(T, node, 'eraP', eraQuery) : [], has('place') ? laneOf(T, node, 'placeP', placeQuery) : []]);
   const relBy = new Map(rel.map(a => [norm(a.name), a]));
-  if (!scene.length) return fallback(T, node, rel);
-  const tag = topTags(node.mb)[0];
-  return scene.map(a => {
-    const r = relBy.get(norm(a.name));
-    const heard = T.heard.has(norm(a.name)) || (r && T.heard.has(`dz:${r.id}`));
-    const score = (r ? 3 : 2) + (a.score || 0) / 100 - (heard ? 0.5 : 0);
-    return { artist: a.name, mbid: a.id, mb: a, dzId: r ? r.id : undefined, kind: 'scene', score,
-      label: sceneLabel(tag, a, r && node.artist) };
-  }).sort((a, b) => b.score - a.score);
+  const heardOf = (a, r) => T.heard.has(norm(a.name)) || (r && T.heard.has(`dz:${r.id}`));
+  const lists = [];
+  if (has('scene')) {
+    const tag = topTags(node.mb)[0];
+    lists.push(scene.map(a => {
+      const r = relBy.get(norm(a.name));
+      return { artist: a.name, mbid: a.id, mb: a, dzId: r ? r.id : undefined, fans: r && r.nb_fan, kind: 'scene',
+        score: (r ? 3 : 2) + (a.score || 0) / 100 - (heardOf(a, r) ? 0.5 : 0), label: sceneLabel(tag, a, r && node.artist) };
+    }).sort((a, b) => b.score - a.score));
+  }
+  const rows = (list, kind, label) => list.map(a => ({ artist: a.name, mbid: a.id, mb: a, kind, score: (a.score || 0) / 100 - (heardOf(a) ? 0.5 : 0), label: label(a) }))
+    .sort((a, b) => b.score - a.score);
+  const b = yearOf(((node.mb || {})['life-span'] || {}).begin), cc = node.mb && node.mb.country;
+  if (has('era')) lists.push(rows(era, 'era', () => `Same era: ${[S_cc(T, cc), b && `${b - (b % 10)}s`].filter(Boolean).join(', ')}`));
+  if (has('place')) lists.push(rows(place, 'place', () => `Also from ${areaOf(node.mb || {}) || ccName(cc)}`));
+  if (has('related') || (has('scene') && !lists[0].length)) lists.push(await relatedEdge(T, node, rel, scene, !has('related')));
+  const out = []; // one from each kind in turn, so a tree with several edge types shows them all
+  for (let i = 0; lists.some(l => i < l.length); i++) for (const l of lists) if (i < l.length) out.push(l[i]);
+  return out;
 }
+const S_cc = (T, cc) => T.S.place === 'same' && cc ? ccName(cc) : '';
 
-// No tags, no scene: the node's Deezer neighbours whose start year is within 8 years of the node's (at most 3 MB checks).
-async function fallback(T, node, rel) {
-  const b = yearOf(((node.mb || {})['life-span'] || {}).begin);
-  if (!b) return [];
+// Deezer's related artists as an edge: sorted by the Fame setting, and, when Era or Place narrow things, checked on MB
+// (at most 3 lookups per node; an artist already in the node's scene list needs none).
+async function relatedEdge(T, node, rel, scene, fallback) {
+  const { S } = T, b = yearOf(((node.mb || {})['life-span'] || {}).begin), cc = node.mb && node.mb.country;
+  const era = fallback && S.era === 'any' ? 'near' : S.era; // no tags and no scene: the era check is what keeps it a "family"
+  const w = eraWindow(era, b), sameCc = S.place === 'same' && cc;
+  const inScene = new Set(scene.map(a => norm(a.name)));
+  const pool = rel.filter(x => !taken(T, { artist: x.name, dzId: x.id }));
+  if (S.fame !== 50) pool.sort((x, y) => S.fame < 50 ? (y.nb_fan || 0) - (x.nb_fan || 0) : (x.nb_fan || 0) - (y.nb_fan || 0));
   const out = [];
-  for (const r of rel.filter(x => !taken(T, { artist: x.name, dzId: x.id })).slice(0, 3)) {
-    const a = await mbArtist(T.get, r.name);
-    const y = a && yearOf((a['life-span'] || {}).begin);
-    if (y && Math.abs(y - b) <= 8) out.push({ artist: r.name, dzId: r.id, mbid: a.id, mb: a, kind: 'related', label: `Same era · fans of ${node.artist} play them too` });
+  let checks = 0;
+  for (const r of pool) {
+    if (out.length >= T.S.width + 2) break;
+    const c = { artist: r.name, dzId: r.id, fans: r.nb_fan, kind: 'related', label: `Fans of ${node.artist} also play` };
+    if ((w || sameCc) && !inScene.has(norm(r.name))) {
+      if (checks++ >= 3 || !T.live()) break;
+      const a = await mbArtist(T.get, r.name);
+      const y = a && yearOf((a['life-span'] || {}).begin);
+      if (!a || (w && !(y && y >= w[0] && y <= w[1])) || (sameCc && a.country && a.country !== cc)) continue;
+      Object.assign(c, { mbid: a.id, mb: a });
+    }
+    out.push(c);
   }
   return out;
 }
@@ -241,8 +338,9 @@ async function tryAdd(T, node, c) {
   } else if (c.title) {
     track = await resolvePreview(T.get, c.artist, c.title, true);
   } else {
-    const dzId = c.dzId ?? await dzArtist(T.get, c.artist);
+    const dzId = c.dzId ?? await dzArtist(T.get, c.artist, T.fans);
     if (dzId == null || (c.dzId == null && T.used.has(`dz:${dzId}`))) return null;
+    if (FAMED.has(c.kind) && !fameOk(c.fans ?? T.fans.get(dzId), T.S.fame)) return null;
     T.used.add(`dz:${dzId}`);
     track = await topTrack(T.get, dzId, x => isSaved(T, x)); // a saved hit: the artist's next track instead
   }
@@ -258,12 +356,17 @@ async function fill(T, node, n) {
 
 // The original recording, its producers and what it looks back on. Cached per node (MB calls are 1.5 s each).
 // The promise is kept, so a More during the build waits for the lookup the build started instead of getting nothing.
+// One recording search per node (100 rows: their releases carry the release-group types the Soundtrack edge reads).
+const recSearch = (T, node) => node.recSearchP ??= (async () => {
+  const { artist } = node.track;
+  const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
+  const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
+  return { recordings: (await T.get(`${MB}/recording?query=${enc(q)}&limit=100&fmt=json`)).recordings || [], artist, title };
+})();
 function recordingOf(T, node) {
   return node.recP ??= (async () => {
-    const { artist } = node.track;
-    const title = node.track.title.replace(/\s*[([][^)\]]*[)\]]|\s+-\s+.*$/g, '').trim() || node.track.title; // "Wonderwall (Live from Dublin)" -> "Wonderwall"
-    const q = `recording:"${title.replace(/["\\]/g, ' ')}" AND artist:"${artist.replace(/["\\]/g, ' ')}"`;
-    const hit = originalRecording((await T.get(`${MB}/recording?query=${enc(q)}&limit=10&fmt=json`)).recordings, artist, title);
+    const { recordings, artist, title } = await recSearch(T, node);
+    const hit = originalRecording(recordings, artist, title);
     if (!hit) return null;
     const rec = await T.get(`${MB}/recording/${hit.id}?inc=work-rels+recording-rels+artist-rels+artist-credits&fmt=json`);
     if (rec.error) return null;
@@ -278,23 +381,28 @@ function recordingOf(T, node) {
 function candsOf(T, node) {
   return node.candsP ??= (async () => {
     if (!T.live()) return [];
-    const recP = node.depth === 0 ? recordingOf(T, node) : null;
+    const has = k => T.S.edges.includes(k), near = node.depth <= 1; // producer, label and soundtrack lookups cost 2-4 MB calls: root and its children only
+    const recP = node.depth === 0 && (has('builton') || has('producer')) ? recordingOf(T, node) : null;
+    const soundP = near && has('soundtrack') ? soundEdge(T, node) : null;
     await mbOf(T, node);
-    const rels = node.mbid && T.live() ? await mbRels(T.get, node.mbid) : null;
+    const rels = node.mbid && T.live() && (has('member') || has('roots')) ? await relsOf(T, node.mbid) : null;
     const cands = [];
     if (rels && !rels.error) {
       node.mb = node.mb || rels;
       const band = { id: node.mbid, begin: yearOf((node.mb['life-span'] || {}).begin) };
       const members = parseMembers(rels.relations);
       members.forEach(m => claim(T, { artist: m.name })); // "Liam Gallagher" never shows up under Oasis
-      const infP = T.roots < MAX_ROOTS ? influences(T.get, rels).catch(() => []) : Promise.resolve([]); // Wikidata runs beside the MB lookups
-      const mrs = T.live() ? await Promise.all(members.slice(0, node.depth === 0 ? 2 : 1).map(m => T.get(`${MB}/artist/${m.id}?inc=artist-rels&fmt=json`))) : [];
+      const infP = has('roots') && T.roots < MAX_ROOTS ? influences(T.get, rels).catch(() => []) : Promise.resolve([]); // Wikidata runs beside the MB lookups
+      const mrs = T.live() && has('member') ? await Promise.all(members.slice(0, node.depth === 0 ? 2 : 1).map(m => T.get(`${MB}/artist/${m.id}?inc=artist-rels&fmt=json`))) : [];
       mrs.forEach((mr, i) => cands.push(...otherBands(mr.relations, members[i], band)));
       const inf = (await infP).filter(n => !taken(T, { artist: n }));
       if (inf[0]) cands.push({ artist: inf[0], kind: 'roots', label: `${node.artist} named ${inf[0]} as an influence` });
     }
     const r = await recP;
-    return [...(r ? lookBack(r.rec, r.work) : []), ...cands];
+    const prod = near && has('producer') && T.live() ? await (async () => { const rr = r || await recordingOf(T, node); return rr ? producerEdge(T, node, rr.rec) : []; })() : [];
+    const sound = soundP ? await soundP : [], lab = near && has('label') && T.live() ? await labelEdge(T, node) : [];
+    // One of each chosen edge first, so every type shows up; the rest wait for More.
+    return [...(r && has('builton') ? lookBack(r.rec, r.work) : []), ...prod.slice(0, 1), ...sound.slice(0, 1), ...lab.slice(0, 1), ...cands, ...prod.slice(1), ...sound.slice(1), ...lab.slice(1)];
   })().catch(() => []);
 }
 
@@ -302,9 +410,9 @@ function candsOf(T, node) {
 async function special(T, node) {
   const cands = [...await candsOf(T, node)];
   if (!T.live()) return;
-  while (node.kids < KIDS && cands.length && T.live()) await tryAdd(T, node, cands.shift());
+  while (node.kids < T.S.width && cands.length && T.live()) await tryAdd(T, node, cands.shift());
   node.pending.unshift(...cands); // leftovers wait for More
-  await fill(T, node, KIDS);
+  await fill(T, node, T.S.width);
 }
 
 // ---------- flows ----------
@@ -312,27 +420,28 @@ async function special(T, node) {
 // Root -> 3 children -> 3 grandchildren each, streamed. Scene children first (fast), the MB-heavy special slots after.
 async function growTree(T) {
   const root = T.nodes[0];
-  [root.mb, root.dzId] = await Promise.all([mbArtist(T.get, root.artist), root.dzId ?? dzArtist(T.get, root.artist)]);
+  [root.mb, root.dzId] = await Promise.all([mbArtist(T.get, root.artist), root.dzId ?? dzArtist(T.get, root.artist, T.fans)]);
   root.mbid = root.mb && root.mb.id;
   claim(T, { mbid: root.mbid });
   if (!T.live()) return T;
   // The root's scene query goes first on the 1.5 s MB lane; its special lookups use the lane while that (slow) query runs.
-  sceneOf(T, root);
+  if (T.S.edges.includes('scene')) sceneOf(T, root);
   candsOf(T, root);
   await ranked(T, root);
-  await fill(T, root, 2);
+  await fill(T, root, T.S.width - 1);
   if (!T.live()) return T;
   // Then the kids' own scenes (level 2 shows sooner), then their special lookups.
   const kids = kidsOf(T, root);
-  kids.forEach(c => sceneOf(T, c));
+  if (T.S.edges.includes('scene')) kids.forEach(c => sceneOf(T, c));
   kids.forEach(c => candsOf(T, c));
-  for (const c of kids) { await ranked(T, c); await fill(T, c, 2); }
+  for (const c of kids) { await ranked(T, c); await fill(T, c, T.S.width - 1); }
   await special(T, root);
   for (const c of kidsOf(T, root)) {
     if (!T.live()) break;
-    sceneOf(T, c); candsOf(T, c); // the special third child: start both lookups together
+    if (T.S.edges.includes('scene')) sceneOf(T, c);
+    candsOf(T, c); // the special third child: start both lookups together
     await ranked(T, c);
-    await fill(T, c, 2);
+    await fill(T, c, T.S.width - 1);
     await special(T, c);
   }
   return T;
@@ -351,17 +460,18 @@ const kidsOf = (T, node) => T.nodes.filter(n => n.parent === node.id);
 async function moreTree(T, id) {
   const node = T.nodes[id];
   if (!node || T.nodes.length >= CAP) return { added: 0, full: T.nodes.length >= CAP };
+  T.mbLeft = Math.max(T.mbLeft, 12); // a More is the listener asking: it gets its own few MB calls
   if (!node.done.has('more')) {
     node.done.add('more');
     await ranked(T, node);
     const r = await recordingOf(T, node);
     const built = r && node.depth > 0 ? lookBack(r.rec, r.work) : [];
     const prod = r ? await producerEdge(T, node, r.rec) : [];
-    const lab = await labelEdge(T, node);
-    node.pending = [...built, ...prod.slice(0, 1), ...lab.slice(0, 1), ...node.pending, ...prod.slice(1), ...lab.slice(1)];
+    const lab = await labelEdge(T, node), sound = T.S.edges.includes('soundtrack') ? await soundEdge(T, node) : [];
+    node.pending = [...built, ...prod.slice(0, 1), ...sound.slice(0, 1), ...lab.slice(0, 1), ...node.pending, ...prod.slice(1), ...sound.slice(1), ...lab.slice(1)];
   }
   const start = T.nodes.length;
-  while (T.nodes.length - start < KIDS && T.nodes.length < CAP && node.pending.length && T.live()) await tryAdd(T, node, node.pending.shift());
+  while (T.nodes.length - start < MORE && T.nodes.length < CAP && node.pending.length && T.live()) await tryAdd(T, node, node.pending.shift());
   return { added: T.nodes.length - start, full: T.nodes.length >= CAP };
 }
 
@@ -373,14 +483,25 @@ async function producerEdge(T, node, rec) {
 }
 
 async function labelEdge(T, node) {
-  const rels = node.mbid ? await mbRels(T.get, node.mbid) : null; // cached by net.js since special()
+  const rels = node.mbid ? await relsOf(T, node.mbid) : null; // cached by net.js since special()
   const l = ((rels && rels.relations) || []).find(r => r.type === 'recording contract' && r.label);
   const y = node.year || yearOf(((node.mb || {})['life-span'] || {}).begin);
   if (!l || !y) return [];
-  const q = `label:"${l.label.name.replace(/["\\]/g, ' ')}" AND date:[${y - 2} TO ${y + 2}]`;
+  const w = T.S.era === 'decade' ? [y - (y % 10), y - (y % 10) + 9] : T.S.era === 'any' ? null : [y - 2, y + 2]; // narrower than the scene's window: a label names a roster
+  const q = `label:"${l.label.name.replace(/["\\]/g, ' ')}"${w ? ` AND date:[${w[0]} TO ${w[1]}]` : ''}`;
   const res = await T.get(`${MB}/release?query=${enc(q)}&limit=100&fmt=json`);
   const names = dedupe((res.releases || []).flatMap(r => (r['artist-credit'] || []).map(c => c.name)));
-  return names.map(n => ({ artist: n, kind: 'label', label: `Also on ${l.label.name}, ${y - 2}–${String(y + 2).slice(2)}` }));
+  return names.map(n => ({ artist: n, kind: 'label', label: `Also on ${l.label.name}${w ? `, ${w[0]}–${String(w[1]).slice(2)}` : ''}` }));
 }
 
-module.exports = { topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, growTree, moreTree, CAP };
+// Other artists on the song's soundtrack: its best pure-soundtrack release from the recording search, then that tracklist (1 more MB call).
+function soundEdge(T, node) {
+  return node.soundP ??= (async () => {
+    const { recordings, artist, title } = await recSearch(T, node);
+    const sound = bestSoundtrack(recordings, artist, title);
+    if (!sound || !T.live()) return [];
+    return soundtrackTracks(await T.get(`${MB}/release/${sound.id}?inc=recordings+artist-credits&fmt=json`), artist, sound);
+  })().catch(() => []);
+}
+
+module.exports = { validSettings, fameOk, eraQuery, placeQuery, bestSoundtrack, soundtrackTracks, EDGES, SETTINGS, topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, growTree, moreTree, CAP };

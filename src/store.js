@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { norm, COUNTRIES } = require('./music');
+const { validSettings } = require('./tree');
 
 const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, rarity: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null });
 const MAX_RATINGS = 500;
@@ -23,6 +24,7 @@ function validPrefs(p) {
     artists: list(p.artists, a => a && Number.isInteger(a.dzId) && name(a.name), 30).map(({ dzId, name }) => ({ dzId, name })),
     decades: uniq(list(p.decades, d => Number.isInteger(d) && d >= 1900 && d <= 2090 && d % 10 === 0, 20)),
     regions: uniq(list(p.regions, r => typeof r === 'string' && Object.hasOwn(COUNTRIES, r), 10)),
+    tree: validSettings(p.tree), // Family Tree grow settings
   };
 }
 // What was playing last ("continue where you left off" + the bar's "came from" chip). Anything malformed: null.
