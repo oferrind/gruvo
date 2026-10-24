@@ -111,7 +111,8 @@ app.whenReady().then(() => {
   net.initCache(dir);
   store.init(dir);
   spotify = Spotify.create({ dir, send: net.send, getJson: net.get,
-    crypt: { available: () => safeStorage.isEncryptionAvailable(), encrypt: s => safeStorage.encryptString(s), decrypt: b => safeStorage.decryptString(b) },
+    crypt: { available: () => safeStorage.isAsyncEncryptionAvailable(), encrypt: s => safeStorage.encryptStringAsync(s),
+      decrypt: async b => (await safeStorage.decryptStringAsync(b)).result },
     openUrl: url => {
       if (process.env.SNAP) return console.log('[spotify] authorize', url); // test hook: log (no secrets in it), don't open a browser
       const ok = safeExternal(url); if (!ok) throw new Error('link not allowed'); return shell.openExternal(ok); } });

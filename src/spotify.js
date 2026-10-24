@@ -62,15 +62,15 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
   const write = (f, o) => { try { fs.writeFileSync(f + '.tmp', JSON.stringify(o)); fs.renameSync(f + '.tmp', f); } catch (e) { console.error('spotify save failed', e.message); } };
   let st = read(file), matches = read(matchFile), refreshMem = null, acc = null, refreshing = null, login = null;
 
-  function refreshToken() {
+  async function refreshToken() {
     if (refreshMem) return refreshMem;
-    if (!st.refresh || !crypt.available()) return null;
-    try { return (refreshMem = crypt.decrypt(Buffer.from(st.refresh, 'base64'))); } catch { return null; }
+    if (!st.refresh || !(await crypt.available())) return null;
+    try { return (refreshMem = await crypt.decrypt(Buffer.from(st.refresh, 'base64'))); } catch { return null; }
   }
-  function setRefresh(rt) {
+  async function setRefresh(rt) {
     refreshMem = rt;
     // shortcut: without OS encryption the token stays in memory only (reconnect each launch).
-    st.refresh = crypt.available() ? crypt.encrypt(rt).toString('base64') : undefined;
+    st.refresh = (await crypt.available()) ? (await crypt.encrypt(rt)).toString('base64') : undefined;
     write(file, st);
   }
 
@@ -79,13 +79,13 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
       body: new URLSearchParams(params).toString() });
     if (r.error || r.status !== 200 || !r.body || !r.body.access_token) return { status: r.status || 0, oauth: r.body && r.body.error };
     acc = { token: r.body.access_token, exp: now() + (Number(r.body.expires_in) || 3600) * 1000 };
-    if (r.body.refresh_token) setRefresh(r.body.refresh_token); // refresh may omit it: keep the old one
+    if (r.body.refresh_token) await setRefresh(r.body.refresh_token); // refresh may omit it: keep the old one
     return {};
   }
 
   async function token(force) {
     if (!force && acc && acc.exp - 60000 > now()) return acc.token;
-    const rt = refreshToken();
+    const rt = await refreshToken();
     if (!rt || !st.clientId) return null;
     refreshing ??= tokenReq({ grant_type: 'refresh_token', refresh_token: rt, client_id: st.clientId }).finally(() => { refreshing = null; });
     const r = await refreshing;
@@ -128,7 +128,7 @@ function create({ dir, send, getJson, crypt, openUrl, sleep = ms => new Promise(
   }
 
   function forget() { refreshMem = null; acc = null; st = { clientId: st.clientId }; write(file, st); }
-  const status = () => ({ clientId: st.clientId || '', connected: !!refreshToken(), name: st.name || '', redirectUri: REDIRECT, pending: !!login });
+  const status = () => ({ clientId: st.clientId || '', connected: !!(refreshMem || st.refresh), name: st.name || '', redirectUri: REDIRECT, pending: !!login });
 
   function connect(clientId) {
     clientId = String(clientId || '').trim();
