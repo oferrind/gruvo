@@ -73,18 +73,19 @@ test('sound ratings survive save/load; malformed ones are dropped; capped at the
 
 test('prefs survive save/load; malformed entries are dropped; seed ratings keep their flag', () => {
   tmp();
-  const p = store.load();
-  assert.deepEqual(p.prefs, { genres: [], artists: [], decades: [], regions: [] });
-  p.prefs = {
+  const p = store.load(), p0 = { ...p.prefs };
+  assert.deepEqual(p.prefs, { genres: [], artists: [], decades: [], regions: [], tree: { edges: ['scene', 'member', 'builton', 'roots'], era: 'near', place: 'same', fame: 50, width: 3 } });
+  p.prefs = { tree: p0.tree,
     genres: [{ id: 152, name: 'Rock', x: 1 }, { id: '1', name: 'bad' }, null],
     artists: [{ dzId: 27, name: 'Daft Punk' }, { dzId: 3, name: '' }, { name: 'no id' }],
     decades: [1970, 1970, 1975, 'x', 2010],
     regions: ['Africa', 'Atlantis', 'Asia'],
+
   };
   p.ratings = [{ id: 'seed:27:1', rating: 'love', features: [0.5], seed: true }, { id: 'dz:2', rating: 'ok', features: [0.1], seed: 'yes' }];
   store.save(p);
   const q = store.load();
-  assert.deepEqual(q.prefs, { genres: [{ id: 152, name: 'Rock' }], artists: [{ dzId: 27, name: 'Daft Punk' }], decades: [1970, 2010], regions: ['Africa', 'Asia'] });
+  assert.deepEqual(q.prefs, { genres: [{ id: 152, name: 'Rock' }], artists: [{ dzId: 27, name: 'Daft Punk' }], decades: [1970, 2010], regions: ['Africa', 'Asia'], tree: p0.tree });
   assert.deepEqual(q.ratings, [{ id: 'seed:27:1', rating: 'love', features: [0.5], seed: true }, { id: 'dz:2', rating: 'ok', features: [0.1] }]);
 });
 
@@ -102,4 +103,13 @@ test('last-played survives save/load, keeps only known fields, and drops malform
   }
   store.save({ likes: [], heard: [], last: { track: { source: 'it', id: 9, title: 'T', artist: 'A', cover: 'http://evil', country: 'xx' }, from: { tab: '<x>' } } });
   assert.deepEqual(store.load().last, { track: { source: 'it', id: 9, title: 'T', artist: 'A' }, from: null, ts: 0 });
+});
+
+test('Family Tree grow settings persist in prefs.tree; old profiles get the defaults, junk is clamped', () => {
+  tmp();
+  assert.deepEqual(store.load().prefs.tree, { edges: ['scene', 'member', 'builton', 'roots'], era: 'near', place: 'same', fame: 50, width: 3 });
+  store.save({ likes: [], heard: [], prefs: { tree: { edges: ['related', 'soundtrack', 'nope'], era: 'decade', place: 'any', fame: 130, width: 5 } } });
+  assert.deepEqual(store.load().prefs.tree, { edges: ['related', 'soundtrack'], era: 'decade', place: 'any', fame: 100, width: 5 });
+  store.save({ likes: [], heard: [], prefs: { tree: { edges: [], era: 7 } } });
+  assert.equal(store.load().prefs.tree.edges.length, 4);
 });

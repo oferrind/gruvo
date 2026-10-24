@@ -72,11 +72,11 @@ ipcMain.handle('api:call', async (e, name, ...args) => {
 ipcMain.handle('api:countries', () => COUNTRIES);
 // Family Tree: one build at a time. A newer tree makes the older one's live() false, so it stops before its next call.
 let tree = null, treeRun = 0;
-ipcMain.handle('tree:grow', async (e, root, heard, run, saved) => {
+ipcMain.handle('tree:grow', async (e, root, heard, run, saved, settings) => {
   if (!root || typeof root.artist !== 'string' || typeof root.title !== 'string') throw new Error('bad root');
   const mine = ++treeRun;
   const live = () => mine === treeRun && !e.sender.isDestroyed();
-  tree = Tree.newTree(net.get, root, { heard: Array.isArray(heard) ? heard.map(String) : [], live,
+  tree = Tree.newTree(net.get, root, { settings: Tree.validSettings(settings), heard: Array.isArray(heard) ? heard.map(String) : [], live,
     saved: Array.isArray(saved) ? saved.filter(s => s && typeof s.artist === 'string' && typeof s.title === 'string')
       .map(s => ({ source: String(s.source), id: s.id == null ? null : String(s.id), artist: s.artist, title: s.title })) : [], emit: n => live() && e.sender.send('tree:node', run, n) });
   await Tree.growTree(tree);
