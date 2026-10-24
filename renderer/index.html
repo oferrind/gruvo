@@ -80,7 +80,7 @@
           </div>
         </div>
         <div id="reveal" class="reveal" aria-live="polite"></div>
-        <button id="mystery-next" type="button" class="primary" hidden>Next mystery <kbd>Enter</kbd></button>
+        <button id="mystery-next" type="button" hidden>Next mystery <kbd>Enter</kbd></button>
         <div id="blind-error" class="state error" role="alert" hidden>
           <p><strong>Can't reach the music services.</strong> Check your internet connection.</p>
           <button id="blind-retry" type="button" class="primary">Try again</button>
@@ -108,7 +108,7 @@
     <section id="stamps" class="panel" role="tabpanel" aria-labelledby="tab-stamps" hidden>
       <div class="panel-head">
         <h1>Genre Stamps</h1>
-        <p class="muted">Collect the world's music scenes, one stamp at a time.</p>
+        <p class="muted">Ten songs from one place and one decade. Love one and it's stamped.</p>
       </div>
       <div class="stamps-layout">
         <div class="stamp-side">
@@ -120,7 +120,7 @@
             </div>
             <p id="roll-said" class="sr-only" aria-live="polite"></p>
             <div class="roll-row">
-              <button id="roll" type="button" class="primary roll-btn">Roll a stamp <kbd>R</kbd></button>
+              <span class="roll-go"><button id="roll" type="button" class="primary roll-btn" aria-keyshortcuts="R" title="Roll a stamp (R)">Roll a stamp</button><kbd aria-hidden="true">R</kbd></span>
               <label class="adventurous" title="At least one roll in three lands on a continent you have no stamp from"><input id="adventurous" type="checkbox" checked> Adventurous</label>
             </div>
           </div>
@@ -128,8 +128,7 @@
             <span class="builder-lead">Play me</span>
             <select id="b-decade" aria-label="Decade"></select>
             <select id="b-place" aria-label="Place"></select>
-            <select id="b-genre" aria-label="Genre"></select>
-            <button class="builder-go">Play</button>
+            <span class="builder-end"><select id="b-genre" aria-label="Genre"></select><button class="builder-go" aria-label="Play" title="Play">&rarr;</button></span>
           </form>
           <div class="catalogue">
             <div class="catalogue-head">
@@ -137,13 +136,14 @@
               <select id="cat-filter" aria-label="Show stamps from"><option value="">Everywhere</option></select>
             </div>
             <ul id="catalogue" class="cat-list" aria-labelledby="cat-title"></ul>
+            <button id="cat-more" type="button" class="link cat-more" hidden></button>
           </div>
         </div>
         <div class="stamp-main">
           <div id="stamp-head" class="stamp-head"></div>
-          <div class="sp-export" id="stamp-export-box" hidden><button id="stamp-export" type="button" class="ghost">Export to Spotify</button><p id="stamp-export-status" class="hint" aria-live="polite"></p></div>
           <div id="stamp-state" class="state" aria-live="polite"></div>
           <ul id="stamp-songs" class="tracks"></ul>
+          <div class="sp-export" id="stamp-export-box" hidden><button id="stamp-export" type="button" class="link">Export to Spotify</button><p id="stamp-export-status" class="hint" aria-live="polite"></p></div>
         </div>
         <aside class="stamp-book" aria-labelledby="book-title">
           <h2 id="book-title">Stamp book</h2>

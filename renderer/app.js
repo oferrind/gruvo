@@ -545,7 +545,7 @@ function revealDetails(m) {
 function renderTonight() {
   $('#rail-count').textContent = tonight.length || '';
   $('#tonight').replaceChildren(...(tonight.length ? tonight.map(({ t, kind, extra }) => {
-    const row = trackRow(t, { extra, reason: `You said ${VERDICT[kind]}`, from: { tab: 'blind', label: "Tonight's reveals" } });
+    const row = trackRow(t, { extra, from: { tab: 'blind', label: "Tonight's reveals" } }); // the verdict lives on the sleeve stamp only
     row.dataset.verdict = kind;
     return row;
   }) : [el('li', { className: 'rail-empty', textContent: 'Every mystery you rate lands here, newest first, so you can play it again.' })]));
@@ -610,7 +610,7 @@ function stampFace(s, count = 0) {
 const earnedBy = s => profile.likes.find(l => stampOf(l) === s.id);
 function slotEl({ stamp: s, count }) {
   const r = rarityOf(s.id), by = count && earnedBy(s);
-  const what = count ? `${count >= 3 ? 'gold' : 'stamped'}, ${count} love${count === 1 ? '' : 's'}${r ? `, ${r}` : ''}${by ? `, earned with ${by.artist}, ${by.title}` : ''}` : 'not stamped yet';
+  const what = count ? `${count >= 3 ? 'gold' : 'stamped'}${r ? `, ${r.toLowerCase()}` : ''}${by ? `, earned with ${by.artist}, ${by.title}` : ''}` : 'not stamped yet';
   return el('li', {}, el('button', { type: 'button', className: 'slot', title: s.label, ariaLabel: `${s.label}, ${what}. ${s.legacy ? 'Pick a genre for it' : 'Open'}`,
     onclick: () => { showTab('stamps'); s.legacy ? prefillBuilder(s) : openStamp(s); } }, stampFace(s, count)));
 }
@@ -640,64 +640,79 @@ $('#builder').addEventListener('submit', e => {
 });
 $('#cat-filter').addEventListener('change', () => renderCatalogue());
 
+let catAll = false; // the catalogue shows 8 rows until "Show all"
 function renderCatalogue() {
-  const f = $('#cat-filter').value;
-  $('#catalogue').replaceChildren(...SD.CATALOGUE.filter(s => !f || SD.continentOf(s.cc) === f).map(s => {
-    const n = profile.stamps[s.id] || 0;
+  const f = $('#cat-filter').value, list = SD.CATALOGUE.filter(s => !f || SD.continentOf(s.cc) === f);
+  $('#catalogue').replaceChildren(...(catAll ? list : list.slice(0, 8)).map(s => {
+    const n = profile.stamps[s.id] || 0, held = n >= 3 ? 'Gold stamp' : 'Stamped';
     const b = el('button', { type: 'button', className: `cat-item ink-${INK[SD.continentOf(s.cc)]}`, onclick: () => openStamp(s) },
-      el('span', { className: 'cat-label', textContent: s.label }), n ? el('span', { className: 'cat-held', textContent: n >= 3 ? 'Gold' : 'Stamped' }) : null,
+      el('span', { className: 'cat-label', textContent: s.label }), n ? el('span', { className: `cat-held${n >= 3 ? ' is-gold' : ''}`, role: 'img', ariaLabel: held, title: held }) : null,
       el('span', { className: 'cat-blurb', textContent: s.blurb }));
     if (stOpen && stOpen.id === s.id) b.setAttribute('aria-current', 'true');
     return el('li', {}, b);
   }));
+  $('#cat-more').hidden = catAll || list.length <= 8;
+  $('#cat-more').textContent = `Show all ${list.length}`;
 }
+$('#cat-more').onclick = () => { catAll = true; renderCatalogue(); $$('#catalogue .cat-item')[8]?.focus(); };
 
 function renderBook() {
   const b = SD.book(profile.stamps);
-  $('#book-line').replaceChildren(`${b.catalogue} of ${SD.CATALOGUE.length} catalogue · ${b.custom} of your own`,
+  const earned = [...b.groups.flatMap(g => g.slots), ...b.legacy].filter(x => x.count);
+  $('#book-line').replaceChildren(earned.length ? `${earned.length} stamp${earned.length === 1 ? '' : 's'}` : 'No stamps yet',
     el('span', { className: 'decade-strip', ariaLabel: `Decades stamped: ${b.decades.map(SD.decadeName).join(', ') || 'none yet'}` },
       ...SD.DECADES.slice(0, 7).map(d => el('span', { className: b.decades.includes(d) ? 'on' : '', ariaHidden: 'true', textContent: SD.decadeName(d) }))));
-  const group = (title, quiet, slots) => el('section', { className: 'book-group' },
-    el('h3', {}, title, quiet ? el('span', { className: 'quiet', textContent: quiet }) : null), el('ul', { className: 'book-slots' }, ...slots.map(slotEl)));
+  // Only earned stamps are drawn; the rest of a continent is one muted line of names, each opens that stamp.
+  const group = (title, quiet, slots) => {
+    const got = slots.filter(x => x.count), left = slots.filter(x => !x.count);
+    return el('section', { className: 'book-group' }, el('h3', {}, title, quiet ? el('span', { className: 'quiet', textContent: quiet }) : null),
+      got.length ? el('ul', { className: 'book-slots' }, ...got.map(slotEl)) : null,
+      left.length ? el('p', { className: 'still' }, 'Still to find: ', ...left.flatMap(({ stamp: s }, i) =>
+        [i ? ', ' : '', el('button', { type: 'button', className: 'still-link', textContent: s.label, onclick: () => openStamp(s) })])) : null);
+  };
   $('#book').replaceChildren(...[b.legacy.length ? group('Passport (legacy)', 'place and decade only', b.legacy) : null,
-    ...b.groups.map(g => group(g.continent, `${g.earned} of ${g.total}`, g.slots))].filter(Boolean));
-  const earned = [...b.groups.flatMap(g => g.slots), ...b.legacy].filter(x => x.count);
+    ...b.groups.map(g => group(g.continent, '', g.slots))].filter(Boolean));
   $('#saved-stamp-count').textContent = earned.length;
   $('#saved-stamps').replaceChildren(...(earned.length ? earned.map(slotEl) : [el('li', { className: 'muted', textContent: 'Love a song in Genre Stamps and its scene gets stamped here.' })]));
 }
 
 function renderStampHead() {
   const s = stOpen, head = $('#stamp-head');
-  $('#stamp-export-box').hidden = !s;
+  $('#stamp-export-box').hidden = !stSongs.length;
   if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: 'Roll a stamp, pick one from the catalogue, or build your own: a decade, a place and a genre.' }));
   const n = profile.stamps[s.id] || 0, r = rarityOf(s.id), by = n && earnedBy(s);
   const face = stampFace(s, n);
   face.classList.add('big');
   if (thumpId === s.id) { face.classList.add('thump'); thumpId = null; }
+  // Gold and rarity are drawn (foil, ink weight), never written; the plain words only reach the accessible name.
+  if (n) Object.assign(face, { role: 'img', ariaHidden: null, ariaLabel: `${n >= 3 ? 'Gold stamp' : 'Stamp'}${r ? `, ${r.toLowerCase()}` : ''}`, title: `${n >= 3 ? 'Gold' : 'Stamped'}${r ? `, ${r.toLowerCase()}` : ''}` });
   head.replaceChildren(face, el('div', { className: 'stamp-info' },
     el('h2', { textContent: s.label }), s.blurb ? el('p', { className: 'stamp-blurb', textContent: s.blurb }) : null,
-    el('p', { className: 'stamp-meta' }, ...[r, n >= 3 ? 'Gold' : n ? `${n} of 3 loves for gold` : 'Love 1 song to earn it',
-      by && `stamped ${day(by.ts)} with ${by.artist}, “${by.title}”`].filter(Boolean).flatMap((x, i) => (i ? [' · ', x] : [x])))));
+    by ? el('p', { className: 'stamp-meta', textContent: `Stamped ${day(by.ts)} with ${by.artist}, “${by.title}”` }) : null));
 }
 function renderStamps() {
   if (!SD) return;
   renderBook(); renderCatalogue(); renderStampHead();
 }
 function stampEarned(id, n) {
-  const s = SD.makeStamp(id), r = rarityOf(id);
+  const s = SD.makeStamp(id);
   if (!s) return;
   thumpId = id;
-  toast(n >= 3 ? `Gold stamp: ${s.label}` : `Stamp earned: ${s.label}${r ? ` (${r})` : ''}`);
+  toast(n >= 3 ? `Stamped in gold: ${s.label}` : `Stamped: ${s.label}`);
 }
 
+let stMenu = 0;
 function songRow(t) {
-  const row = trackRow(t, { extra: extraOf(t), reason: String(t.year), full: true });
-  row.append(rateGroup(t, row.querySelector('.love'))); // Skip / OK / Love, the same as the Blind Test and the Tree
+  const row = trackRow(t, { extra: extraOf(t), full: true });
+  if (t.year) row.querySelector('.artist').textContent = `${t.artist}, ${t.year}`;
+  // At rest: ▶, Skip / OK / Love (as in the Blind Test and the Tree) and ⋯ for About and Full song, as on the Tree cards.
+  row.append(el('div', { className: 'node-actions' }, rateGroup(t, row.querySelector('.love')), moreMenu(row, `stamp-menu-${++stMenu}`, `${t.artist} – ${t.title}`)));
   return row;
 }
 api.onStampRow((run, row) => {
   if (run !== stRun) return;
   stSongs.push(row);
+  $('#stamp-export-box').hidden = false;
   $('#stamp-songs').append(songRow(row));
 });
 
@@ -719,7 +734,7 @@ async function openStamp(s) {
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
   profile.rarity[s.id] = res.rarity; save();
-  stState('done', `${res.count} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.${res.short ? ' A short stamp: always Legendary.' : ''}`);
+  stState('done', `${res.count} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
   renderStamps();
 }
 
@@ -856,6 +871,10 @@ function overflowMenu(id, name, ...items) {
   set(false);
   return wrap;
 }
+// A full trackRow's About and Full song, moved behind ⋯ (Tree cards and Stamp rows).
+function moreMenu(row, id, name) {
+  return overflowMenu(id, name, row.querySelector('.about-more'), el('details', { className: 'full-more' }, el('summary', { textContent: 'Full song' }), row.querySelector('.full-song')));
+}
 document.addEventListener('pointerdown', e => $$('.node-menu:not([hidden])').forEach(m => { if (!m.parentElement.contains(e.target)) m.parentElement.close(); }));
 
 function placeNode(n, canvas) {
@@ -864,10 +883,9 @@ function placeNode(n, canvas) {
   const more = btn('+ More', () => moreTree(n), 'more');
   more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
   // Secondary actions sit in one quiet row under the song: Skip / OK / Love (Love alone on your song), ⋯ (About, Full song), More.
-  const full = el('details', { className: 'full-more' }, el('summary', { textContent: 'Full song' }), row.querySelector('.full-song'));
   const love = row.querySelector('.love');
   const actions = el('div', { className: 'node-actions' }, n.parentId == null ? love : rateGroup(n.track, love),
-    overflowMenu(`node-menu-${n.id}`, `${n.track.artist} – ${n.track.title}`, row.querySelector('.about-more'), full), more);
+    moreMenu(row, `node-menu-${n.id}`, `${n.track.artist} – ${n.track.title}`), more);
   const card = el('div', { className: 'node-card' }, el('span', { className: 'step' }), row, actions);
   love.sync();
   const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node grow' }, card, el('div', { className: 'branches' }));
