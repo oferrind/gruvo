@@ -45,7 +45,7 @@ function validSettings(s) {
 // Fame slider 0 (famous) .. 100 (obscure), 50 = no preference. Obscure reuses the Blind Test's fan cap; famous is a fan floor.
 function fameOk(fans, fame) {
   if (!Number.isFinite(fans) || fame === 50) return true;
-  return fame > 50 ? fans <= adventureMix((fame - 50) * 2).fanCap : fans >= (50 - fame) * 4000;
+  return fame > 50 ? fans <= 5 * adventureMix((fame - 50) * 2).fanCap : fans >= (50 - fame) * 4000; // x5: related lists are all well-known, the Blind Test's raw cap would empty them
 }
 // Begin-year window for the Era filter ('any' = none).
 const eraWindow = (era, b) => !b || era === 'any' ? null : era === 'decade' ? [b - (b % 10), b - (b % 10) + 9] : [b - 5, b + 5];

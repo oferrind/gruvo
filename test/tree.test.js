@@ -220,10 +220,10 @@ test('settings: related artists need no MB check when Era and Place are open, an
 
 test('settings: Fame caps obscure runs and floors famous ones; 50 changes nothing', async () => {
   assert.ok(t.fameOk(3e6, 50) && t.fameOk(undefined, 100));
-  assert.ok(!t.fameOk(3e6, 100) && t.fameOk(9000, 100) && !t.fameOk(900000, 80));
+  assert.ok(!t.fameOk(3e6, 100) && t.fameOk(9000, 100) && !t.fameOk(3e6, 80));
   assert.ok(t.fameOk(3e6, 0) && !t.fameOk(9000, 0) && !t.fameOk(100000, 0));
   const names = async fame => (await grow({ edges: ['related'], era: 'any', place: 'any', fame })).T.nodes.filter(n => n.parent === 0).map(n => n.artist);
-  assert.deepEqual(await names(100), ['Pulp']);
+  assert.deepEqual(await names(100), ['Pulp', 'Liam Gallagher']); // the cap is 100k fans, least known first
   assert.deepEqual(await names(0), ['Blur']);
   assert.deepEqual(await names(50), ['Blur', 'Liam Gallagher', 'Pulp']);
 });
