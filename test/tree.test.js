@@ -174,7 +174,7 @@ const grow = async (settings, over) => {
   return { T, calls: w.calls.map(decodeURIComponent) };
 };
 const ERA = SCENE.slice(0, 6).map(a => ({ ...a, tags: [] }));
-const eraRoute = u => (u.includes('/ws/2/artist?query=begin:') || u.includes('/ws/2/artist?query=country:') ? { artists: ERA } : undefined);
+const eraRoute = u => (u.includes('/ws/2/artist?query=begin:') || u.includes('/ws/2/artist?query=country:') || u.includes('/ws/2/artist?query=(') ? { artists: ERA } : undefined);
 const artistQueries = calls => calls.filter(u => u.includes('/ws/2/artist?query=') && !u.includes('artist:"'));
 
 test('settings: validation clamps, allowlists, and falls back to today\'s behaviour', () => {
@@ -204,8 +204,8 @@ test('settings: Era and Place shape the MB queries; Same era is any genre, Same 
   assert.doesNotMatch(await q({ edges: ['scene'], era: 'any', place: 'any' }), /begin:|country:/);
   assert.match(await q({ edges: ['era'], era: 'near', place: 'same' }), /query=begin:\[1986 TO 1996\] AND country:GB&limit=50/);
   assert.match(await q({ edges: ['era'], era: 'any', place: 'any' }), /query=begin:\[1986 TO 1996\]&limit=50/, 'Same era never goes wider than the near window');
-  assert.equal(t.placeQuery({ country: 'GB', 'begin-area': { name: 'Manchester' }, 'life-span': { begin: '1991' } }, t.SETTINGS()), 'beginarea:"Manchester" AND begin:[1986 TO 1996]');
-  assert.equal(t.placeQuery({ country: 'GB' }, { ...t.SETTINGS(), era: 'any' }), 'country:GB');
+  assert.equal(t.placeQuery({ country: 'GB', 'begin-area': { name: 'Manchester' }, 'life-span': { begin: '1991' } }, t.SETTINGS()), '(beginarea:"Manchester" OR country:GB) AND begin:[1986 TO 1996]');
+  assert.equal(t.placeQuery({ country: 'GB' }, { ...t.SETTINGS(), era: 'any' }), '(country:GB)');
   const { T } = await grow({ edges: ['place'], era: 'any' }, eraRoute);
   assert.equal(T.nodes[1].label, 'Also from UK');
 });
@@ -216,6 +216,14 @@ test('settings: related artists need no MB check when Era and Place are open, an
   assert.ok(!open.calls.some(u => u.includes('/ws/2/artist?query=artist:"') && !u.includes('"Oasis"') && !u.includes('"Blur"') && !u.includes('"Pulp"') && !u.includes('"Liam') && !u.includes('"Cast"')));
   const strict = await grow({ edges: ['related'], era: 'near', place: 'same' });
   assert.ok(strict.calls.filter(u => u.includes('/ws/2/artist?query=artist:"')).length <= 1 + 3 * 4, 'root lookup plus 3 checks per node that grew');
+});
+
+test('grow: Fans also play keeps the picks that the Era/Place check could not confirm; the scene retries without years when sparse', async () => {
+  const strict = await grow({ edges: ['related'], era: 'near', place: 'same' });
+  assert.ok(strict.T.nodes[0].kids >= 2, 'a failed MB check no longer empties the edge');
+  const sparse = await grow({ edges: ['scene'], era: 'near' }, u => u.includes('query=tag:') && u.includes('begin:[') ? { artists: [] } : undefined);
+  assert.ok(sparse.T.nodes[0].kids >= 3, 'no results in the window: the same scene without years');
+  assert.ok(sparse.calls.some(u => u.includes('query=tag:') && !u.includes('begin:[')));
 });
 
 test('settings: Fame caps obscure runs and floors famous ones; 50 changes nothing', async () => {

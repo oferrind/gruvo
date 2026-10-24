@@ -857,8 +857,9 @@ async function growTree(root) {
   trBusy--;
   if (ok === null) return trState('error', "Couldn't grow the tree right now. Check your connection.", { actions: [btn('Try again', () => growTree(root), 'primary')] });
   if (trBusy) return;
-  if (trNodes.length > 1) trState('done', '');
-  else trState('empty', 'No family found yet.', { actions: [btn('Try More', () => trNodes[0] && moreTree(trNodes[0]))] });
+  const seen = new Set(trNodes.map(n => n && n.edgeType)), none = growSet().edges.filter(e => !seen.has(e)).map(e => EDGE_NAMES[e]);
+  if (trNodes.length > 1) trState('done', none.length ? `Nothing found for: ${none.join(', ')}.` : '');
+  else trState('empty', `No family found${none.length ? ` for: ${none.join(', ')}` : ' yet'}. Try another connection, or More.`, { actions: [btn('Try More', () => trNodes[0] && moreTree(trNodes[0]))] });
 }
 api.onTreeNode((run, n) => { if (run === trRun) { trNodes[n.id] = n; renderTree({ nodes: trNodes }); } });
 
