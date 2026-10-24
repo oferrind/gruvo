@@ -458,7 +458,7 @@ function showMystery() {
   mystery = nextFromQueue();
   rated = false;
   $('#reveal').replaceChildren();
-  $('#mystery-next').hidden = true;
+  $('#mystery-next').hidden = true; $('#enter-hint').hidden = true;
   $('#mystery-progress').value = 0;
   $('#mystery').classList.remove('is-revealed');
   $$('#deck .sleeve, #deck .verdict').forEach(e => e.remove());
@@ -509,7 +509,7 @@ function rate(kind) {
   tonight.unshift({ t: m, kind, extra });
   renderTonight();
   if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); renderNpMeta(); remember(m); }
-  $('#mystery-next').hidden = false;
+  $('#mystery-next').hidden = false; $('#enter-hint').hidden = false;
   $('#mystery-next').focus();
 }
 
