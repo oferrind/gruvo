@@ -113,8 +113,8 @@ const FAMILIES = { rock: 'Rock', metal: 'Metal', punk: 'Punk', pop: 'Pop', elect
   blues: 'Blues', folk: 'Folk', country: 'Country', reggae: 'Reggae', latin: 'Latin', classical: 'Classical', experimental: 'Experimental', ambient: 'Ambient', world: 'World', other: 'Other' };
 const TIERS = { C: 'Common', D: 'Deep', O: 'Obscure' };
 const caps = n => n.replace(/(^|[\s-])(uk|us|idm|edm|ebm|mpb|opm|nz|dj|r&b)(?=$|[\s-])/g, (m, p, w) => p + w.toUpperCase()); // MB names are lowercase
-const ATLAS = new Map(GENRE_DATA.map(([slug, name, family, tier, parent, songs, artists]) =>
-  [slug, { slug, name, label: caps(name).charAt(0).toUpperCase() + caps(name).slice(1), family, tier, parent, songs, artists: artists ? artists.split('|') : [] }]));
+const ATLAS = new Map(GENRE_DATA.map(([slug, name, family, tier, parent, songs, artists, wiki = 1]) =>
+  [slug, { slug, name, label: caps(name).charAt(0).toUpperCase() + caps(name).slice(1), family, tier, parent, songs, wiki, artists: artists ? artists.split('|') : [] }]));
 const kids = new Map();
 for (const e of ATLAS.values()) if (ATLAS.has(e.parent)) kids.set(e.parent, [...(kids.get(e.parent) || []), e.slug]);
 
@@ -161,9 +161,9 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = false, strea
     const all = [...ATLAS.values()].filter(e => !recent.includes(`--${e.slug}`) && !short.includes(`--${e.slug}`));
     const newFam = all.filter(e => !heldFam.has(e.family));
     const pool = adventurous && gstreak >= 2 && newFam.length ? newFam : all;
-    // Well-known genres roll most; tier O (under 100 MB recordings) only when Adventurous is on.
+    // Well-known genres roll most; tier O (under 100 MB recordings) only when Adventurous is on, and only with an English Wikipedia article.
     const tierW = { C: 4, D: 2, O: adventurous ? 1 : 0 };
-    const w = pool.map(e => (tierW[e.tier] || 0) * (taste.has(norm(e.name)) || taste.has(norm(e.parent)) ? 3 : 1) * (held[`--${e.slug}`] ? 1 : 2));
+    const w = pool.map(e => (tierW[e.tier] || 0) * (e.tier === 'O' && !e.wiki ? 0 : 1) * (taste.has(norm(e.name)) || taste.has(norm(e.parent)) ? 3 : 1) * (held[`--${e.slug}`] ? 1 : 2));
     let r = rand() * w.reduce((a, b) => a + b, 0);
     const e = r > 0 && pool.find((x, i) => (r -= w[i]) < 0);
     if (e) return makeStamp(`--${e.slug}`);

@@ -28,7 +28,7 @@ function fakeGet({ recordings = [], guard = [], topArtists = [], topRecs = [] })
 // 11-entry hand fixture: [slug, MB name, family, tier, parent, songs, artists]
 const FIX = [['rock', 'rock', 'rock', 'C', '', 10, 'A|B|C'], ['progressive-rock', 'progressive rock', 'rock', 'C', 'rock', 10, 'Yes'], ['zeuhl', 'zeuhl', 'rock', 'O', 'progressive-rock', 10, 'Magma|Corima'],
   ['math-rock', 'math rock', 'rock', 'D', 'rock', 8, 'Slint'], ['shoegaze', 'shoegaze', 'rock', 'C', 'rock', 10, 'Slowdive'], ['dream-pop', 'dream pop', 'pop', 'C', 'shoegaze', 9, ''],
-  ['sho-test', 'a shoe thing', 'other', 'O', '', 7, ''], ['house', 'house', 'electronic', 'C', '', 10, 'X'], ['gqom', 'gqom', 'electronic', 'O', 'house', 9, 'Y'],
+  ['sho-test', 'a shoe thing', 'other', 'O', '', 7, '', 0], ['house', 'house', 'electronic', 'C', '', 10, 'X'], ['gqom', 'gqom', 'electronic', 'O', 'house', 9, 'Y'],
   ['witch-house', 'witch house', 'electronic', 'D', 'house', 9, 'Z'], ['bebop', 'bebop', 'jazz', 'C', '', 10, 'Parker']];
 const SD = require('../renderer/stamp-data')(COUNTRIES, FIX);
 
@@ -91,6 +91,7 @@ test('atlas Roll: genre stamps appear, never the last 5 or a short one; taste an
   if (obscure) {
     assert.equal(share({}, `--${obscure.slug}`), 0, 'tier O never rolls unless Adventurous');
     assert.ok(share({ adventurous: true }, `--${obscure.slug}`) > 0, 'tier O rolls when Adventurous');
+    assert.equal(share({ adventurous: true }, '--sho-test'), 0, 'tier O without a Wikipedia article never rolls');
   }
   // one roller, every shape: bare genre, decade + genre, place + genre, full scene; partial shapes reuse a real catalogue scene's genre
   const shapes = new Set(), main = seeded(5);

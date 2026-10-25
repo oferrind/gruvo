@@ -44,6 +44,8 @@ test('render: keeps entries with 6+ songs, sorted by name, parent = nearest kept
   const mod = { exports: {} };
   new Function('module', out.text.replace('})(this);', '})(globalThis);'))(mod);
   assert.deepEqual(mod.exports.map(r => r[0]), ['bad', 'rock', 'zeuhl']);
-  assert.deepEqual(mod.exports[2], ['zeuhl', 'zeuhl', 'rock', 'O', 'rock', 10, 'Magma|A B']);
+  assert.deepEqual(mod.exports[2], ['zeuhl', 'zeuhl', 'rock', 'O', 'rock', 10, 'Magma|A B', 1]);
+  const withWiki = s => { const m = { exports: {} }; new Function('module', B.render(state, '2026-01-01', s).text.replace('})(this);', '})(globalThis);'))(m); return m.exports.map(r => r[7]); };
+  assert.deepEqual(withWiki(new Set()), [0, 0, 0], 'no article'); // the state's genres carry no MB id here, so none match
   assert.deepEqual(out.drops, ['prog (3 songs)']);
 });
