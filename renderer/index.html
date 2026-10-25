@@ -112,7 +112,8 @@
       </div>
       <div class="stamps-layout">
         <div class="stamp-side">
-          <div class="roll">
+          <section class="roll stamp-tool" aria-labelledby="roll-head">
+            <h2 id="roll-head" class="tool-head">Surprise me</h2>
             <div id="reels" class="reels" aria-hidden="true">
               <span class="reel"><span class="reel-strip"><span>&ndash;</span></span></span>
             </div>
@@ -121,13 +122,17 @@
               <span class="roll-go"><button id="roll" type="button" class="primary roll-btn" aria-keyshortcuts="R" title="Roll a stamp (R)">Roll a stamp</button><kbd aria-hidden="true">R</kbd></span>
               <label class="adventurous" title="Obscure genres can roll too, and after two rolls on continents you already hold, the next lands somewhere new"><input id="adventurous" type="checkbox"> Adventurous</label>
             </div>
-          </div>
-          <form id="builder" class="builder" aria-label="Build your own stamp">
-            <span class="builder-lead">Play me</span>
-            <select id="b-decade" aria-label="Decade"></select>
-            <select id="b-place" aria-label="Place"></select>
-            <span class="builder-end"><select id="b-genre" aria-label="Genre"></select><button class="builder-go" aria-label="Play" title="Play">&rarr;</button></span>
-          </form>
+          </section>
+          <section class="stamp-tool" aria-labelledby="pick-head">
+            <h2 id="pick-head" class="tool-head">Pick one</h2>
+            <form id="builder" class="builder" aria-label="Build your own stamp">
+              <span class="builder-lead">Play me</span>
+              <select id="b-decade" aria-label="Decade"></select>
+              <select id="b-place" aria-label="Place"></select>
+              <span class="builder-end"><select id="b-genre" aria-label="Genre"></select><button class="builder-go" aria-label="Play" title="Play">&rarr;</button></span>
+            </form>
+            <p id="builder-note" class="hint" aria-live="polite"></p>
+          </section>
           <div class="catalogue">
             <div class="chips browse-switch" role="group" aria-label="Browse by">
               <button id="br-scenes" type="button" class="chip" aria-pressed="true">Scenes</button>

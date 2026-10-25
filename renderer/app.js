@@ -637,8 +637,8 @@ function buildStamps(regions) {
   if (old && typeof old === 'object') { profile.rarity = { ...old, ...profile.rarity }; save(); try { localStorage.removeItem('stampRarity'); } catch {} }
   for (const list of Object.values(regions)) Object.assign(countryNames, list);
   const opt = (value, text) => el('option', { value, textContent: text });
-  $('#b-decade').append(...SD.DECADES.map(d => opt(d, SD.decadeName(d))));
-  $('#b-place').append(...SD.CONTINENTS.map(c => el('optgroup', { label: c }, ...Object.keys(SD.ALL_CC).filter(cc => SD.continentOf(cc) === c)
+  $('#b-decade').append(opt('', 'any decade'), ...SD.DECADES.map(d => opt(d, SD.decadeName(d))));
+  $('#b-place').append(opt('', 'anywhere'), ...SD.CONTINENTS.map(c => el('optgroup', { label: c }, ...Object.keys(SD.ALL_CC).filter(cc => SD.continentOf(cc) === c)
     .sort((a, b) => SD.DEMONYM[a].localeCompare(SD.DEMONYM[b])).map(cc => opt(cc, SD.DEMONYM[cc])))));
   $('#b-genre').append(...Object.entries(SD.GENRES).sort((a, b) => a[1][0].localeCompare(b[1][0])).map(([g, [name]]) => opt(g, name)));
   $('#cat-filter').append(...SD.CONTINENTS.map(c => opt(c, c)));
@@ -697,7 +697,11 @@ function syncBuilder(s) {
 function prefillBuilder(s) { syncBuilder(s); $('#b-genre').focus(); toast(`Pick a genre for the ${s.label}`); }
 $('#builder').addEventListener('submit', e => {
   e.preventDefault();
-  const s = SD.makeStamp(`${$('#b-decade').value}-${$('#b-place').value}-${$('#b-genre').value}`); // a catalogue combo opens that entry
+  // A catalogue combo opens that entry; "any decade" / "anywhere" give a decade + genre, place + genre or bare genre stamp.
+  const d = $('#b-decade').value, cc = $('#b-place').value, g = $('#b-genre').value;
+  const ALIAS = { psych: 'psychedelic-rock', prog: 'progressive-rock', indie: 'indie-rock', chanson: 'chanson-francaise' }; // builder genre -> atlas slug
+  const s = SD.makeStamp(`${d}-${cc}-${d && cc ? g : ALIAS[g] || g}`);
+  $('#builder-note').textContent = s ? '' : `${SD.GENRES[g][0]} needs a decade and a place.`;
   if (s) openStamp(s);
 });
 $('#cat-filter').addEventListener('change', () => renderCatalogue());
@@ -813,7 +817,7 @@ async function openStamp(s, rerolls = 0) {
   const run = ++stRun;
   stOpen = s; stSongs = [];
   $('#stamp-songs').replaceChildren(); $('#stamp-more').replaceChildren(); $('#stamp-export-status').replaceChildren();
-  syncBuilder(s); renderStampHead(); renderCatalogue(); renderGenreList();
+  renderStampHead(); renderCatalogue(); renderGenreList();
   stState('loading', 'Searching…');
   const res = await api.stamp(s.id, run).catch(() => ({ error: true }));
   if (run !== stRun || !res) return;

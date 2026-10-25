@@ -607,6 +607,11 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 
 /* the Roll: one recessed reel window that lands on the whole stamp name */
 .roll { margin: 0; max-width: 420px; } /* narrow: the reels and the checkbox stay one hand-span wide */
+/* Surprise me / Pick one: two separate tools, a rule and a small label between them */
+.stamp-tool + .stamp-tool { margin: var(--space-4) 0; padding-top: var(--space-4); border-top: 1px solid var(--color-border); }
+.tool-head { margin: 0 0 var(--space-2); font: 700 13px/1.1 var(--font-display); text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); }
+#builder-note { margin: var(--space-1) 0 0; }
+#builder-note:empty { display: none; }
 .reels { --reel-h: 46px; display: grid; }
 .reel { height: var(--reel-h); overflow: hidden; border: 1px solid var(--color-border); border-radius: 3px; box-shadow: inset 0 3px 7px rgb(0 0 0 / .45); color: var(--color-text); background: linear-gradient(var(--color-surface-2), var(--color-surface) 35% 65%, var(--color-surface-2));
   font: 700 19px/var(--reel-h) var(--font-display); text-align: center; text-transform: uppercase; letter-spacing: .01em; }
@@ -620,7 +625,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .adventurous input { accent-color: var(--color-accent); width: 15px; height: 15px; margin: 0; }
 
 /* the builder reads as a sentence: Play me [90s] [Japanese] [rock] */
-.builder { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: var(--space-4) 0; font: 650 22px/1.35 var(--font-display); }
+.builder { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: 0; font: 650 22px/1.35 var(--font-display); }
 .builder-lead { color: var(--color-muted); }
 /* the catalogue filter speaks the same dialect: an amber underlined select */
 .builder select, #cat-filter, #genre-family, #genre-tier { font: inherit; min-height: 0; max-width: 100%; width: auto; padding: 0 2px; border: none; border-bottom: 2px solid var(--color-accent); border-radius: 0; background: transparent; color: var(--color-accent); cursor: pointer; }
