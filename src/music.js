@@ -293,9 +293,9 @@ function pickReturnArtist({ enabled = true, adventure = 50, likes = [], back = {
   const pool = [...new Set(ids)].filter(i => !(i in seen && n - seen[i] < BACK_COOLDOWN) && !exclude.includes(i));
   return pool.length ? pickOne(pool, rand) : null;
 }
-// Skip the top 5 by popularity, pick from 6-30; never a track already rated/liked; prefer an album other than a liked one. Needs a preview.
+// Skip the top 10 by popularity, pick from 11-35; never a track already rated/liked; prefer an album other than a liked one. Needs a preview.
 function pickDeepCut(top, { rated = [], albums = [] } = {}, rand = Math.random) {
-  const pool = [...(top || [])].sort((a, b) => (b.rank || 0) - (a.rank || 0)).slice(5, 30)
+  const pool = [...(top || [])].sort((a, b) => (b.rank || 0) - (a.rank || 0)).slice(10, 35)
     .filter(r => r.preview && r.artist && !rated.includes(`dz:${r.id}`));
   const other = pool.filter(r => !r.album || !albums.includes(r.album.id));
   const from = other.length ? other : pool;

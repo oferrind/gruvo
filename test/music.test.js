@@ -267,13 +267,13 @@ test('Blind Test returns: share scales with Adventure, cap spacing, cooldown, to
   assert.equal(m.pickReturnArtist({ ...base, likes: [], back: { ...base.back, ok: [] } }, always), null); // skipped/unknown artists never
 });
 
-test('deep cut: skips the top 5, drops rated tracks, prefers another album, needs a preview', () => {
-  const top = Array.from({ length: 40 }, (_, i) => ({ id: 100 + i, rank: 1000 - i, preview: i === 7 ? '' : 'p', album: { id: i < 20 ? 1 : 2 }, artist: { name: 'A' } }));
+test('deep cut: skips the top 10, drops rated tracks, prefers another album, needs a preview', () => {
+  const top = Array.from({ length: 40 }, (_, i) => ({ id: 100 + i, rank: 1000 - i, preview: i === 12 ? '' : 'p', album: { id: i < 20 ? 1 : 2 }, artist: { name: 'A' } }));
   const first = () => 0;
-  assert.equal(m.pickDeepCut(top, {}, first).id, 105); // 6th most popular
-  assert.equal(m.pickDeepCut(top, { rated: ['dz:105', 'dz:106'] }, first).id, 108); // 107 has no preview
+  assert.equal(m.pickDeepCut(top, {}, first).id, 110); // 11th most popular
+  assert.equal(m.pickDeepCut(top, { rated: ['dz:110', 'dz:111'] }, first).id, 113); // 112 has no preview
   assert.equal(m.pickDeepCut(top, { albums: [1] }, first).id, 120); // album 1 was the liked one
-  assert.equal(m.pickDeepCut(top.slice(0, 5), {}, first), null);
-  assert.equal(m.pickDeepCut(top, {}, () => 0.999).id, 129); // never past position 30
+  assert.equal(m.pickDeepCut(top.slice(0, 10), {}, first), null);
+  assert.equal(m.pickDeepCut(top, {}, () => 0.999).id, 134); // never past position 35
 });
 
