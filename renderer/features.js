@@ -165,7 +165,19 @@
     return [head && sound ? `${head} · ${sound[0].toLowerCase()}${sound.slice(1)}` : head || sound || '', key || prev];
   }
 
-  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine };
+  // Minimum match: a candidate plays only if some love is within reach. "Close" (2/3 TMAX) at Adventure 0, up to 1.5 TMAX at 100.
+  const reach = adventure => TMAX * (2 / 3 + clamp(adventure / 100) * (5 / 6));
+  const fits = (v, ratings, adventure) => { const L = nearest(v, ratings, 'love'); return !L || L.d <= reach(adventure); };
+
+  // Where the next candidate comes from: low Adventure leans on related artists and chosen genres, high on random trips and credit trails.
+  function pickSource(adventure, hasGenres, r = Math.random()) {
+    const a = clamp(adventure / 100);
+    const w = [['neighbour', 3 - 2 * a], ['genre', hasGenres ? 2 - a : 0], ['trail', 1 + a], ['explore', 0.25 + 2.75 * a]];
+    let x = r * w.reduce((s, [, n]) => s + n, 0);
+    return (w.find(([, n]) => (x -= n) < 0) || w[0])[0];
+  }
+
+  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.Features = api;
 })(this);

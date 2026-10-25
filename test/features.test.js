@@ -98,3 +98,19 @@ test('explain does not overclaim tempo or contradict itself', () => {
   const quiet = F.explain(F.vector({ ...base, bpm: 120, onsetRate: 4 }), [R('dz:1', 'love', F.vector({ ...base, bpm: 121, onsetRate: 4 }))], {});
   assert.match(quiet, /steady ~\d+ BPM/); // quiet track: never "driving"
 });
+
+test('minimum match: reach widens with Adventure; no loves means anything fits', () => {
+  const love = [{ rating: 'love', features: Array(F.DIM).fill(0.5) }], near = Array(F.DIM).fill(0.55), far = Array(F.DIM).fill(0.95);
+  assert.ok(F.reach(0) < F.reach(100));
+  assert.ok(F.fits(near, love, 0));
+  assert.ok(!F.fits(far, love, 0));
+  assert.ok(F.fits(far, [], 0));
+});
+
+test('pickSource: low Adventure leans on neighbours and genres, high on random trips; no genres chosen, no genre source', () => {
+  const share = (a, g, src) => { let n = 0; for (let i = 0; i < 1000; i++) if (F.pickSource(a, g, (i + 0.5) / 1000) === src) n++; return n / 1000; };
+  assert.ok(share(0, true, 'neighbour') + share(0, true, 'genre') > 0.7);
+  assert.ok(share(0, true, 'explore') < 0.1);
+  assert.ok(share(100, true, 'explore') > share(0, true, 'explore') * 5);
+  assert.equal(share(30, false, 'genre'), 0);
+});

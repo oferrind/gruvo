@@ -346,11 +346,11 @@ $$('#intro [data-goto]').forEach(b => { b.onclick = () => showTab(b.dataset.goto
 
 // ---------- A. Blind Taste Test ----------
 const queue = [], tonight = [];
-let mystery = null, rated = false, fails = 0, filling = false, trailing = false, srcTurn = 0;
+let mystery = null, rated = false, fails = 0, filling = false, trailing = false;
 
 // Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
 const warm = () => profile.ratings.length >= 3;
-const SOURCES = ['explore', 'trail', 'explore', 'trail', 'neighbour', 'genre']; // Deezer neighbours: minor; 'genre' falls back to a random trip without chosen genres
+// Sources are picked per candidate by Adventure (Features.pickSource); 'genre' only when genres are chosen in Preferences.
 
 // Download the preview (main process, CDN allowlist), decode, analyse ~20 s from the middle. Memoised; resolves to the vector or null.
 function fingerprint(c) {
@@ -373,12 +373,20 @@ function fingerprint(c) {
 }
 
 // Cold start (or pool not listened to yet): queue order, as before. Warm: best taste score; drop ones passed over 3 times.
+// Warm: only candidates within reach of a love play (deep cuts of loved artists always may); the rest are dropped and refilled.
+// After 12 misfits in a row the best of what's there plays anyway, so a narrow taste never stalls the Blind Test.
+let misfits = 0;
 function nextFromQueue() {
-  const ready = queue.filter(c => c.vec);
-  if (!warm() || ready.length < 2) return queue.shift() || null;
+  if (!warm()) return queue.shift() || null;
+  const fit = c => c.back || misfits >= 12 || Features.fits(c.vec, profile.ratings, profile.adventure);
+  const drop = queue.filter(c => c.vec && !fit(c));
+  misfits += drop.length;
+  const ready = queue.filter(c => c.vec && fit(c));
+  if (!ready.length) { queue.splice(0, queue.length, ...queue.filter(c => !drop.includes(c) && c.vec !== null)); return null; } // wait for more fingerprints
   const [best, ...rest] = Features.rank(ready, profile.ratings, profile.adventure);
+  misfits = 0;
   rest.forEach(c => { c.passed = (c.passed || 0) + 1; });
-  const keep = queue.filter(c => c !== best && !(c.passed >= 3) && c.vec !== null); // vec null = preview failed to decode: can't be ranked, drop it
+  const keep = queue.filter(c => c !== best && !drop.includes(c) && !(c.passed >= 3) && c.vec !== null); // vec null = preview failed to decode: can't be ranked, drop it
   queue.splice(0, queue.length, ...keep);
   return best;
 }
@@ -422,7 +430,7 @@ const excluded = () => [...queue, mystery].filter(Boolean).map(c => norm(c.artis
 function accept(c) {
   if (!c || (isHeard(c) && !c.back) || excluded().includes(norm(c.artist))) return false;
   queue.push(c);
-  fingerprint(c);
+  fingerprint(c).then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // warm: a candidate can only play once it has been listened to
   if (!mystery) showMystery();
   return true;
 }
@@ -436,7 +444,7 @@ async function fill() {
     const back = await call('deepCut', { enabled: profile.prefs.bringBack, adventure: profile.adventure, likes: plain(profile.likes), back: profile.back, busy: mine.some(c => c.back),
       exclude: mine.map(c => c.artistDzId), rated: [...profile.ratings.map(r => r.id), ...tonight.map(x => likeKey(x.t))] });
     if (accept(back)) { fails = 0; continue; }
-    const source = warm() ? SOURCES[srcTurn++ % SOURCES.length] : undefined;
+    const source = warm() ? Features.pickSource(profile.adventure, profile.prefs.genres.length > 0) : undefined;
     const ask = () => call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude: excluded(), adventure: profile.adventure, source, prefs: profile.prefs });
     if (source === 'trail') { // MusicBrainz trails can take ~10 s: run one on the side so the other sources keep filling
       if (!trailing) { trailing = true; ask().then(c => { trailing = false; if (queue.length < 6) accept(c); }); }
