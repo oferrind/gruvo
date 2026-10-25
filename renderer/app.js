@@ -644,23 +644,20 @@ function buildStamps(regions) {
   $('#cat-filter').append(...SD.CONTINENTS.map(c => opt(c, c)));
   syncBuilder(SD.makeStamp('1990-JP-rock'));
   $('#genre-family').append(...Object.entries(SD.FAMILIES).filter(([f]) => [...SD.ATLAS.values()].some(e => e.family === f)).map(([f, n]) => opt(f, n)));
-  $('#genre-tiers').append(...[['', 'All'], ...Object.entries(SD.TIERS)].map(([t, n]) => {
-    const c = el('button', { type: 'button', className: 'chip', textContent: n, ariaPressed: String(t === gTier) });
-    c.dataset.tier = t;
-    c.onclick = () => { gTier = t; gShown = 60; $$('#genre-tiers .chip').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.tier === t))); renderGenreList(); };
-    return c;
-  }));
+  $('#genre-tier').append(...Object.entries(SD.TIERS).map(([t, n]) => opt(t, n)));
   $('#genre-total').textContent = SD.ATLAS.size ? `(${SD.ATLAS.size.toLocaleString()})` : '';
   $('#br-genres').hidden = !SD.ATLAS.size;
   setBrowse(SD.ATLAS.size && ls('stampBrowse') === 'genres' ? 'genres' : 'scenes');
 }
 
 // ---- Genres view: search + family/tier filters over the atlas (docs/12) ----
-let gTier = '', gShown = 60, gDig = null, gTimer = 0;
+let gShown = 60, gDig = null, gTimer = 0;
 function setBrowse(mode) {
   $('#scenes-view').hidden = mode !== 'scenes'; $('#genres-view').hidden = mode !== 'genres';
   $('#br-scenes').setAttribute('aria-pressed', String(mode === 'scenes')); $('#br-genres').setAttribute('aria-pressed', String(mode === 'genres'));
   ls('stampBrowse', mode);
+  $('#roll').textContent = mode === 'genres' ? 'Roll a genre' : 'Roll a stamp'; // Genres mode rolls genres only
+  $('#roll').title = `${$('#roll').textContent} (R)`;
   if (mode === 'genres') renderGenreList();
 }
 $('#br-scenes').onclick = () => setBrowse('scenes');
@@ -675,7 +672,7 @@ function genreItem(s) {
 }
 function renderGenreList() {
   if ($('#genres-view').hidden) return;
-  const q = $('#genre-q').value, family = $('#genre-family').value, none = !q.trim() && !family && !gTier;
+  const q = $('#genre-q').value, family = $('#genre-family').value, gTier = $('#genre-tier').value, none = !q.trim() && !family && !gTier;
   let stamps, total;
   if (none) { // "Dig somewhere new": 12 random uncollected Deep/Obscure genres
     gDig ??= [...SD.ATLAS.values()].filter(e => e.tier !== 'C' && !profile.stamps[`--${e.slug}`]).sort(() => Math.random() - .5).slice(0, 12).map(e => SD.makeStamp(`--${e.slug}`));
@@ -692,9 +689,8 @@ $('#genre-q').addEventListener('keydown', e => {
   e.preventDefault(); clearTimeout(gTimer); renderGenreList();
   const top = $('#genre-list .cat-item'); if (top) top.click();
 });
-$('#genre-family').addEventListener('change', () => { gShown = 60; renderGenreList(); });
+$$('#genre-family, #genre-tier').forEach(s => s.addEventListener('change', () => { gShown = 60; renderGenreList(); }));
 $('#genre-more').onclick = () => { gShown += 60; renderGenreList(); $$('#genre-list .cat-item')[gShown - 60]?.focus(); };
-$('#genre-roll').onclick = () => land(SD.roll({ ...rollState(), genreOnly: true }), 2);
 function syncBuilder(s) {
   if (s.decade) $('#b-decade').value = s.decade;
   if (s.cc) $('#b-place').value = s.cc;
@@ -852,6 +848,7 @@ const rollState = () => ({ held: profile.stamps, recent: ls('stampRecent') || []
   short: ls('stampShort') || [], topTags: [...profile.prefs.genres.map(g => g.name), ...profile.likes.filter(l => l.genre && SD.GENRES[l.genre]).flatMap(l => SD.GENRES[l.genre][1])] });
 function doRoll() {
   const st = rollState();
+  if (!$('#genres-view').hidden) return land(SD.roll({ ...st, genreOnly: true }), 2);
   const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
   nextRoll = null;
   land(s, 2);

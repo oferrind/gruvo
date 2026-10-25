@@ -144,17 +144,16 @@
               <button id="cat-more" type="button" class="link cat-more" hidden></button>
             </div>
             <div id="genres-view" hidden>
-              <div class="catalogue-head">
-                <h2 id="genre-title">Genres</h2>
-                <select id="genre-family" aria-label="Family"><option value="">All families</option></select>
-              </div>
               <input id="genre-q" type="search" class="genre-q" placeholder="Search genres: zeuhl, shoegaze..." aria-label="Search genres" autocomplete="off" spellcheck="false">
-              <div id="genre-tiers" class="chips" role="group" aria-label="How deep MusicBrainz goes"></div>
+              <div class="catalogue-head">
+                <select id="genre-family" aria-label="Family"><option value="">All families</option></select>
+                <select id="genre-tier" aria-label="How deep MusicBrainz goes"><option value="">Any depth</option></select>
+              </div>
               <p id="genre-dig" class="hint genre-dig"></p>
-              <ul id="genre-list" class="cat-list" aria-labelledby="genre-title"></ul>
+              <ul id="genre-list" class="cat-list" aria-labelledby="genre-dig"></ul>
               <button id="genre-more" type="button" class="link cat-more" hidden></button>
-              <button id="genre-roll" type="button" class="genre-roll">Roll a genre</button>
             </div>
+          </div>
         </div>
         <div class="stamp-main">
           <div id="stamp-head" class="stamp-head"></div>
