@@ -195,3 +195,60 @@ test('runner: prefetch resolves with its result; a thin prefetch is discarded, n
   await run.open('1960-KR-jazz', () => {});
   assert.ok(calls.length > n, 'thin prefetch was dropped, so open runs fresh');
 });
+
+// 130 artists with one song each, served 100 per MB page (offset honoured), so a genre stamp has 3 pages of 10 and then runs dry.
+function pagedWorld(n = 130) {
+  const arts = Array.from({ length: n }, (_, i) => A(`p${i}`, `Act${i}`, 'JP', { tags: [{ name: 'shoegaze' }] }));
+  const recordings = arts.map((a, i) => rec(`r${i}`, a, `Tune${i}`, '1994-01-01'));
+  const inner = fakeGet({ recordings, guard: arts });
+  const get = async url => {
+    const u = decodeURIComponent(url), m = u.match(/\/recording\?.*&offset=(\d+)/), off = m ? +m[1] : 0;
+    if (u.includes('/recording?') && !u.includes('query=(arid:')) return { recordings: recordings.slice(off, off + 100), count: n };
+    return inner.get(url);
+  };
+  return { get, stamp: S.makeStamp('--shoegaze') || { id: '--shoegaze', genre: 'shoegaze', tags: ['shoegaze'], atlas: true } };
+}
+
+test('More songs: cursor pages on, never repeats a song, then reports done', async () => {
+  const { get, stamp } = pagedWorld();
+  const shown = [], emit = r => shown.push(r.title);
+  const first = await S.stampSongs(get, stamp, { emit, rand: seeded(), paged: true });
+  assert.equal(shown.length, 10);
+  assert.equal(first.next.done, false);
+  let next = first.next, rounds = 0;
+  while (!next.done && rounds++ < 20) ({ next } = await S.stampMore(get, stamp, next, { emit, rand: seeded(rounds) }));
+  assert.equal(new Set(shown).size, shown.length, 'no duplicates across pages');
+  assert.equal(shown.length, 130, 'every playable song is reached');
+  assert.equal(next.done, true);
+  const end = await S.stampMore(get, stamp, next, { emit });
+  assert.equal(end.added, 0);
+});
+
+test('More songs: the first fetch keeps its shape without paged; a failed page keeps the cursor for a retry', async () => {
+  const { get, stamp } = pagedWorld();
+  const plain = await S.stampSongs(get, stamp, { rand: seeded() });
+  assert.ok(!('next' in plain));
+  const { next } = await S.stampSongs(get, stamp, { rand: seeded(), paged: true });
+  let fail = true;
+  const flaky = url => (fail && /offset=/.test(decodeURIComponent(url)) ? { error: { status: 503 } } : get(url));
+  const bad = await S.stampMore(flaky, stamp, next, {});
+  assert.ok(bad.error);
+  assert.deepEqual(bad.next.seen, next.seen);
+  fail = false;
+  const rows = [];
+  const ok = await S.stampMore(flaky, stamp, bad.next, { emit: r => rows.push(r) });
+  assert.equal(ok.added, 10);
+  assert.equal(rows.length, 10);
+});
+
+test('More songs: max 2 songs per artist across pages', async () => {
+  const a = A('solo', 'Solo', 'JP', { tags: [{ name: 'shoegaze' }] });
+  const recordings = [1, 2, 3, 4].map(i => rec(`s${i}`, a, `Only${i}`, '1994-01-01'));
+  const { get } = fakeGet({ recordings, guard: [a] });
+  const stamp = S.makeStamp('--shoegaze') || { id: '--shoegaze', genre: 'shoegaze', tags: ['shoegaze'], atlas: true };
+  const rows = [];
+  const r = await S.stampMore(get, stamp, { offset: 0, seen: ['solo|only1'], per: { solo: 1 }, shown: 1, done: false }, { emit: x => rows.push(x) });
+  assert.equal(rows.length, 1, 'one slot left for the artist');
+  assert.equal(r.next.done, true);
+});
+

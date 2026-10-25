@@ -777,6 +777,20 @@ api.onStampRow((run, row) => {
   $('#stamp-songs').append(songRow(row));
 });
 
+// "More songs" under the list: idle button, busy, retry on failure, or the quiet end line. The cursor lives in main.
+function showMore(s, run, doneMsg, mode = 'idle') {
+  const box = $('#stamp-more');
+  const go = () => {
+    box.replaceChildren(el('button', { type: 'button', disabled: true, textContent: 'Finding more…' }));
+    api.moreStamp(s.id, run).catch(() => ({ error: true })).then(res => {
+      if (run !== stRun || !res) return;
+      if (!res.error) stState('done', doneMsg(stSongs.length));
+      showMore(s, run, doneMsg, res.error ? 'error' : res.more ? 'idle' : 'done');
+    });
+  };
+  box.replaceChildren(...(mode === 'done' ? [el('p', { className: 'hint', textContent: `That's every song we could find for ${s.label}.` })]
+    : mode === 'error' ? [el('p', { className: 'hint', textContent: "Couldn't load more songs." }), btn('Try again', go)] : [btn('More songs', go)]));
+}
 const markShort = id => ls('stampShort', [...new Set([...(ls('stampShort') || []), id])].slice(-200));
 // Prefetch the next Roll; a thin one is remembered, discarded and replaced (3 tries at most), so the user never lands on it.
 function prefetchNext(s, tries = 3) {
@@ -790,7 +804,7 @@ function prefetchNext(s, tries = 3) {
 async function openStamp(s, rerolls = 0) {
   const run = ++stRun;
   stOpen = s; stSongs = [];
-  $('#stamp-songs').replaceChildren(); $('#stamp-export-status').replaceChildren();
+  $('#stamp-songs').replaceChildren(); $('#stamp-more').replaceChildren(); $('#stamp-export-status').replaceChildren();
   syncBuilder(s); renderStampHead(); renderCatalogue(); renderGenreList();
   stState('loading', 'Searching…');
   const res = await api.stamp(s.id, run).catch(() => ({ error: true }));
@@ -812,8 +826,10 @@ async function openStamp(s, rerolls = 0) {
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
   profile.rarity[s.id] = res.rarity; save();
-  if (s.atlas && !s.decade && !s.cc) stState('done', `${res.count} songs tagged ${s.label.toLowerCase()}, artists who carry the tag first.`);
-  else stState('done', `${res.count} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
+  const doneMsg = n => (s.atlas && !s.decade && !s.cc ? `${n} songs tagged ${s.label.toLowerCase()}, artists who carry the tag first.`
+    : `${n} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
+  stState('done', doneMsg(res.count));
+  if (res.more) showMore(s, run, doneMsg); else if (res.more === false) showMore(s, run, doneMsg, 'done');
   renderStamps();
 }
 

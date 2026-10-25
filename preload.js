@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   treeMore: id => ipcRenderer.invoke('tree:more', id),
   onTreeNode: cb => ipcRenderer.on('tree:node', (e, run, node) => cb(run, node)),
   stamp: (id, run) => ipcRenderer.invoke('stamps:open', id, run),
+  moreStamp: (id, run) => ipcRenderer.invoke('stamps:more', id, run),
   prefetchStamp: id => ipcRenderer.invoke('stamps:prefetch', id),
   onStampRow: cb => ipcRenderer.on('stamps:row', (e, run, row) => cb(run, row)),
 });

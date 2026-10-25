@@ -85,6 +85,7 @@ ipcMain.handle('tree:grow', async (e, root, heard, run, saved, settings) => {
 // Genre Stamps: one playlist at a time, rows streamed as previews resolve (src/stamps.js stampRunner). The id is rebuilt there, so only real stamps run.
 const stampRunner = Stamps.stampRunner(net.get);
 ipcMain.handle('stamps:open', (e, id, run) => stampRunner.open(id, row => e.sender.send('stamps:row', run, row), () => !e.sender.isDestroyed()));
+ipcMain.handle('stamps:more', (e, id, run) => stampRunner.more(id, row => e.sender.send('stamps:row', run, row), () => !e.sender.isDestroyed()));
 ipcMain.handle('stamps:prefetch', (e, id) => stampRunner.prefetch(id));
 ipcMain.handle('tree:more', (e, id) => tree ? Tree.moreTree(tree, Number(id)) : { added: 0 });
 // Full-song links open in the default browser, never in this window; only the https allowlist in src/links.js.
