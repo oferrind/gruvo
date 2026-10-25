@@ -1296,7 +1296,7 @@ async function renderGenres() {
 }
 
 // Colour scheme (profile.prefs.scheme): applied at once; mirrored in localStorage so a launch paints it before the profile loads.
-const SCHEMES = { shop: 'Record shop', bluelabel: 'Blue label', riso: 'Gig poster', tuner: 'Night tuner' };
+const SCHEMES = { shop: 'Record shop', bluelabel: 'Blue label', riso: 'Gig poster', tuner: 'Night tuner', soul: 'Soul 45', bleep: 'Bleep', mixtape: 'Mixtape', acid: 'Acid house' };
 function applyScheme(s) { document.documentElement.dataset.scheme = s; try { localStorage.setItem('scheme', s); } catch {} }
 function renderSchemes() {
   $('#pref-scheme').replaceChildren(...Object.entries(SCHEMES).map(([id, label]) => {

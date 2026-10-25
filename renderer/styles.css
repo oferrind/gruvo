@@ -221,6 +221,142 @@
   --tint-s: 70%;
 }
 
+/* Soul 45: a 60s soul 45 label. Cream paper, poppy-red print; dark is the oxblood listening booth. Love goes berry so it never reads as the accent. */
+:root[data-scheme=soul], [data-scheme=soul] {
+  --color-bg: light-dark(#f3ecdf, #1a0e0e);
+  --color-surface: light-dark(#fbf7ef, #241415);
+  --color-surface-2: light-dark(#e8dccb, #321c1d);
+  --color-border: light-dark(#d0b3a6, #55302f);
+  --color-text: light-dark(#2a1414, #f6e9df);
+  --color-muted: light-dark(#66423d, #c4a49c);
+  --color-accent: light-dark(#b3202a, #ff6a5c);
+  --color-on-accent: light-dark(#fff6f0, #200807);
+  --color-love: light-dark(#8f1d55, #ff8fc0);
+  --color-focus: light-dark(#b3202a, #ffa69c);
+  --color-error: light-dark(#9a1a12, #ffa08f);
+  --color-error-bg: light-dark(#f8d8d2, #3d1a1a);
+  --edge-scene: light-dark(#2c6b3b, #86c793);
+  --edge-member: light-dark(#ad3524, #ee7b68);
+  --edge-builton: light-dark(#22579a, #7db3e6);
+  --edge-roots: light-dark(#6e5710, #d6b65c);
+  --edge-producer: light-dark(#6a3e9e, #c3a2ec);
+  --edge-label: light-dark(#0f6359, #5cc2b4);
+  --edge-related: light-dark(#94305e, #e692b8);
+  --edge-era: light-dark(#8a4710, #e8914a);
+  --edge-place: light-dark(#566a12, #aebf4f);
+  --edge-soundtrack: light-dark(#0e5f73, #7fd3e6);
+  --sticker: light-dark(#fffaf0, #f3e6d0);
+  --sticker-ink: light-dark(#2a1414, #2a1414);
+  --color-vinyl: #0e0808;
+  --color-groove: #2c1a1a;
+  --duo-d: url(#duo-soul-dark);
+  --duo-l: url(#duo-soul-light);
+  --tint-h: 4;
+  --tint-s: 80%;
+}
+
+/* Bleep: 90s Sheffield bleep and IDM. Brushed-aluminium sleeve, neutral greys, one Warp-violet logo. */
+:root[data-scheme=bleep], [data-scheme=bleep] {
+  --color-bg: light-dark(#e4e4e6, #111113);
+  --color-surface: light-dark(#f4f4f5, #1a1a1d);
+  --color-surface-2: light-dark(#d4d4d8, #242428);
+  --color-border: light-dark(#a9a9b0, #3d3d44);
+  --color-text: light-dark(#151518, #ececef);
+  --color-muted: light-dark(#4c4c55, #a2a2ab);
+  --color-accent: light-dark(#5b2fc9, #ae94ff);
+  --color-on-accent: light-dark(#f7f4ff, #120a26);
+  --color-love: light-dark(#b0302e, #ff7a7a);
+  --color-focus: light-dark(#5b2fc9, #cdbcff);
+  --color-error: light-dark(#a01d14, #ff9c8f);
+  --color-error-bg: light-dark(#f6dad6, #321a1a);
+  --edge-scene: light-dark(#1f6b4c, #7fc8a9);
+  --edge-member: light-dark(#a63a2b, #f08a7a);
+  --edge-builton: light-dark(#1d55b0, #6fb0ff);
+  --edge-roots: light-dark(#6b5a12, #d9c070);
+  --edge-producer: light-dark(#5b45a8, #b8a4f0);
+  --edge-label: light-dark(#0b6470, #4fc6d0);
+  --edge-related: light-dark(#93306a, #e59ac4);
+  --edge-era: light-dark(#8c4a12, #f0a060);
+  --edge-place: light-dark(#4f6b1a, #a9c46a);
+  --edge-soundtrack: light-dark(#0a5e80, #8fd8f0);
+  --sticker: light-dark(#ffffff, #e6e6ea);
+  --sticker-ink: light-dark(#151518, #151518);
+  --color-vinyl: #08080a;
+  --color-groove: #222226;
+  --duo-d: url(#duo-bleep-dark);
+  --duo-l: url(#duo-bleep-light);
+  --tint-h: 258;
+  --tint-s: 70%;
+}
+
+/* Mixtape: an 80s Memphis cassette inlay. Turquoise and coral on a pastel ground, yellow sticker; dark is the black tape shell. */
+:root[data-scheme=mixtape], [data-scheme=mixtape] {
+  --color-bg: light-dark(#f5e8e3, #121315);
+  --color-surface: light-dark(#fdf6f3, #1b1c1f);
+  --color-surface-2: light-dark(#ead7d0, #26272b);
+  --color-border: light-dark(#cdb0a6, #3f4046);
+  --color-text: light-dark(#1b1a22, #f0eeea);
+  --color-muted: light-dark(#5a4c55, #aaa6a8);
+  --color-accent: light-dark(#00707a, #3fd6d0);
+  --color-on-accent: light-dark(#effffe, #04181a);
+  --color-love: light-dark(#b8322a, #ff8a70);
+  --color-focus: light-dark(#00707a, #8ff0ea);
+  --color-error: light-dark(#a01d14, #ff9c8f);
+  --color-error-bg: light-dark(#f8d8d2, #331a1b);
+  --edge-scene: light-dark(#156b50, #4fd1a8);
+  --edge-member: light-dark(#b23a22, #ff8066);
+  --edge-builton: light-dark(#2050a8, #6ea8ff);
+  --edge-roots: light-dark(#75600a, #ffd45c);
+  --edge-producer: light-dark(#6a3aa8, #c79bff);
+  --edge-label: light-dark(#0b6470, #3fc7d6);
+  --edge-related: light-dark(#b0246a, #ff7fb5);
+  --edge-era: light-dark(#95480b, #ffa24c);
+  --edge-place: light-dark(#4f6b12, #b7d957);
+  --edge-soundtrack: light-dark(#0b5f7d, #7fd6ff);
+  --sticker: light-dark(#ffd23f, #ffd23f);
+  --sticker-ink: light-dark(#1b1a22, #1b1a22);
+  --color-vinyl: #0b0b0c;
+  --color-groove: #26262a;
+  --duo-d: url(#duo-mixtape-dark);
+  --duo-l: url(#duo-mixtape-light);
+  --tint-h: 178;
+  --tint-s: 75%;
+}
+
+/* Acid house: 1988, a smiley badge on a black warehouse wall. Lemon on black; light is the photocopied flyer, lemon gone to olive ink. */
+:root[data-scheme=acid], [data-scheme=acid] {
+  --color-bg: light-dark(#f1eedc, #0e0e0b);
+  --color-surface: light-dark(#fbf9ee, #171712);
+  --color-surface-2: light-dark(#e3dfc6, #22221b);
+  --color-border: light-dark(#b9b394, #3d3c2e);
+  --color-text: light-dark(#18170e, #f3f1e0);
+  --color-muted: light-dark(#4f4c38, #b0ad92);
+  --color-accent: light-dark(#665800, #ffe32a);
+  --color-on-accent: light-dark(#fffbe0, #141200);
+  --color-love: light-dark(#b3302a, #ff7a6b);
+  --color-focus: light-dark(#665800, #fff07a);
+  --color-error: light-dark(#a01d14, #ff9c8f);
+  --color-error-bg: light-dark(#f6dad6, #34191a);
+  --edge-scene: light-dark(#1d6a32, #7ee08f);
+  --edge-member: light-dark(#a8323d, #ff7f8a);
+  --edge-builton: light-dark(#1e56a8, #6cb6ff);
+  --edge-roots: light-dark(#685a0e, #e8d36a);
+  --edge-producer: light-dark(#5e3fa6, #c3a0ff);
+  --edge-label: light-dark(#06655f, #4fd8d0);
+  --edge-related: light-dark(#9a2c69, #ff92cf);
+  --edge-era: light-dark(#8e4a10, #ffa65c);
+  --edge-place: light-dark(#4c6a10, #c2e05a);
+  --edge-soundtrack: light-dark(#0a5f7c, #86e0ff);
+  --sticker: light-dark(#ffe32a, #ffe32a);
+  --sticker-ink: light-dark(#18170e, #18170e);
+  --color-vinyl: #070706;
+  --color-groove: #20201a;
+  --duo-d: url(#duo-acid-dark);
+  --duo-l: url(#duo-acid-light);
+  --tint-h: 55;
+  --tint-s: 95%;
+}
+
 * { box-sizing: border-box; }
 body { font: var(--font-size)/1.55 var(--font-body); margin: 0; padding-bottom: calc(var(--nowbar-h) + var(--space-4)); background: var(--grain), var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
 h1, h2, .brand, .reveal-artist, .stamp { font-family: var(--font-display); }
@@ -818,8 +954,8 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .prefs .field { margin: 0; }
 .prefs .field > .label .muted { font-weight: 400; }
 /* colour scheme picker: each swatch carries its own data-scheme, so it shows that scheme in the current theme */
-.schemes { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); }
-.scheme { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-2); min-width: 170px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: border-color var(--dur); }
+.schemes { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-2) var(--space-3); }
+.scheme { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: border-color var(--dur); }
 .scheme:hover { border-color: var(--color-muted); }
 .scheme:has(:checked) { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
 .scheme input { accent-color: var(--color-accent); margin: 0; }
