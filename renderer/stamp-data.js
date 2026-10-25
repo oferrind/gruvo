@@ -144,7 +144,7 @@ function makeStamp(id) {
 }
 
 // ---------- Roll ----------
-// 50% place catalogue, 30% genre atlas, 20% builder combo (no atlas: 70/30). Weights: taste-tag overlap x3, uncollected x2; the last 5 rolls never repeat.
+// Main Roll: 70% place catalogue, 30% builder combo; the Genres view rolls the genre atlas. Weights: taste-tag overlap x3, uncollected x2; the last 5 rolls never repeat.
 // Atlas tiers weigh Common 4, Deep 2, Obscure 0 (1 when Adventurous). Adventurous: after 2 rolls in a row on continents (atlas: families) you already hold, the 3rd is forced onto one you don't.
 function roll({ held = {}, recent = [], topTags = [], adventurous = false, streak = 0, gstreak = 0, short = [], genreOnly = false } = {}, rand = Math.random) {
   const heldCont = new Set(Object.keys(held).map(k => continentOf(k.split('-')[1])));
@@ -152,7 +152,7 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = false, strea
   const only = !genreOnly && adventurous && streak >= 2 && fresh.length ? new Set(fresh) : null;
   const ok = s => s && !recent.includes(s.id) && !short.includes(s.id) && (!only || only.has(continentOf(s.cc)));
   const taste = new Set(topTags.map(norm));
-  if (ATLAS.size && !only && (genreOnly || rand() < 0.3)) {
+  if (ATLAS.size && genreOnly) { // main Roll stays "decade, country, genre"; only the Genres view rolls bare genres
     const heldFam = new Set(Object.keys(held).map(k => (ATLAS.get(k.replace(/^-+/, '')) || {}).family).filter(Boolean));
     const all = [...ATLAS.values()].filter(e => !recent.includes(`--${e.slug}`) && !short.includes(`--${e.slug}`));
     const newFam = all.filter(e => !heldFam.has(e.family));
@@ -164,7 +164,7 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = false, strea
     const e = r > 0 && pool.find((x, i) => (r -= w[i]) < 0);
     if (e) return makeStamp(`--${e.slug}`);
   }
-  if (rand() < (ATLAS.size && !only ? 0.2 / 0.7 : 0.3)) {
+  if (rand() < 0.3) {
     // A builder roll is a catalogue scene moved one decade: a real place and genre, never a random country x genre that cannot fill.
     for (let i = 0; i < 30; i++) {
       const c = CATALOGUE[Math.floor(rand() * CATALOGUE.length)], d = c.decade + (rand() < 0.5 ? -10 : 10);

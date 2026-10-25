@@ -74,17 +74,17 @@ test('stampSongs, genre only: 8 tagged artists need no top-up', async () => {
 test('atlas Roll: genre stamps appear, never the last 5 or a short one; taste and Deep weigh more; the 3rd roll in held families goes to a new family', () => {
   const rand = seeded(4), recent = [], seen = new Set();
   for (let i = 0; i < 400; i++) {
-    const s = SD.roll({ recent: recent.slice(-5), short: ['--gqom'] }, rand);
+    const s = SD.roll({ recent: recent.slice(-5), short: ['--gqom'], genreOnly: true }, rand);
     assert.ok(!recent.slice(-5).includes(s.id) && s.id !== '--gqom', s.id);
     if (s.atlas) seen.add(s.id);
     recent.push(s.id);
   }
   assert.ok(seen.size >= 6, 'atlas stamps are rolled');
   for (let i = 0; i < 300; i++) {
-    const s = SD.roll({ held: { '--zeuhl': 1, '--shoegaze': 2 }, gstreak: 2, adventurous: true }, rand);
+    const s = SD.roll({ held: { '--zeuhl': 1, '--shoegaze': 2 }, gstreak: 2, adventurous: true, genreOnly: true }, rand);
     if (s.atlas) assert.notEqual(s.family, 'rock', s.id);
   }
-  const share = (opts, id) => { const r = seeded(21); let n = 0; for (let i = 0; i < 6000; i++) if (SD.roll(opts, r).id === id) n++; return n; };
+  const share = (opts, id) => { const r = seeded(21); let n = 0; for (let i = 0; i < 6000; i++) if (SD.roll({ genreOnly: true, ...opts }, r).id === id) n++; return n; };
   assert.ok(share({ topTags: ['bebop'] }, '--bebop') > 2 * share({}, '--bebop'), 'taste x3');
   assert.ok(share({}, '--house') > 1.3 * share({}, '--witch-house'), 'Common weighs 4, Deep 2');
   const obscure = SD.ATLAS ? [...SD.ATLAS.values()].find(e => e.tier === 'O') : null;
@@ -92,6 +92,7 @@ test('atlas Roll: genre stamps appear, never the last 5 or a short one; taste an
     assert.equal(share({}, `--${obscure.slug}`), 0, 'tier O never rolls unless Adventurous');
     assert.ok(share({ adventurous: true }, `--${obscure.slug}`) > 0, 'tier O rolls when Adventurous');
   }
+  const main = seeded(5); for (let i = 0; i < 2000; i++) { const s = SD.roll({ adventurous: i % 2 === 0 }, main); assert.ok(s.decade && s.cc && s.genre, `main Roll gives decade, country, genre: ${s.id}`); }
 });
 
 test('atlas book: family groups count earned and total; atlas stamps never count as decades or custom', () => {
