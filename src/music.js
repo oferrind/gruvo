@@ -362,8 +362,13 @@ function originalFirst(hits, itRows, q) {
 
 async function searchTracks(get, q) {
   const [res, it] = await Promise.all([get(`${DZ}/search?q=${enc(q)}&limit=25`), get(`${IT}/search?entity=song&limit=200&term=${enc(q)}`)]);
-  const { rows, year } = originalFirst(sortHits(res.data || [], q).slice(0, 10), it.results, q);
-  return rows.map((r, i) => ({ ...fromDeezer(r), original: i === 0 ? year : null }));
+  // iTunes-only songs (bonus tracks Deezer lacks, e.g. Oasis "Sad Song") join when the query names both title and artist;
+  // rank 0 keeps the Deezer version when both have it.
+  const nq = norm(q);
+  const extra = (it.results || []).filter(r => r.previewUrl && nq.includes(baseTitle(r.trackName)) && nq.includes(norm(r.artistName)))
+    .map(r => ({ title: r.trackName, artist: { name: r.artistName }, rank: 0, it: r }));
+  const { rows, year } = originalFirst(sortHits([...(res.data || []), ...extra], q).slice(0, 10), it.results, q);
+  return rows.map((r, i) => ({ ...(r.it ? fromItunes(r.it) : fromDeezer(r)), original: i === 0 ? year : null }));
 }
 
 // Credits for a track: {recId} or {isrc, title, artist}.

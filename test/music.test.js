@@ -52,6 +52,15 @@ test('search hits: named song first, then most popular, one row per song', async
   assert.deepEqual(pop, pop.slice().sort((a, b) => b - a));
 });
 
+test('search hits: a song only iTunes has still shows when the query names it', async () => {
+  const get = fakeGet({ 'api.deezer.com/search': { data: [{ id: 1, title: 'Sad Song (Acoustic)', artist: { id: 9, name: 'Liam Gallagher' }, rank: 300000, preview: 'p' }] },
+    'itunes.apple.com/search': { results: [{ trackId: 5, trackName: 'Sad Song (Remastered)', artistName: 'Oasis', previewUrl: 'q', releaseDate: '1994-08-29' },
+      { trackId: 6, trackName: 'Wonderwall', artistName: 'Oasis', previewUrl: 'w' }] } });
+  const hits = await m.flows.searchTracks(get, 'oasis sad song');
+  assert.equal(`${hits[0].source} ${hits[0].artist} – ${hits[0].title}`, 'it Oasis – Sad Song (Remastered)');
+  assert.ok(!hits.some(h => h.title === 'Wonderwall')); // iTunes rows only when the query names the song
+});
+
 test('resolvePreview falls back to iTunes', async () => {
   const get = fakeGet({ 'api.deezer.com/search': { data: [] }, 'itunes.apple.com/search': fx('it_search_tezeta') });
   const t = await m.flows.resolvePreview(get, 'Hailu Mergia', 'Tezeta');
