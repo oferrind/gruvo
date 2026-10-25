@@ -17,7 +17,7 @@ const validRatings = r => (Array.isArray(r) ? r : []).filter(x => x && typeof x.
 const name = s => typeof s === 'string' && s.trim() !== '' && s.length <= 200;
 const list = (a, ok, max) => (Array.isArray(a) ? a : []).filter(ok).slice(0, max);
 const uniq = a => [...new Set(a)];
-const SCHEMES = ['shop', 'bluelabel', 'riso', 'tuner'];
+const SCHEMES = ['shop', 'bluelabel', 'riso', 'tuner', 'soul', 'bleep', 'mixtape', 'acid'];
 function validPrefs(p) {
   p = p && typeof p === 'object' ? p : {};
   return {
