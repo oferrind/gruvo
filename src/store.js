@@ -4,7 +4,7 @@ const path = require('path');
 const { norm, COUNTRIES } = require('./music');
 const { validSettings } = require('./tree');
 
-const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, rarity: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null });
+const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, rarity: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null, back: validBack() });
 const MAX_RATINGS = 500;
 
 // Sound Fingerprint ratings: {id, rating, features}; anything malformed is dropped, newest MAX_RATINGS kept.
@@ -26,6 +26,7 @@ function validPrefs(p) {
     decades: uniq(list(p.decades, d => Number.isInteger(d) && d >= 1900 && d <= 2090 && d % 10 === 0, 20)),
     regions: uniq(list(p.regions, r => typeof r === 'string' && Object.hasOwn(COUNTRIES, r), 10)),
     tree: validSettings(p.tree), // Family Tree grow settings
+    bringBack: p.bringBack !== false, // Blind Test: loved artists return with a deep cut (default on)
     scheme: SCHEMES.includes(p.scheme) ? p.scheme : 'shop', // colour scheme (renderer/styles.css [data-scheme])
   };
 }
@@ -62,6 +63,15 @@ function validRarity(r) {
     if (validKey(k) && k.split('-').slice(2).join('') && ['Common', 'Rare', 'Legendary'].includes(v)) out[k] = v;
   return out;
 }
+// Blind Test returns: {n: mysteries shown, last: n at the last return, seen: {dzArtistId: n}, ok: [dzArtistIds rated OK]}. Small by design: seen drops entries past the 20-mystery cooldown.
+function validBack(b) {
+  b = b && typeof b === 'object' ? b : {};
+  const int = x => Number.isInteger(x) && x >= 0 && x < 1e9;
+  const n = int(b.n) ? b.n : 0;
+  const seen = {};
+  for (const [k, v] of Object.entries(b.seen && typeof b.seen === 'object' ? b.seen : {})) if (/^\d{1,12}$/.test(k) && int(v) && n - v < 20) seen[k] = v;
+  return { n, last: int(b.last) ? b.last : 0, seen, ok: uniq(list(b.ok, i => Number.isInteger(i) && i > 0, 50)) };
+}
 let file = null;
 
 function init(dir) { file = path.join(dir, 'profile.json'); }
@@ -88,12 +98,13 @@ function load() {
     ratings: validRatings(p.ratings),
     prefs: validPrefs(p.prefs),
     last: validLast(p.last),
+    back: validBack(p.back),
   };
 }
 
 function save(p) {
   if (!p || typeof p !== 'object' || !Array.isArray(p.likes) || !Array.isArray(p.heard)) throw new Error('invalid profile');
-  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), rarity: validRarity(p.rarity), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last) };
+  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), rarity: validRarity(p.rarity), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last), back: validBack(p.back) };
   fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 1));
   fs.renameSync(file + '.tmp', file);
   return true;

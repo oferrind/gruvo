@@ -282,6 +282,39 @@ async function nextCandidate(get, { likes = [], heard = [], exclude = [], advent
   return n || exploreCandidate(get, heard, exclude, prefs, rand);
 }
 
+// ---------- Blind Test: loved artists come back with a deep cut ----------
+const BACK_GAP = 6, BACK_COOLDOWN = 20, BACK_OK_BELOW = 34; // >=6 mysteries apart = at most 1 in 6; OK-rated artists only in the bottom third of Adventure
+const returnShare = a => (1 / 6) * (1 - Math.max(0, Math.min(100, Number(a) || 0)) / 100); // low adventure: the cap; high: near zero
+// back = {n: mysteries shown, last: n at the last return, seen: {dzArtistId: n at its return}, ok: [dzArtistIds rated OK]}. Returns a Deezer artist id or null.
+function pickReturnArtist({ enabled = true, adventure = 50, likes = [], back = {}, busy = false, exclude = [] } = {}, rand = Math.random) {
+  const { n = 0, last = 0, seen = {}, ok = [] } = back;
+  if (!enabled || busy || n - last < BACK_GAP || rand() >= returnShare(adventure)) return null;
+  const ids = [...likes.map(l => l.artistDzId), ...(adventure < BACK_OK_BELOW ? ok : [])].filter(i => i != null);
+  const pool = [...new Set(ids)].filter(i => !(i in seen && n - seen[i] < BACK_COOLDOWN) && !exclude.includes(i));
+  return pool.length ? pickOne(pool, rand) : null;
+}
+// Skip the top 5 by popularity, pick from 6-30; never a track already rated/liked; prefer an album other than a liked one. Needs a preview.
+function pickDeepCut(top, { rated = [], albums = [] } = {}, rand = Math.random) {
+  const pool = [...(top || [])].sort((a, b) => (b.rank || 0) - (a.rank || 0)).slice(5, 30)
+    .filter(r => r.preview && r.artist && !rated.includes(`dz:${r.id}`));
+  const other = pool.filter(r => !r.album || !albums.includes(r.album.id));
+  const from = other.length ? other : pool;
+  return from.length ? pickOne(from, rand) : null;
+}
+async function deepCut(get, { enabled, adventure, likes = [], back, busy, exclude = [], rated = [] } = {}, rand = Math.random) {
+  const id = pickReturnArtist({ enabled, adventure, likes, back, busy, exclude }, rand);
+  if (id == null) return null;
+  try {
+    const top = await get(`${DZ}/artist/${enc(id)}/top?limit=50`);
+    const albums = likes.filter(l => l.artistDzId === id && l.albumId != null).map(l => l.albumId);
+    const t = pickDeepCut(top.data, { rated: [...rated, ...likes.map(l => `${l.source}:${l.id}`)], albums }, rand);
+    if (!t) return null;
+    let year = '';
+    try { year = String((await get(`${DZ}/album/${enc(t.album.id)}`)).release_date || '').slice(0, 4); } catch {}
+    return { ...fromDeezer(t), back: { artist: t.artist.name, album: (t.album && t.album.title) || '', year: /^\d{4}$/.test(year) ? year : '' } };
+  } catch { return null; }
+}
+
 // Preferences step: Deezer genres (minus "All") and artist search.
 async function genres(get) {
   const res = await get(`${DZ}/genre`);
@@ -458,6 +491,6 @@ async function about(get, { source, id, albumId, title, artist }) {
 
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, fromDeezer, fromItunes, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS,
-  flows: { resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about },
+  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS, returnShare, pickReturnArtist, pickDeepCut, BACK_GAP, BACK_COOLDOWN,
+  flows: { deepCut, resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about },
 };

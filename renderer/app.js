@@ -193,6 +193,10 @@ function like(t, extra = {}) {
 }
 // Upsert this track's taste-model rating once its fingerprint is known (no preview / decode failure: nothing learned).
 function teach(t, kind) {
+  if (t.artistDzId != null) { // Blind Test returns: OK-rated artists may come back at low Adventure; a Skip withdraws that
+    const ok = profile.back.ok.filter(i => i !== t.artistDzId);
+    profile.back.ok = (kind === 'ok' ? [...ok, t.artistDzId] : ok).slice(-50);
+  }
   fingerprint(t).then(v => {
     if (!v || (kind === 'love' && !isLiked(t))) return; // unloved while we were listening
     profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
@@ -416,7 +420,7 @@ function aboutDetails(t) {
 
 const excluded = () => [...queue, mystery].filter(Boolean).map(c => norm(c.artist));
 function accept(c) {
-  if (!c || isHeard(c) || excluded().includes(norm(c.artist))) return false;
+  if (!c || (isHeard(c) && !c.back) || excluded().includes(norm(c.artist))) return false;
   queue.push(c);
   fingerprint(c);
   if (!mystery) showMystery();
@@ -428,6 +432,10 @@ async function fill() {
   filling = true;
   $('#blind-error').hidden = true;
   while (queue.length < (warm() ? 6 : 3)) {
+    const mine = [...queue, mystery].filter(Boolean);
+    const back = await call('deepCut', { enabled: profile.prefs.bringBack, adventure: profile.adventure, likes: plain(profile.likes), back: profile.back, busy: mine.some(c => c.back),
+      exclude: mine.map(c => c.artistDzId), rated: [...profile.ratings.map(r => r.id), ...tonight.map(x => likeKey(x.t))] });
+    if (accept(back)) { fails = 0; continue; }
     const source = warm() ? SOURCES[srcTurn++ % SOURCES.length] : undefined;
     const ask = () => call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude: excluded(), adventure: profile.adventure, source, prefs: profile.prefs });
     if (source === 'trail') { // MusicBrainz trails can take ~10 s: run one on the side so the other sources keep filling
@@ -457,6 +465,12 @@ const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: 
 function showMystery() {
   mystery = nextFromQueue();
   rated = false;
+  if (mystery) { // count shown mysteries; a returning artist starts its cooldown now
+    const b = profile.back;
+    b.n++;
+    if (mystery.back) { b.last = b.n; b.seen[mystery.artistDzId] = b.n; }
+    save();
+  }
   $('#reveal').replaceChildren();
   $('#mystery-next').hidden = true; $('#enter-hint').hidden = true;
   $('#mystery-progress').value = 0;
@@ -503,7 +517,7 @@ function rate(kind) {
     el('p', { className: 'sr-only', textContent: `You said ${said}. It was` }),
     el('h3', { className: 'reveal-artist', textContent: m.artist }),
     norm(m.title) === norm(m.artist) ? null : el('p', { className: 'reveal-title', textContent: m.title }), // self-titled: say it once
-    meta, reason, about,
+    meta, m.back ? el('p', { className: 'reason', textContent: `Back again: a deep cut from ${m.back.artist}${m.back.album ? `, off ${m.back.album}${m.back.year ? ` (${m.back.year})` : ''}` : ''}.` }) : null, reason, about,
     el('div', { className: 'reveal-actions' }, loveButton(m, extra), fullSong(m))));
   $('#mystery').classList.add('is-revealed');
   tonight.unshift({ t: m, kind, extra });
@@ -1319,6 +1333,8 @@ function renderPrefs() {
   prefsBuilt = true;
   renderSchemes();
   $('#pref-decades').append(...DECADES.map(d => toggleChip(`${d}s`, p.decades.includes(d), on => { profile.prefs.decades = setIn(profile.prefs.decades, d, on); })));
+  $('#pref-bringback').checked = p.bringBack;
+  $('#pref-bringback').onchange = e => { profile.prefs.bringBack = e.target.checked; save(); };
   $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
 }
 

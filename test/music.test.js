@@ -248,3 +248,32 @@ test('sharedNames: a name two artists carry is flagged; unique and unrelated nam
   const s = m.sharedNames(artists, ['Moist', 'Socrates Drank the Conium', 'Nobody']);
   assert.deepEqual([...s], ['moist']);
 });
+
+test('Blind Test returns: share scales with Adventure, cap spacing, cooldown, toggle, OK/Skip rules', () => {
+  const likes = [{ artistDzId: 7, source: 'dz', id: 1 }];
+  const base = { enabled: true, adventure: 0, likes, back: { n: 50, last: 0, seen: {}, ok: [9] } };
+  const always = () => 0;
+  assert.equal(m.returnShare(0), 1 / 6);
+  assert.ok(m.returnShare(100) === 0 && m.returnShare(90) < 0.02);
+  assert.equal(m.pickReturnArtist(base, always), 7);
+  assert.equal(m.pickReturnArtist({ ...base, enabled: false }, always), null); // toggle off = none
+  assert.equal(m.pickReturnArtist({ ...base, adventure: 100 }, always), null); // share 0: rand()>=0
+  assert.equal(m.pickReturnArtist(base, () => 0.5), null); // above the 1/6 share
+  assert.equal(m.pickReturnArtist({ ...base, back: { ...base.back, n: 5, last: 0 } }, always), null); // cap: 6 apart
+  assert.equal(m.pickReturnArtist({ ...base, busy: true }, always), null);
+  assert.equal(m.pickReturnArtist({ ...base, back: { ...base.back, seen: { 7: 40 } } }, always), 9); // 7 cooling (10 < 20), OK artist 9 at low adventure
+  assert.equal(m.pickReturnArtist({ ...base, back: { ...base.back, seen: { 7: 30 } } }, always), 7); // cooldown over
+  assert.equal(m.pickReturnArtist({ ...base, adventure: 40, back: { ...base.back, seen: { 7: 49 } } }, always), null); // OK artist only below a third
+  assert.equal(m.pickReturnArtist({ ...base, likes: [], back: { ...base.back, ok: [] } }, always), null); // skipped/unknown artists never
+});
+
+test('deep cut: skips the top 5, drops rated tracks, prefers another album, needs a preview', () => {
+  const top = Array.from({ length: 40 }, (_, i) => ({ id: 100 + i, rank: 1000 - i, preview: i === 7 ? '' : 'p', album: { id: i < 20 ? 1 : 2 }, artist: { name: 'A' } }));
+  const first = () => 0;
+  assert.equal(m.pickDeepCut(top, {}, first).id, 105); // 6th most popular
+  assert.equal(m.pickDeepCut(top, { rated: ['dz:105', 'dz:106'] }, first).id, 108); // 107 has no preview
+  assert.equal(m.pickDeepCut(top, { albums: [1] }, first).id, 120); // album 1 was the liked one
+  assert.equal(m.pickDeepCut(top.slice(0, 5), {}, first), null);
+  assert.equal(m.pickDeepCut(top, {}, () => 0.999).id, 129); // never past position 30
+});
+
