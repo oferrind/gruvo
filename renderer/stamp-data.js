@@ -145,8 +145,8 @@ function makeStamp(id) {
 
 // ---------- Roll ----------
 // 50% place catalogue, 30% genre atlas, 20% builder combo (no atlas: 70/30). Weights: taste-tag overlap x3, uncollected x2; the last 5 rolls never repeat.
-// Atlas weights also favour Deep/Obscure x2. Adventurous: after 2 rolls in a row on continents (atlas: families) you already hold, the 3rd is forced onto one you don't.
-function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak = 0, gstreak = 0, short = [], genreOnly = false } = {}, rand = Math.random) {
+// Atlas tiers weigh Common 4, Deep 2, Obscure 0 (1 when Adventurous). Adventurous: after 2 rolls in a row on continents (atlas: families) you already hold, the 3rd is forced onto one you don't.
+function roll({ held = {}, recent = [], topTags = [], adventurous = false, streak = 0, gstreak = 0, short = [], genreOnly = false } = {}, rand = Math.random) {
   const heldCont = new Set(Object.keys(held).map(k => continentOf(k.split('-')[1])));
   const fresh = CONTINENTS.filter(c => !heldCont.has(c));
   const only = !genreOnly && adventurous && streak >= 2 && fresh.length ? new Set(fresh) : null;
@@ -157,9 +157,11 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak
     const all = [...ATLAS.values()].filter(e => !recent.includes(`--${e.slug}`) && !short.includes(`--${e.slug}`));
     const newFam = all.filter(e => !heldFam.has(e.family));
     const pool = adventurous && gstreak >= 2 && newFam.length ? newFam : all;
-    const w = pool.map(e => (e.tier === 'C' ? 1 : 2) * (taste.has(norm(e.name)) || taste.has(norm(e.parent)) ? 3 : 1) * (held[`--${e.slug}`] ? 1 : 2));
+    // Well-known genres roll most; tier O (under 100 MB recordings) only when Adventurous is on.
+    const tierW = { C: 4, D: 2, O: adventurous ? 1 : 0 };
+    const w = pool.map(e => (tierW[e.tier] || 0) * (taste.has(norm(e.name)) || taste.has(norm(e.parent)) ? 3 : 1) * (held[`--${e.slug}`] ? 1 : 2));
     let r = rand() * w.reduce((a, b) => a + b, 0);
-    const e = pool.find((x, i) => (r -= w[i]) < 0) || pool[pool.length - 1];
+    const e = r > 0 && pool.find((x, i) => (r -= w[i]) < 0);
     if (e) return makeStamp(`--${e.slug}`);
   }
   if (rand() < (ATLAS.size && !only ? 0.2 / 0.7 : 0.3)) {

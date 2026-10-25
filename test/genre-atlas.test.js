@@ -86,7 +86,12 @@ test('atlas Roll: genre stamps appear, never the last 5 or a short one; taste an
   }
   const share = (opts, id) => { const r = seeded(21); let n = 0; for (let i = 0; i < 6000; i++) if (SD.roll(opts, r).id === id) n++; return n; };
   assert.ok(share({ topTags: ['bebop'] }, '--bebop') > 2 * share({}, '--bebop'), 'taste x3');
-  assert.ok(share({}, '--witch-house') > 1.3 * share({}, '--house'), 'Deep weighs 2, Common 1');
+  assert.ok(share({}, '--house') > 1.3 * share({}, '--witch-house'), 'Common weighs 4, Deep 2');
+  const obscure = SD.ATLAS ? [...SD.ATLAS.values()].find(e => e.tier === 'O') : null;
+  if (obscure) {
+    assert.equal(share({}, `--${obscure.slug}`), 0, 'tier O never rolls unless Adventurous');
+    assert.ok(share({ adventurous: true }, `--${obscure.slug}`) > 0, 'tier O rolls when Adventurous');
+  }
 });
 
 test('atlas book: family groups count earned and total; atlas stamps never count as decades or custom', () => {
