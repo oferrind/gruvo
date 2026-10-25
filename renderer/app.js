@@ -609,17 +609,17 @@ const INK = { Africa: 1, Asia: 2, Europe: 3, 'North America': 4, 'Latin America 
 const stampOf = e => ('stamp' in e ? e.stamp : e.country && e.decade ? `${e.decade}-${e.country}-` : null);
 // Re-loving keeps the stamp. A saved like with no stamp field is an old Passport like: it re-earns its legacy stamp, as unloving took it away.
 const extraOf = t => (t.country || t.stamp ? { country: t.country, decade: t.decade, genre: t.genre, stamp: 'stamp' in t ? t.stamp : t.ts ? stampOf(t) : null } : undefined);
-const scene = s => (s.legacy ? 'Passport' : s.atlas && !s.decade && !s.cc ? s.label : s.label.replace(/^\S+\s/, '').replace(new RegExp(`^${SD.DEMONYM[s.cc]} `), ''));
+const scene = s => (s.legacy ? 'Passport' : s.atlas ? SD.ATLAS.get(s.genre).label : s.label.replace(/^\S+\s/, '').replace(new RegExp(`^${SD.DEMONYM[s.cc]} `), ''));
 const tilt = id => ([...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997, 7) % 7) - 3; // same stamp, same angle, every render
 const rarityOf = id => profile.rarity[id];
 
 const famInk = s => 1 + (Object.keys(SD.FAMILIES).indexOf(s.family) % 6); // genre stamps are inked by family
 const parentLabel = s => (SD.ATLAS.get(s.parent) || {}).label || SD.TIERS[s.tier];
 function stampFace(s, count = 0) {
-  const t = SD.tier(count), r = rarityOf(s.id), g = s.atlas && !s.decade && !s.cc; // genre-only: family on top, parent below
+  const t = SD.tier(count), r = rarityOf(s.id), g = s.atlas && !s.cc; // no place: family ink, family on top when there is no decade, parent below
   const e = el('span', { className: `stamp ink-${s.legacy ? 0 : g ? famInk(s) : INK[SD.continentOf(s.cc)]} ${g ? 'genre ' : ''}${t ? `is-${t}` : 'is-empty'}${r ? ` r-${r.toLowerCase()}` : ''}`, ariaHidden: 'true' },
-    el('span', { className: 'stamp-face' }, el('span', { className: 'stamp-decade', textContent: g ? SD.FAMILIES[s.family] : SD.decadeName(s.decade) }),
-      el('span', { className: 'stamp-genre', textContent: scene(s) }), el('span', { className: 'stamp-place', textContent: g ? parentLabel(s) : countryNames[s.cc] || s.cc })));
+    el('span', { className: 'stamp-face' }, el('span', { className: 'stamp-decade', textContent: s.decade ? SD.decadeName(s.decade) : SD.FAMILIES[s.family] }),
+      el('span', { className: 'stamp-genre', textContent: scene(s) }), el('span', { className: 'stamp-place', textContent: s.cc ? countryNames[s.cc] || s.cc : parentLabel(s) })));
   e.style.setProperty('--tilt', `${t ? tilt(s.id) : 0}deg`);
   return e;
 }
@@ -656,8 +656,6 @@ function setBrowse(mode) {
   $('#scenes-view').hidden = mode !== 'scenes'; $('#genres-view').hidden = mode !== 'genres';
   $('#br-scenes').setAttribute('aria-pressed', String(mode === 'scenes')); $('#br-genres').setAttribute('aria-pressed', String(mode === 'genres'));
   ls('stampBrowse', mode);
-  $('#roll').textContent = mode === 'genres' ? 'Roll a genre' : 'Roll a stamp'; // Genres mode rolls genres only
-  $('#roll').title = `${$('#roll').textContent} (R)`;
   if (mode === 'genres') renderGenreList();
 }
 $('#br-scenes').onclick = () => setBrowse('scenes');
@@ -739,7 +737,7 @@ function renderBook() {
   $('#book').replaceChildren(...[b.legacy.length ? group('Passport (legacy)', 'place and decade only', b.legacy) : null,
     ...b.groups.map(g => group(g.continent, '', g.slots)),
     b.atlasTotal ? el('section', { className: 'book-group' }, el('h3', {}, 'Genres', el('span', { className: 'quiet', textContent: `${b.atlas} / ${b.atlasTotal.toLocaleString()}` })),
-      ...(b.atlas ? b.families.filter(f => f.earned).map(f => el('div', { className: 'book-family' }, el('h4', {}, SD.FAMILIES[f.family], el('span', { className: 'quiet', textContent: ` ${f.earned} / ${f.total}` })),
+      ...(b.families.some(f => f.slots.length) ? b.families.filter(f => f.slots.length).map(f => el('div', { className: 'book-family' }, el('h4', {}, SD.FAMILIES[f.family], el('span', { className: 'quiet', textContent: ` ${f.earned} / ${f.total}` })),
         el('ul', { className: 'book-slots' }, ...f.slots.map(slotEl)))) : [el('p', { className: 'still', textContent: 'Love a song in any genre and its stamp lands here, grouped by family.' })])) : null].filter(Boolean));
   $('#saved-stamp-count').textContent = all.length;
   $('#saved-stamps').replaceChildren(...(all.length ? all.map(slotEl) : [el('li', { className: 'muted', textContent: 'Love a song in Genre Stamps and its scene gets stamped here.' })]));
@@ -804,7 +802,7 @@ function showMore(s, run, doneMsg, mode = 'idle') {
 const markShort = id => ls('stampShort', [...new Set([...(ls('stampShort') || []), id])].slice(-200));
 // Prefetch the next Roll; a thin one is remembered, discarded and replaced (3 tries at most), so the user never lands on it.
 function prefetchNext(s, tries = 3) {
-  const n = nextRoll = SD.roll({ ...rollState(), genreOnly: !$('#genres-view').hidden, recent: [...(ls('stampRecent') || []), s.id].slice(-5) }); // the Genres view rolls genres, so prefetch one
+  const n = nextRoll = SD.roll({ ...rollState(), recent: [...(ls('stampRecent') || []), s.id].slice(-5) });
   api.prefetchStamp(n.id).then(res => {
     if (nextRoll !== n || !res || !res.thin) return;
     markShort(n.id); nextRoll = null;
@@ -837,20 +835,19 @@ async function openStamp(s, rerolls = 0) {
   }
   if (!stSongs.length) return stState('empty', 'No songs came through for this one.', { actions: [btn('Try again', () => openStamp(s), 'primary')] }); // never a silent empty list
   profile.rarity[s.id] = res.rarity; save();
-  const doneMsg = n => (s.atlas && !s.decade && !s.cc ? `${n} songs tagged ${s.label.toLowerCase()}, artists who carry the tag first.`
+  const doneMsg = n => (s.atlas ? `${n} songs tagged ${SD.ATLAS.get(s.genre).name}${s.decade ? `, first released in the ${SD.decadeName(s.decade)}` : ''}${s.cc ? `, by artists from ${countryNames[s.cc]}` : ''}.`
     : `${n} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
   stState('done', doneMsg(res.count));
   if (res.more) showMore(s, run, doneMsg); else if (res.more === false) showMore(s, run, doneMsg, 'done');
   renderStamps();
 }
 
-// ---- Roll: three reels land one by one (~1.2 s) while the playlist is already on its way ----
+// ---- Roll: one reel spins to the stamp name (~1.1 s) while the playlist is already on its way ----
 const rollState = () => ({ held: profile.stamps, recent: ls('stampRecent') || [], adventurous: $('#adventurous').checked, streak: ls('stampStreak') || 0, gstreak: ls('stampGStreak') || 0,
   short: ls('stampShort') || [], topTags: [...profile.prefs.genres.map(g => g.name), ...profile.likes.filter(l => l.genre && SD.GENRES[l.genre]).flatMap(l => SD.GENRES[l.genre][1])] });
 function doRoll() {
   const st = rollState();
-  const genres = !$('#genres-view').hidden, fits = nextRoll && !st.recent.includes(nextRoll.id) && (!genres || (nextRoll.atlas && !nextRoll.decade && !nextRoll.cc));
-  const s = fits ? nextRoll : SD.roll({ ...st, genreOnly: genres });
+  const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
   nextRoll = null;
   land(s, 2);
 }
@@ -866,23 +863,18 @@ function land(s, left) {
   spinReels(s);
   openStamp(s, left);
 }
-function spinReels(s) {
-  const g = s.atlas && !s.cc; // a genre roll spins family / tier / genre
-  const vals = g ? [SD.FAMILIES[s.family], SD.TIERS[s.tier], s.label] : [SD.decadeName(s.decade), SD.DEMONYM[s.cc], scene(s)];
-  const pools = g ? [Object.values(SD.FAMILIES), Object.values(SD.TIERS), [...SD.ATLAS.values()].map(e => e.label)]
-    : [SD.DECADES.map(SD.decadeName), Object.values(SD.DEMONYM), Object.values(SD.GENRES).map(g => g[0])];
+let reelPool = null;
+function spinReels(s) { // one reel: random stamp names spin past and the rolled one lands
+  reelPool ??= [...SD.CATALOGUE.map(x => x.label), ...[...SD.ATLAS.values()].map(e => e.label)];
   $('#roll-said').textContent = `Rolled: ${s.label}`;
-  $('#reels').classList.toggle('is-genre', g);
-  $$('#reels .reel').forEach((reel, i) => {
-    const strip = reel.firstElementChild, land = () => strip.replaceChildren(el('span', { textContent: vals[i] }));
-    strip.getAnimations().forEach(a => a.cancel());
-    if (reduced()) return land();
-    const spin = Array.from({ length: 7 + 3 * i }, () => pools[i][Math.floor(Math.random() * pools[i].length)]);
-    strip.replaceChildren(...[strip.lastElementChild.textContent, ...spin, vals[i]].map(v => el('span', { textContent: v })));
-    strip.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${-(spin.length + 1) * reel.clientHeight}px)` }],
-      { duration: 480 + 360 * i, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'forwards' })
-      .finished.then(() => { strip.getAnimations().forEach(a => a.cancel()); land(); }, () => {});
-  });
+  const reel = $('#reels .reel'), strip = reel.firstElementChild, land = () => strip.replaceChildren(el('span', { textContent: s.label }));
+  strip.getAnimations().forEach(a => a.cancel());
+  if (reduced()) return land();
+  const spin = Array.from({ length: 12 }, () => reelPool[Math.floor(Math.random() * reelPool.length)]);
+  strip.replaceChildren(...[strip.lastElementChild.textContent, ...spin, s.label].map(v => el('span', { textContent: v })));
+  strip.animate([{ transform: 'translateY(0)' }, { transform: `translateY(${-(spin.length + 1) * reel.clientHeight}px)` }],
+    { duration: 1100, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'forwards' })
+    .finished.then(() => { strip.getAnimations().forEach(a => a.cancel()); land(); }, () => {});
 }
 $('#roll').onclick = doRoll;
 $('#stamp-export').onclick = e => stOpen && exportToSpotify(`Stumble: ${stOpen.label}`, stSongs, $('#stamp-export-status'), e.currentTarget);

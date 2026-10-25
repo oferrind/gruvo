@@ -605,13 +605,12 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 }
 .field > label, .field > .label { display: block; font-weight: 600; margin-bottom: var(--space-2); }
 
-/* the Roll: three reels, each its own recessed window (no outer box), landing one by one */
+/* the Roll: one recessed reel window that lands on the whole stamp name */
 .roll { margin: 0; max-width: 420px; } /* narrow: the reels and the checkbox stay one hand-span wide */
-.reels { --reel-h: 46px; display: grid; grid-template-columns: 3.3em minmax(0, 1.25fr) minmax(0, 1fr); gap: 6px; }
+.reels { --reel-h: 46px; display: grid; }
 .reel { height: var(--reel-h); overflow: hidden; border: 1px solid var(--color-border); border-radius: 3px; box-shadow: inset 0 3px 7px rgb(0 0 0 / .45); color: var(--color-text); background: linear-gradient(var(--color-surface-2), var(--color-surface) 35% 65%, var(--color-surface-2));
-  font: 700 21px/var(--reel-h) var(--font-display); text-align: center; text-transform: uppercase; letter-spacing: .01em; }
+  font: 700 19px/var(--reel-h) var(--font-display); text-align: center; text-transform: uppercase; letter-spacing: .01em; }
 .reel-strip { display: block; }
-.reel-decade { text-transform: none; }
 .reel-strip > span { display: block; height: var(--reel-h); padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .roll-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); }
 .roll-btn { min-height: 40px; padding: var(--space-2) var(--space-4); font: 750 17px/1 var(--font-display); text-transform: uppercase; letter-spacing: .05em; }
@@ -657,9 +656,6 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .nearby-lead { color: var(--color-muted); font-size: var(--font-size-sm); }
 .book-family h4 { margin: var(--space-3) 0 var(--space-2); font: 650 14px/1.2 var(--font-display); }
 .book-family .quiet { color: var(--color-muted); font: 400 var(--font-size-sm) var(--font-body); }
-.reels.is-genre { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.3fr); }
-.reels.is-genre .reel { font-size: 16px; }
-.reels.is-genre .reel-decade { text-transform: uppercase; }
 
 /* one fixed ink per continent (app.js INK), so the colour names a place: legacy, Africa, Asia, Europe, N. America, Latin America, Oceania */
 .ink-0 { --ink: var(--color-muted); }
@@ -746,7 +742,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 
 @media (max-width: 640px) {
   .reels { --reel-h: 40px; }
-  .reel { font-size: 18px; }
+  .reel { font-size: 16px; }
   .builder { font-size: 19px; }
   .stamp-head { gap: var(--space-3); }
   .stamp.big { --w: 100px; --h: 124px; }
