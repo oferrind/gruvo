@@ -342,9 +342,11 @@ function sortHits(rows, q) {
   const nq = norm(q), has = s => !!s && nq.includes(s);
   const base = r => baseTitle(r.title);
   const hit = r => 2 * has(base(r)) + has(norm(r.artist && r.artist.name)); // the title names the song; the artist alone doesn't
-  const seen = new Set();
-  return rows.slice().sort((a, b) => hit(b) - hit(a) || (b.rank || 0) - (a.rank || 0))
-    .filter(r => { const k = `${norm(r.artist && r.artist.name)}|${base(r)}`; return !seen.has(k) && seen.add(k); });
+  const alt = r => +/[([][^)\]]*\b(live|demo|remix|rmx|acoustic|unplugged|karaoke|instrumental|cover)\b/i.test(r.title); // the studio take beats these
+  const key = r => `${norm(r.artist && r.artist.name)}|${base(r)}`, top = new Map(), seen = new Set();
+  for (const r of rows) top.set(key(r), Math.max(top.get(key(r)) || 0, r.rank || 0)); // a song ranks by its most popular version
+  return rows.slice().sort((a, b) => hit(b) - hit(a) || top.get(key(b)) - top.get(key(a)) || alt(a) - alt(b) || (b.rank || 0) - (a.rank || 0))
+    .filter(r => !seen.has(key(r)) && seen.add(key(r)));
 }
 
 // Title-only query: among the popular hits with exactly that title, the earliest iTunes release date is the original.
