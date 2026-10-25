@@ -110,7 +110,7 @@ const decadeName = d => (d >= 2000 ? `${d}s` : `${d % 100}s`.padStart(3, '0'));
 
 // ---------- genre atlas (docs/12): [slug, MB name, family, tier C/D/O, parent slug, songs, "artist|artist|artist"] ----------
 const FAMILIES = { rock: 'Rock', metal: 'Metal', punk: 'Punk', pop: 'Pop', electronic: 'Electronic', 'hip-hop': 'Hip hop', 'rnb-soul': 'R&B / soul', jazz: 'Jazz',
-  blues: 'Blues', folk: 'Folk', country: 'Country', reggae: 'Reggae', latin: 'Latin', classical: 'Classical', experimental: 'Experimental', ambient: 'Ambient', other: 'Other' };
+  blues: 'Blues', folk: 'Folk', country: 'Country', reggae: 'Reggae', latin: 'Latin', classical: 'Classical', experimental: 'Experimental', ambient: 'Ambient', world: 'World', other: 'Other' };
 const TIERS = { C: 'Common', D: 'Deep', O: 'Obscure' };
 const ATLAS = new Map(GENRE_DATA.map(([slug, name, family, tier, parent, songs, artists]) =>
   [slug, { slug, name, label: name.charAt(0).toUpperCase() + name.slice(1), family, tier, parent, songs, artists: artists ? artists.split('|') : [] }]));

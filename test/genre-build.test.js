@@ -24,6 +24,9 @@ test('familyOf: nearest root wins (metal stays metal), ties go by root order, cy
   assert.equal(B.familyOf('tie', parents), 'rock');
   assert.equal(B.familyOf('a', parents), 'other', 'cycle terminates');
   assert.equal(B.familyOf('rock', {}), 'rock');
+  // no Wikidata chain: the name decides, whole words only
+  assert.deepEqual(['black-metal', 'bossa-nova', 'funk-carioca', 'dubstep', 'detroit-trap', 'highlife', 'acid-jazz', 'beat-poetry', 'person'].map(s => B.familyOf(s, {})),
+    ['metal', 'latin', 'latin', 'electronic', 'hip-hop', 'world', 'jazz', 'other', 'other']);
 });
 
 test('parentOf skips dropped parents up the chain, and survives a cycle', () => {

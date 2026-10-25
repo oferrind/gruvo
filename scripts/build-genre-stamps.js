@@ -12,7 +12,7 @@ const OUT = path.join(__dirname, '..', 'renderer', 'genre-data.js');
 const MIN_SONGS = 6; // ≥6 playable on one fetch: margin above the runtime threshold of 5
 
 // Not music (docs/12 §1).
-const BLOCK = new Set(['asmr', "children's music", 'christmas music', 'field recording', 'guided meditation', 'interview', 'sound effects', 'spoken word']);
+const BLOCK = new Set(['asmr', "children's music", 'christmas music', 'field recording', 'guided meditation', 'interview', 'sound effects', 'spoken word', 'non-music', 'animal sounds', 'production music', 'beatboxing', 'poetry', 'beat poetry']);
 const blocked = name => BLOCK.has(name.toLowerCase()) || /\bcomedy\b/i.test(name);
 
 // Family roots by MB genre slug, in priority order (a tie at the same depth goes to the earlier family).
@@ -40,8 +40,30 @@ function familyOf(slug, parents, roots = ROOTS) {
     if (found.length) return found.sort((a, b) => order.indexOf(a) - order.indexOf(b))[0];
     level = level.flatMap(s => parents[s] || []).filter(p => !seen.has(p) && seen.add(p));
   }
-  return 'other';
+  return familyByName(slug);
 }
+
+// Fallback when Wikidata has no parent chain (about half of MB genres): whole words of the slug, first rule wins.
+const w = words => new RegExp(`(^|-)(${words})(-|$)`);
+const NAME_RULES = [
+  ['metal', w('metal|djent|death-n-roll|black-n-roll|blackgaze|deathcore|grindcore|sludge')],
+  ['latin', w('cumbia|salsa|samba|samba-[a-z]+|bossa-nova|tango|bolero|son|mambo|merengue|bachata|reggaeton|dembow|neoperreo|corrido|narcocorrido|ranchera|mariachi|norteno|banda|duranguense|regional-mexicano|forro|piseiro|frevo|axe|baiao|choro|mpb|pagode|brega|funk-carioca|funk-brasileiro|funk-ostentacao|lambada|guaguanco|guajira|guaracha|charanga|pachanga|danzon|chachacha|rumba|plena|porro|vallenato|chacarera|zamba|chamame|cuarteto|candombe|milonga|festejo|musica-criolla|polca-criolla|musica-llanera|nueva-cancion|nueva-trova|timba|cubaton|tropical|latin|champeta|afoxe|batucada|cantoria|sertanejo|copla|descarga')],
+  ['electronic', w('house|techno|trance|[a-z]*step|dubstep|[a-z]*bass|riddim|briddim|hardstyle|rawstyle|jumpstyle|hardbass|club|jungle|jungle-terror|electro|electropop|electro-[a-z]+|edm|synth|[a-z]*wave|footwork|garage|breakbeat|idm|chiptune|vaporwave|mallsoft|eccojams|hauntology|lo-fi|moombahcore|dance|hyperpop|demostyle|dreampunk|sampledelia|euphoric-hardstyle|rawphoric|nustyle|freeform-hardcore|berlin-school|progressive-electronic|festival-trap|hybrid-trap|hard-trap|horror-synth|dungeon-sound|future-[a-z]+')],
+  ['hip-hop', w('hip-hop|rap|trap|drill|grime|chap-hop|houston-sound|purple-sound|bounce')],
+  ['reggae', w('reggae|dub|novo-dub|dancehall|ska|rocksteady|mento|lovers-rock|2-tone')],
+  ['jazz', w('jazz|swing|bebop|ragtime|exotica')],
+  ['blues', w('blues')],
+  ['country', w('country|americana|bluegrass|old-time|honky-tonk|cajun|western')],
+  ['rnb-soul', w('soul|funk|p-funk|deep-funk|r-b|gospel|go-go|doo-wop|praise-worship|contemporary-christian|porn-groove')],
+  ['classical', w('classical|classical-crossover|choral|choral-symphony|opera|operatic-pop|gregorian-chant|mass|baroque|medieval|march|marching-band|mazurka|chazzanut')],
+  ['ambient', w('ambient|new-age|neoclassical-new-age|celtic-new-age|drone|lullaby|mantra')],
+  ['folk', w('folk|celtic|irish-folk|sea-shanty|sean-nos|joik|chanson|chanson-[a-z-]+|liedermacher|kleinkunst|contra|filk|old-time')],
+  ['world', w('afro|afro-[a-z]+|afrobeat|highlife|makossa|mbalax|mbaqanga|maskanda|chimurenga|congolese-rumba|soukous|griot|gnawa|rai|[a-z]+-chaabi|arabesk|fantezi|chalga|manele|dangdut|keroncong|bhangra|bhajan|ghazal|garba|lavani|qawwali|filmi|kaseko|compas|zouk|kizomba|semba|funana|morna|sega|maloya|maloya-elektrik|fado|klezmer|nasheed|muzika-mizrahit|central-asian-throat-singing|kai|finnish-tango|calypso|soca|nhac-vang|opm|levenslied|canzone-napoletana|musette|batucada')],
+  ['pop', w('pop|k-pop|q-pop|ballad|easy-listening|lounge|cocktail-nation|schlager|cabaret|dark-cabaret|kabarett|music-hall|musical|denpa|glam')],
+  ['punk', w('punk|hardcore|emo|oi')],
+  ['rock', w('rock|gothic|psychedelic|progressive|grunge|shoegaze')],
+];
+const familyByName = slug => (NAME_RULES.find(([, re]) => re.test(slug)) || ['other'])[0];
 // First ancestor (following first parents, cycle-safe) that is in `keep`, else ''.
 function parentOf(slug, parents, keep) {
   const seen = new Set([slug]);
@@ -78,7 +100,7 @@ function save(state) { fs.writeFileSync(`${CHECKPOINT}.tmp`, JSON.stringify(stat
 
 // state.done[slug] = {n, mb, a:[top artists]} (kept when n >= MIN_SONGS) or {n, drop:'thin'}. Returns the genre-data.js text and a summary.
 function render(state, date = new Date().toISOString().slice(0, 10)) {
-  const kept = state.genres.filter(g => (state.done[g.slug] || {}).n >= MIN_SONGS).sort((a, b) => a.name.localeCompare(b.name));
+  const kept = state.genres.filter(g => !blocked(g.name) && (state.done[g.slug] || {}).n >= MIN_SONGS).sort((a, b) => a.name.localeCompare(b.name));
   const keep = new Set(kept.map(g => g.slug));
   const rows = kept.map(g => {
     const d = state.done[g.slug];
