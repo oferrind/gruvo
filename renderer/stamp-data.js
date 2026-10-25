@@ -163,10 +163,11 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = true, streak
     if (e) return makeStamp(`--${e.slug}`);
   }
   if (rand() < (ATLAS.size && !only ? 0.2 / 0.7 : 0.3)) {
-    const ccs = Object.keys(ALL_CC), gs = Object.keys(GENRES);
+    // A builder roll is a catalogue scene moved one decade: a real place and genre, never a random country x genre that cannot fill.
     for (let i = 0; i < 30; i++) {
-      const s = makeStamp(`${DECADES[Math.floor(rand() * 7)]}-${ccs[Math.floor(rand() * ccs.length)]}-${gs[Math.floor(rand() * gs.length)]}`);
-      if (ok(s)) return s;
+      const c = CATALOGUE[Math.floor(rand() * CATALOGUE.length)], d = c.decade + (rand() < 0.5 ? -10 : 10);
+      const s = Object.hasOwn(GENRES, c.genre) && DECADES.includes(d) ? makeStamp(`${d}-${c.cc}-${c.genre}`) : null;
+      if (s && s.custom && ok(s)) return s;
     }
   }
   const pool = CATALOGUE.filter(ok);

@@ -252,3 +252,29 @@ test('More songs: max 2 songs per artist across pages', async () => {
   assert.equal(r.next.done, true);
 });
 
+
+test('a cancelled run is null, not thin (a dropped prefetch must not get its stamp marked short)', async () => {
+  const a = A('a', 'Solo', 'MN');
+  const { get } = fakeGet({ recordings: [rec('1', a, 'One', '2012')], guard: [a] });
+  let n = 0;
+  assert.equal(await S.stampSongs(get, { id: 'x', decade: 2010, cc: 'MN', tags: ['folk'] }, { live: () => ++n < 4 }), null);
+});
+
+test('a verified genre with 3-4 playable songs still shows them; a place stamp stays thin under 5', async () => {
+  const a = A('a', 'Solo', ''), recs = ['One', 'Two', 'Three'].map((t, i) => rec(`r${i}`, a, t, '2012'));
+  const { get } = fakeGet({ recordings: recs, guard: [{ ...a, tags: [{ name: 'zeuhl' }] }] });
+  const res = await S.stampSongs(get, { id: '--zeuhl', decade: null, cc: '', genre: 'zeuhl', tags: ['zeuhl'], atlas: true }, { rand: seeded() });
+  assert.ok(!res.thin && res.count === 3 && res.short);
+});
+
+test('Roll builder combos are sensible with or without Adventurous: a catalogue place and genre, one decade over', () => {
+  for (const adventurous of [true, false]) {
+    const rand = seeded(7), held = { '1990-JP-rock': 1 };
+    for (let i = 0; i < 1500; i++) {
+      const s = S.roll({ held, streak: i % 3, adventurous }, rand);
+      assert.ok(s && s.id && !/undefined|NaN/.test(s.label), s.id);
+      if (!s.custom) continue;
+      assert.ok(S.CATALOGUE.some(c => c.cc === s.cc && c.genre === s.genre && Math.abs(c.decade - s.decade) === 10), `unplayable combo ${s.id}`);
+    }
+  }
+});

@@ -804,7 +804,7 @@ function showMore(s, run, doneMsg, mode = 'idle') {
 const markShort = id => ls('stampShort', [...new Set([...(ls('stampShort') || []), id])].slice(-200));
 // Prefetch the next Roll; a thin one is remembered, discarded and replaced (3 tries at most), so the user never lands on it.
 function prefetchNext(s, tries = 3) {
-  const n = nextRoll = SD.roll({ ...rollState(), recent: [...(ls('stampRecent') || []), s.id].slice(-5) });
+  const n = nextRoll = SD.roll({ ...rollState(), genreOnly: !$('#genres-view').hidden, recent: [...(ls('stampRecent') || []), s.id].slice(-5) }); // the Genres view rolls genres, so prefetch one
   api.prefetchStamp(n.id).then(res => {
     if (nextRoll !== n || !res || !res.thin) return;
     markShort(n.id); nextRoll = null;
@@ -831,10 +831,11 @@ async function openStamp(s, rerolls = 0) {
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
   if (res.thin) {
-    const near = [s.decade - 10, s.decade + 10].map(d => SD.makeStamp(`${d}-${s.cc}-${s.genre}`)).filter(Boolean);
-    return stState('empty', `Only ${res.count} song${res.count === 1 ? '' : 's'} from ${s.label} made it.${near.length ? ` Try the ${near.map(x => SD.decadeName(x.decade)).join(' or ')}?` : ''}`,
+    const near = (s.atlas ? [SD.makeStamp(`--${s.genre}`)] : [s.decade - 10, s.decade + 10].map(d => SD.makeStamp(`${d}-${s.cc}-${s.genre}`))).filter(Boolean); // a genre with a place that is empty: the genre itself
+    return stState('empty', `Only ${res.count} song${res.count === 1 ? '' : 's'} from ${s.label} made it.${near.length ? ` Try ${near.map(x => x.label).join(' or ')}?` : ''}`,
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
+  if (!stSongs.length) return stState('empty', 'No songs came through for this one.', { actions: [btn('Try again', () => openStamp(s), 'primary')] }); // never a silent empty list
   profile.rarity[s.id] = res.rarity; save();
   const doneMsg = n => (s.atlas && !s.decade && !s.cc ? `${n} songs tagged ${s.label.toLowerCase()}, artists who carry the tag first.`
     : `${n} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
@@ -848,8 +849,8 @@ const rollState = () => ({ held: profile.stamps, recent: ls('stampRecent') || []
   short: ls('stampShort') || [], topTags: [...profile.prefs.genres.map(g => g.name), ...profile.likes.filter(l => l.genre && SD.GENRES[l.genre]).flatMap(l => SD.GENRES[l.genre][1])] });
 function doRoll() {
   const st = rollState();
-  if (!$('#genres-view').hidden) return land(SD.roll({ ...st, genreOnly: true }), 2);
-  const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
+  const genres = !$('#genres-view').hidden, fits = nextRoll && !st.recent.includes(nextRoll.id) && (!genres || (nextRoll.atlas && !nextRoll.decade && !nextRoll.cc));
+  const s = fits ? nextRoll : SD.roll({ ...st, genreOnly: genres });
   nextRoll = null;
   land(s, 2);
 }

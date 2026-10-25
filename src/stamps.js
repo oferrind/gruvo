@@ -125,7 +125,8 @@ async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand
     emit({ ...t, year: song.year, ...(cc && { country: cc }), ...(d && { decade: d }), genre: stamp.genre, stamp: stamp.id });
   }
   const mbCount = first.count; // recordings carrying the tag: the genre's tier
-  if (count < 5) return { thin: true, count };
+  if (!live()) return null; // cancelled (a prefetch that was dropped): not a thin stamp, so nobody marks it short
+  if (count < (stamp.atlas && !d && !cc ? 3 : 5)) return { thin: true, count }; // a verified genre (>= 6 songs at build) shows what it has
   const res = { count, artists, mbCount, names, short: count < 8, rarity: count < 8 || artists < 8 ? 'Legendary' : artists < 15 ? 'Rare' : 'Common' };
   if (paged) res.next = { offset: 0, seen: [...seen], per, shown: count, done: false }; // offset 0: the rest of page 1 comes first (tried songs are in seen)
   return res;
@@ -192,7 +193,7 @@ function stampRunner(get) {
         p.rows.forEach(emit); p.on = emit; p.live = live; // still resolving: the rest streams in, and stops if this open goes stale
         const res = await p.res;
         if (!live()) return null;
-        if (res && !res.error && !res.thin) return page(id, res);
+        if (res && !res.error) return page(id, res); // a thin prefetch is final too: running it again would only repeat the rows
       } else drop();
       const res = await start(id, { emit, live });
       return live() ? page(id, res) : null;
