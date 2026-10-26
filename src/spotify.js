@@ -1,6 +1,6 @@
 // Spotify (main process only): PKCE login over a loopback redirect, play a track on the user's device, export playlists.
 // Tokens never leave this module; the refresh token is stored encrypted (safeStorage). Spotify audio is never analysed:
-// the Sound Fingerprint keeps using Deezer/iTunes previews (Spotify's terms forbid analysing their audio).
+// the Sound Fingerprint keeps using Deezer previews (Spotify's terms forbid analysing their audio).
 // Docs (checked 2026-10): developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow, .../concepts/redirect_uri,
 // .../tutorials/february-2026-migration-guide (POST /me/playlists, /playlists/{id}/items, search limit max 10).
 const crypto = require('crypto');

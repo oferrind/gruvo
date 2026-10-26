@@ -108,7 +108,6 @@ $('#np-toggle').onclick = togglePlay;
 
 // Bar 2.0: the cover (a blurred "?" while it is a mystery) and the "came from" chip that jumps back to the source.
 const tabName = id => ($(`#tab-${id}`)?.firstChild.textContent || id).trim();
-const bigCover = u => u && u.replace('/100x100bb.', '/300x300bb.'); // iTunes art: ask for a sharper size
 function renderNpMeta() {
   const c = $('#np-cover');
   c.classList.toggle('is-mystery', !!current && hidden(current));
@@ -271,9 +270,10 @@ function fullSong(t) {
   const dz = t.source === 'dz' ? `https://www.deezer.com/track/${encodeURIComponent(t.id)}` : `https://www.deezer.com/search/${q}`;
   const link = (name, url) => el('button', { type: 'button', className: 'ext', textContent: name,
     ariaLabel: `Listen to the full song on ${name} (opens your browser)`, onclick: () => api.open(url).catch(() => toast('Could not open the browser')) });
+  if (t.noPreview) return el('span', { className: 'full-song' }, link('Open in Spotify', Links.spotify(t)), link('Open in YouTube', Links.youtube(t))); // MusicBrainz-only song: these stand in for the play button
   return el('span', { className: 'full-song' }, sp.connected ? el('button', { type: 'button', className: 'primary sp-play',
     onclick: e => playInSpotify(t, e.currentTarget) }, icon('play'), 'Play in Spotify') : null, el('span', { className: 'full-label', textContent: 'Full song:' }),
-    link('YouTube', `https://www.youtube.com/results?search_query=${q}`), link('Spotify', `https://open.spotify.com/search/${q}`), link('Deezer', dz));
+    link('YouTube', Links.youtube(t)), link('Spotify', Links.spotify(t)), link('Deezer', dz));
 }
 
 // One track row: cover, title / artist, optional reason, play, love. onOpen makes the title a link.
@@ -292,9 +292,9 @@ function trackRow(t, { extra, reason, onOpen, full, tag = 'li', from } = {}) {
   playBtn.setAttribute('aria-label', playBtn.dataset.label);
   const row = el(tag, { className: 'track' },
     t.cover ? el('img', { src: t.cover, alt: '', width: 48, height: 48 }) : el('span', { className: 'cover-ph', ariaHidden: 'true' }),
-    playBtn,
-    el('div', { className: 'meta' }, title, el('span', { className: 'artist', textContent: t.artist }),
-      reason ? el('small', { className: 'reason', textContent: reason }) : null, full ? fullSong(t) : null, full ? aboutDetails(t) : null),
+    t.noPreview ? null : playBtn,
+    el('div', { className: 'meta' }, title, el('span', { className: 'artist', textContent: t.artist + (t.year ? ` · ${t.year}` : '') }),
+      reason ? el('small', { className: 'reason', textContent: reason }) : null, full || t.noPreview ? fullSong(t) : null, full ? aboutDetails(t) : null),
     loveButton(t, extra));
   row.dataset.key = likeKey(t);
   if (current && likeKey(current) === row.dataset.key) row.classList.add('is-playing');
@@ -356,6 +356,7 @@ const warm = () => profile.ratings.length >= 3;
 function fingerprint(c) {
   c.fp ??= (async () => {
     try {
+      if (!c.previewUrl) return null; // MusicBrainz-only rows have no preview
       const buf = await api.audio(c.previewUrl);
       if (!buf || !buf.byteLength || !window.Features) return null;
       const ab = await new OfflineAudioContext(1, 1, Features.SR).decodeAudioData(buf);
@@ -517,7 +518,7 @@ function rate(kind) {
   $(`#rate [data-rate=${kind}]`).setAttribute('aria-pressed', true);
   const said = VERDICT[kind];
   // Artist/title enter the DOM only now, after rating. The cover slides out over the record, the name types on.
-  $('#deck').prepend(m.cover ? el('img', { className: 'sleeve', src: bigCover(m.cover), alt: `Cover of ${m.title}` }) : el('span', { className: 'sleeve cover-ph', ariaHidden: 'true' }));
+  $('#deck').prepend(m.cover ? el('img', { className: 'sleeve', src: m.cover, alt: `Cover of ${m.title}` }) : el('span', { className: 'sleeve cover-ph', ariaHidden: 'true' }));
   $('#deck').append(el('span', { className: 'verdict', textContent: `You said ${said}`, ariaHidden: 'true' }));
   $('#deck').dataset.verdict = kind;
   const [meta, about] = revealDetails(m);
@@ -1115,7 +1116,7 @@ function renderHome() {
   const loved = !last && likes[likes.length - 1], shown = last ? last.track : loved;
   if (!current) setTint(shown && shown.cover);
   const blank = () => el('span', { className: 'sleeve-blank' });
-  const art = shown && shown.cover ? el('img', { src: bigCover(shown.cover), alt: '' }) : blank();
+  const art = shown && shown.cover ? el('img', { src: shown.cover, alt: '' }) : blank();
   if (art.tagName === 'IMG') art.onerror = () => art.replaceWith(blank());
   $('#platter').classList.toggle('is-empty', !shown);
   $('#platter-title').textContent = last ? 'Last on the platter' : loved ? 'Last you loved' : 'Nothing on the platter yet';

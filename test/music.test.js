@@ -38,8 +38,6 @@ test('name-only pick refuses an ambiguous artist (live: Trinidad "Atlantik" reve
   // A more popular substring-name artist must not beat the exact one.
   const mario = [row(1, 'Mario Lanza', 'Be My Love', 900), row(2, 'Mario', 'Let Me Love You', 100)];
   assert.equal(m.pickDeezer(mario, 'Mario', '').artist.id, 2);
-  const it = [{ artistId: 1, artistName: 'Atlantik', trackName: 'A', previewUrl: 'p' }, { artistId: 2, artistName: 'Atlantik', trackName: 'B', previewUrl: 'p' }];
-  assert.equal(m.pickItunes(it, 'Atlantik', ''), null);
 });
 
 test('search hits: named song first, then most popular, one row per song', async () => {
@@ -52,22 +50,30 @@ test('search hits: named song first, then most popular, one row per song', async
   assert.deepEqual(pop, pop.slice().sort((a, b) => b - a));
 });
 
-test('search hits: a song only iTunes has still shows when the query names it', async () => {
+test('search hits: a song Deezer lacks comes from MusicBrainz, without a preview, official earliest release first', async () => {
+  const rec = (id, title, artist, date, status) => ({ id, title, 'artist-credit': [{ name: artist }], 'first-release-date': date, releases: [{ status }] });
   const get = fakeGet({ 'api.deezer.com/search': { data: [{ id: 1, title: 'Sad Song (Acoustic)', artist: { id: 9, name: 'Liam Gallagher' }, rank: 300000, preview: 'p' }] },
-    'itunes.apple.com/search': { results: [{ trackId: 5, trackName: 'Sad Song (Remastered)', artistName: 'Oasis', previewUrl: 'q', releaseDate: '1994-08-29' },
-      { trackId: 6, trackName: 'Wonderwall', artistName: 'Oasis', previewUrl: 'w' }] } });
+    'musicbrainz.org/ws/2/recording': { recordings: [rec('b', 'Sad Song', 'Oasis', '1999-01-01', 'Bootleg'), rec('a2', 'Sad Song', 'Oasis', '2009-01-01', 'Official'),
+      rec('a1', 'Sad Song (Remastered)', 'Oasis', '1994-08-29', 'Official'), rec('w', 'Wonderwall', 'Oasis', '1995-01-01', 'Official')] } });
   const hits = await m.flows.searchTracks(get, 'oasis sad song');
-  assert.equal(`${hits[0].source} ${hits[0].artist} – ${hits[0].title}`, 'it Oasis – Sad Song (Remastered)');
-  assert.ok(!hits.some(h => h.title === 'Wonderwall')); // iTunes rows only when the query names the song
+  assert.deepEqual(hits[0], { source: 'mb', id: 'a1', title: 'Sad Song (Remastered)', artist: 'Oasis', noPreview: true, year: 1994 });
+  assert.equal(hits.filter(h => h.source === 'mb').length, 1); // one row per song
+  assert.ok(!hits.some(h => h.title === 'Wonderwall')); // only when the query names the song
+  assert.equal(hits[1].source, 'dz');
 });
 
-test('resolvePreview falls back to iTunes', async () => {
-  const get = fakeGet({ 'api.deezer.com/search': { data: [] }, 'itunes.apple.com/search': fx('it_search_tezeta') });
-  const t = await m.flows.resolvePreview(get, 'Hailu Mergia', 'Tezeta');
-  assert.equal(t.source, 'it');
-  assert.equal(t.title, 'Tezeta');
-  assert.ok(t.previewUrl);
-  assert.equal(await m.flows.resolvePreview(fakeGet({}), 'Nobody', 'Nothing'), null);
+test('search hits: MusicBrainz is not asked when Deezer has the song', async () => {
+  const urls = [];
+  const get = async url => { urls.push(url); return fx('dz_search_creep'); };
+  const hits = await m.flows.searchTracks(get, 'radiohead creep');
+  assert.ok(hits.length && hits.every(h => !h.noPreview));
+  assert.ok(!urls.some(u => u.includes('musicbrainz')));
+});
+
+test('resolvePreview is Deezer only', async () => {
+  const t = await m.flows.resolvePreview(fakeGet({ 'api.deezer.com/search': fx('dz_search_creep') }), 'Radiohead', 'Creep');
+  assert.equal(t.source, 'dz');
+  assert.equal(await m.flows.resolvePreview(fakeGet({ 'api.deezer.com/search': { data: [] } }), 'Nobody', 'Nothing'), null);
 });
 
 test('adventure slider mix', () => {
@@ -170,7 +176,6 @@ test('trail source: producer of a loved track -> another artist they worked with
   assert.match(c.why.person, /^(Paul Q\. Kolderie|Sean Slade)$/);
   assert.match(c.why.role, /^(producer|engineer)$/);
   assert.equal(c.why.loved, 'Creep');
-  assert.ok(!urls.some(u => u.includes('itunes')));
   const again = await m.flows.nextCandidate(get, { likes, heard: [m.norm(c.artist)], adventure: 50, source: 'trail' });
   assert.ok(!again || m.norm(again.artist) !== m.norm(c.artist));
 });
@@ -220,7 +225,7 @@ test('cache expiry per host and prune', () => {
   assert.ok(isFresh({ t: now - 9 * 60000 }, 'https://api.deezer.com/x', now));
   assert.ok(!isFresh({ t: now - 11 * 60000 }, 'https://api.deezer.com/x', now));
   assert.ok(isFresh({ t: now - 29 * 86400000 }, 'https://musicbrainz.org/ws/2/x', now));
-  assert.ok(!isFresh({ t: now - 2 * 86400000 }, 'https://itunes.apple.com/x', now));
+  assert.ok(!isFresh({ t: now - 2 * 86400000 }, 'https://example.com/x', now));
   assert.ok(!isFresh(undefined, 'https://api.deezer.com/x', now));
   const u = k => `https://musicbrainz.org/${k}`;
   const c = { [u('a')]: { t: now - 3 }, [u('b')]: { t: now - 5 }, [u('c')]: { t: now - 4 } };
@@ -238,19 +243,6 @@ test('prune drops expired entries and enforces a byte budget', () => {
   assert.deepEqual(Object.keys(prune(c, 5000, 2500, now)).sort(), ['https://musicbrainz.org/2', 'https://musicbrainz.org/3']);
 });
 
-test('originalFirst: earliest popular same-title hit leads; unrelated older song and misdated covers lose', () => {
-  const dz = (name, title, rank) => ({ id: name, title, rank, artist: { id: name, name } });
-  const it = (artistName, trackName, releaseDate) => ({ artistName, trackName, releaseDate });
-  const hits = [dz('Jul', 'Hallelujah', 900), dz('Jeff Buckley', 'Hallelujah', 800), dz('Leonard Cohen', 'Hallelujah', 600), dz('Jeff Gutt', 'Hallelujah', 500)];
-  const itRows = [it('Jeff Buckley', 'Hallelujah', '1994-08-23'), it('Leonard Cohen', 'Hallelujah', '1984-12-01'),
-    it('Jeff Gutt', 'Hallelujah', '1984-12-01'), it('Leonard Cohen', 'Hallelujah (Live)', '2009-03-31'), it('The Damned', 'Hallelujah', '1970-01-01')];
-  const { rows, year } = m.originalFirst(hits, itRows, 'hallelujah');
-  assert.deepEqual(rows.map(r => r.artist.name), ['Leonard Cohen', 'Jul', 'Jeff Buckley', 'Jeff Gutt']);
-  assert.equal(year, 1984);
-  // No iTunes data (offline / error) or a query that isn't a bare title: order untouched.
-  assert.deepEqual(m.originalFirst(hits, undefined, 'hallelujah').rows, hits);
-  assert.equal(m.originalFirst(hits, itRows, 'leonard cohen hallelujah').year, null);
-});
 
 test('sharedNames: a name two artists carry is flagged; unique and unrelated names are not', () => {
   const artists = [{ name: 'Moist', country: 'GR' }, { name: 'Moist', country: 'CA' }, { name: 'Moist Boyz' }, { name: 'Socrates Drank the Conium' }];

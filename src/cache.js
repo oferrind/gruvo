@@ -1,6 +1,6 @@
 // Pure cache rules: TTL per host, freshness check, size cap.
 const DAY = 86400000;
-const TTL = { 'musicbrainz.org': 30 * DAY, 'en.wikipedia.org': 30 * DAY, 'www.wikidata.org': 30 * DAY, 'itunes.apple.com': DAY, 'api.deezer.com': 10 * 60000 }; // Deezer preview tokens die after ~15 min
+const TTL = { 'musicbrainz.org': 30 * DAY, 'en.wikipedia.org': 30 * DAY, 'www.wikidata.org': 30 * DAY, 'api.deezer.com': 10 * 60000 }; // Deezer preview tokens die after ~15 min
 
 const ttlFor = url => TTL[new URL(url).hostname] ?? 0;
 const isFresh = (entry, url, now = Date.now()) => !!entry && now - entry.t < ttlFor(url);

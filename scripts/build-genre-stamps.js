@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds renderer/genre-data.js (docs/12 §4.5): every MusicBrainz genre that plays live becomes a genre-only stamp.
 // Run by hand, never in CI. Resumable: progress is saved after every genre to scripts/.genre-verify.json.
-//   node scripts/build-genre-stamps.js [--no-itunes] [--only "zeuhl,gqom"] [--limit N] [--fresh]
+//   node scripts/build-genre-stamps.js [--only "zeuhl,gqom"] [--limit N] [--fresh]
 // MB pacing (1.5 s) comes from src/net.js; this script adds no extra network path except two Wikidata SPARQL calls.
 const fs = require('fs');
 const path = require('path');
@@ -128,7 +128,6 @@ async function main(argv) {
   const net = require('../src/net');
   const { stampSongs } = require('../src/stamps');
   let get = net.get;
-  if (argv.includes('--no-itunes')) get = url => (url.includes('itunes.apple.com') ? Promise.resolve({ results: [] }) : net.get(url)); // iTunes paces at 3 s
   let state = argv.includes('--fresh') ? null : load();
   if (!state) {
     console.log('Fetching the MusicBrainz genre list and the Wikidata parent tree...');

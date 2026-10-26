@@ -36,7 +36,7 @@ const validKey = k => { const m = STAMP_KEY.exec(k); return !!m && (!!m[1] || !!
 // What was playing last ("continue where you left off" + the bar's "came from" chip). Anything malformed: null.
 function validLast(l) {
   const t = l && l.track, f = l && l.from;
-  if (!t || !name(t.title) || !name(t.artist) || !['dz', 'it'].includes(t.source) || !(name(t.id) || Number.isFinite(t.id))) return null;
+  if (!t || !name(t.title) || !name(t.artist) || !['dz', 'it', 'mb'].includes(t.source) || !(name(t.id) || Number.isFinite(t.id))) return null;
   const track = { source: t.source, id: t.id, title: t.title, artist: t.artist };
   for (const k of ['artistDzId', 'albumId', 'decade']) if (Number.isInteger(t[k])) track[k] = t[k];
   if (typeof t.cover === 'string' && t.cover.startsWith('https://') && t.cover.length <= 500) track.cover = t.cover;

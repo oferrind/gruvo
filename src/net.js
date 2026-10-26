@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { isFresh, prune } = require('./cache');
 
-const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'itunes.apple.com': 3000, 'en.wikipedia.org': 200, 'www.wikidata.org': 200 };
+const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'en.wikipedia.org': 200, 'www.wikidata.org': 200 };
 const UA = `MusicDiscovery/0.1 (${require('../stumble.config.json').contact})`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -81,7 +81,7 @@ async function load(url, fresh) {
 
 // Preview audio for the Sound Fingerprint: only the preview CDNs, https, no redirects, at most MAX_AUDIO bytes.
 const MAX_AUDIO = 2 * 1024 * 1024;
-const isAudioHost = h => h.endsWith('.dzcdn.net') || h.endsWith('.mzstatic.com') || h === 'audio-ssl.itunes.apple.com';
+const isAudioHost = h => h.endsWith('.dzcdn.net');
 
 // Returns an ArrayBuffer, or {error}. Never throws.
 async function audio(url) {

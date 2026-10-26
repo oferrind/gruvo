@@ -33,11 +33,11 @@ const audioRes = (chunks, headers = {}) => ({ ok: true, status: 200, headers: ne
 test('audio only downloads https previews from the preview CDNs, with a timeout and no redirects', () => {
   let opts;
   return withFetch(async (url, o) => { opts = o; return audioRes([new Uint8Array([1, 2, 3])]); }, async calls => {
-    for (const u of ['http://cdnt-preview.dzcdn.net/a.mp3', 'https://api.deezer.com/track/1', 'https://itunes.apple.com/x.m4a',
+    for (const u of ['http://cdnt-preview.dzcdn.net/a.mp3', 'https://api.deezer.com/track/1', 'https://audio-ssl.itunes.apple.com/a.m4a', 'https://a1.mzstatic.com/a.m4a',
       'https://evil.com/?x=.dzcdn.net', 'https://dzcdn.net.evil.com/a.mp3', 'file:///c:/x.mp3', 'nope'])
       assert.ok((await net.audio(u)).error, u);
     assert.deepEqual(calls, []);
-    for (const u of ['https://cdnt-preview.dzcdn.net/a.mp3', 'https://audio-ssl.itunes.apple.com/a.m4a', 'https://a1.mzstatic.com/a.m4a'])
+    for (const u of ['https://cdnt-preview.dzcdn.net/a.mp3', ])
       assert.deepEqual([...new Uint8Array(await net.audio(u))], [1, 2, 3], u);
     assert.ok(opts.signal instanceof AbortSignal);
     assert.equal(opts.redirect, 'error');

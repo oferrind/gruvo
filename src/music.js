@@ -2,7 +2,6 @@
 const COUNTRIES = require('./countries');
 
 const DZ = 'https://api.deezer.com';
-const IT = 'https://itunes.apple.com';
 const MB = 'https://musicbrainz.org/ws/2';
 const WP = 'https://en.wikipedia.org';
 const enc = encodeURIComponent;
@@ -44,19 +43,8 @@ function pickDeezer(rows, artist, title, requireTitle = false) {
   return soleArtist(ok, artist, r => r.artist.name, r => r.artist.id).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0] || null;
 }
 
-function pickItunes(rows, artist, title, requireTitle = false) {
-  const ok = (rows || []).filter(r => r.previewUrl && artistMatch(r.artistName, artist));
-  const t = norm(title);
-  const titled = t ? ok.filter(r => norm(r.trackName).includes(t)) : [];
-  if (titled.length) return titled[0];
-  if (requireTitle && t) return null;
-  return soleArtist(ok, artist, r => r.artistName, r => r.artistId)[0] || null;
-}
-
 const fromDeezer = r => ({ source: 'dz', id: r.id, title: r.title, artist: r.artist.name, artistDzId: r.artist.id,
   cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, isrc: r.isrc, previewUrl: r.preview });
-const fromItunes = r => ({ source: 'it', id: r.trackId, title: r.trackName, artist: r.artistName,
-  cover: r.artworkUrl100, previewUrl: r.previewUrl });
 
 // Adventure 0-100 -> how the Blind Test picks candidates.
 function adventureMix(adventure) {
@@ -67,8 +55,8 @@ function adventureMix(adventure) {
 const chooseSource = (adventure, loveCount, r = Math.random()) =>
   loveCount >= 3 && r >= adventureMix(adventure).pExplore ? 'neighbour' : 'explore';
 
-// heard holds 'dz:<id>' / 'mb:<id>' (R4: same-name artists stay apart) or a normalized name (old profiles, iTunes-only artists).
-// shortcut: a dz-keyed artist isn't recognised by mb id or by name-only lookups (trail order, iTunes fallback); store both ids if that shows up.
+// heard holds 'dz:<id>' / 'mb:<id>' (R4: same-name artists stay apart) or a normalized name (old profiles).
+// shortcut: a dz-keyed artist isn't recognised by mb id or by name-only lookups (trail order); store both ids if that shows up.
 const isHeard = (heard, { dz, mb, name }) =>
   (dz != null && heard.includes(`dz:${dz}`)) || (mb != null && heard.includes(`mb:${mb}`)) || heard.includes(norm(name));
 
@@ -132,10 +120,7 @@ async function resolvePreview(get, artist, title = '', requireTitle = false) {
   const q = `${artist} ${title}`.trim();
   const dz = await get(`${DZ}/search?q=${enc(q)}&limit=10`);
   const d = pickDeezer(dz.data, artist, title, requireTitle);
-  if (d) return fromDeezer(d);
-  const it = await get(`${IT}/search?entity=song&limit=10&term=${enc(q)}`);
-  const i = pickItunes(it.results, artist, title, requireTitle);
-  return i ? fromItunes(i) : null;
+  return d ? fromDeezer(d) : null;
 }
 
 // Fresh preview URL for a stored/stale item. bypass=true skips the cache (after a 403).
@@ -143,14 +128,11 @@ async function freshPreview(get, item, bypass = false) {
   if (item.source === 'dz') {
     const t = await get(`${DZ}/track/${enc(item.id)}`, { fresh: bypass });
     if (t && t.preview) return t.preview;
-  } else if (item.source === 'it') {
-    const t = await get(`${IT}/lookup?id=${enc(item.id)}`);
-    const r = t.results && t.results[0];
-    if (r && r.previewUrl) return r.previewUrl;
   }
-  const it = await get(`${IT}/search?entity=song&limit=10&term=${enc(`${item.artist} ${item.title}`)}`);
-  const i = pickItunes(it.results, item.artist, item.title, true);
-  return i ? i.previewUrl : null;
+  // Old saved 'it' tracks, and a lapsed Deezer id, find their song again by name; 'mb' rows have no preview at all.
+  if (item.source === 'mb') return null;
+  const d = pickDeezer((await get(`${DZ}/search?q=${enc(`${item.artist} ${item.title}`)}&limit=10`)).data, item.artist, item.title, true);
+  return d ? d.preview : null;
 }
 
 // Artist names for a country + decade (MB artist query, release query as fallback).
@@ -349,28 +331,26 @@ function sortHits(rows, q) {
     .filter(r => !seen.has(key(r)) && seen.add(key(r)));
 }
 
-// Title-only query: among the popular hits with exactly that title, the earliest iTunes release date is the original.
-// Only popular hits compete, so an older unrelated song with the same title (The Damned's "Creep") can't win;
-// a date tie keeps the more popular one (iTunes misdates some covers, e.g. a 2018 "Hallelujah" as 1984).
-function originalFirst(hits, itRows, q) {
-  const nq = baseTitle(q);
-  const date = r => (itRows || []).filter(i => i.releaseDate && baseTitle(i.trackName) === nq && artistMatch(i.artistName, r.artist && r.artist.name))
-    .map(i => i.releaseDate).sort()[0];
-  const dated = hits.filter(r => baseTitle(r.title) === nq).map(r => ({ r, d: date(r) })).filter(x => x.d);
-  if (!dated.length) return { rows: hits, year: null };
-  const o = dated.reduce((a, b) => (b.d < a.d ? b : a));
-  return { rows: [o.r, ...hits.filter(r => r !== o.r)], year: Number(o.d.slice(0, 4)) };
+// MusicBrainz recording for a query that names both title and artist (a song Deezer lacks, e.g. Oasis "Sad Song" bonus track).
+// Official studio releases beat the rest, then the earliest first release. One row per song, no preview.
+async function mbSong(get, q) {
+  const nq = norm(q), w = q.replace(/[^\p{L}\p{N}\s]/gu, ' ').trim().replace(/\s+/g, ' ');
+  const res = await get(`${MB}/recording?query=${enc(`recording:(${w}) AND artist:(${w})`)}&limit=25&fmt=json`);
+  const ok = (res.recordings || []).filter(r => nq.includes(baseTitle(r.title)) && nq.includes(norm(creditName(r))));
+  const studio = r => +!(r.releases || []).some(x => x.status === 'Official');
+  const key = r => `${norm(creditName(r))}|${baseTitle(r.title)}`, seen = new Set();
+  return ok.sort((a, b) => studio(a) - studio(b) || (a['first-release-date'] || '9').localeCompare(b['first-release-date'] || '9'))
+    .filter(r => !seen.has(key(r)) && seen.add(key(r))).slice(0, 3)
+    .map(r => ({ source: 'mb', id: r.id, title: r.title, artist: creditName(r), noPreview: true, year: Number((r['first-release-date'] || '').slice(0, 4)) || null }));
 }
 
 async function searchTracks(get, q) {
-  const [res, it] = await Promise.all([get(`${DZ}/search?q=${enc(q)}&limit=25`), get(`${IT}/search?entity=song&limit=200&term=${enc(q)}`)]);
-  // iTunes-only songs (bonus tracks Deezer lacks, e.g. Oasis "Sad Song") join when the query names both title and artist;
-  // rank 0 keeps the Deezer version when both have it.
+  const res = await get(`${DZ}/search?q=${enc(q)}&limit=25`);
+  const rows = sortHits(res.data || [], q).slice(0, 10).map(fromDeezer);
   const nq = norm(q);
-  const extra = (it.results || []).filter(r => r.previewUrl && nq.includes(baseTitle(r.trackName)) && nq.includes(norm(r.artistName)))
-    .map(r => ({ title: r.trackName, artist: { name: r.artistName }, rank: 0, it: r }));
-  const { rows, year } = originalFirst(sortHits([...(res.data || []), ...extra], q).slice(0, 10), it.results, q);
-  return rows.map((r, i) => ({ ...(r.it ? fromItunes(r.it) : fromDeezer(r)), original: i === 0 ? year : null }));
+  // Only when Deezer has no row naming both title and artist: MusicBrainz is slow (1.5 s pacing).
+  if ((res.data || []).some(r => nq.includes(baseTitle(r.title)) && nq.includes(norm(r.artist.name)))) return rows;
+  return [...(await mbSong(get, q)), ...rows];
 }
 
 // Credits for a track: {recId} or {isrc, title, artist}.
@@ -497,7 +477,7 @@ async function about(get, { source, id, albumId, title, artist }) {
 }
 
 module.exports = {
-  COUNTRIES, norm, isHeard, artistMatch, shuffle, fromDeezer, fromItunes, pickDeezer, pickItunes, adventureMix, chooseSource, pickRelated,
-  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, originalFirst, pickTrip, prefHeard, rankArtists, TRIP_BIAS, returnShare, pickReturnArtist, pickDeepCut, BACK_GAP, BACK_COOLDOWN,
+  COUNTRIES, norm, isHeard, artistMatch, shuffle, fromDeezer, pickDeezer, adventureMix, chooseSource, pickRelated,
+  bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, mbSong, pickTrip, prefHeard, rankArtists, TRIP_BIAS, returnShare, pickReturnArtist, pickDeepCut, BACK_GAP, BACK_COOLDOWN,
   flows: { deepCut, resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about },
 };

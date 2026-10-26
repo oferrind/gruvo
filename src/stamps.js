@@ -1,11 +1,10 @@
 // Genre Stamps (docs/06): decade x place x genre. Catalogue, builder genres, Roll, and the strict playlist query.
 const COUNTRIES = require('./countries');
-const { norm, shuffle, fromDeezer, fromItunes } = require('./music');
+const { norm, shuffle, fromDeezer } = require('./music');
 const data = require('../renderer/stamp-data')(COUNTRIES, require('../renderer/genre-data'));
 
 const MB = 'https://musicbrainz.org/ws/2';
 const DZ = 'https://api.deezer.com';
-const IT = 'https://itunes.apple.com';
 const enc = encodeURIComponent;
 
 // ---------- strict playlist query (docs/06 §5) ----------
@@ -68,19 +67,14 @@ function strictPick(rows, names, title, artistOf, titleOf, previewOf) {
 
 // Streams rows through emit(row) as each preview resolves. Returns {count, artists, rarity, short} or {thin}/{error}.
 const songKey = s => `${s.artistId}|${norm(s.title)}`;
-// One strict preview lookup (Deezer, then iTunes); lim = {dz, it} counts this call's searches against its budget.
-async function lookup(get, g, song, cc, lim) {
+// One strict preview lookup (Deezer only); lim.dz counts this run's searches against its budget.
+async function lookup(get, g, song, lim) {
   const q = enc(`${g.name} ${song.title}`);
   let t = null;
   if (lim.dz < 40) {
     lim.dz++;
     const r = strictPick((await get(`${DZ}/search?q=${q}&limit=10`)).data, g.names, song.title, r => r.artist && r.artist.name, r => r.title, r => r.preview);
     t = r && fromDeezer(r);
-  }
-  if (!t && lim.it < 4) {
-    lim.it++;
-    const r = strictPick((await get(`${IT}/search?entity=song&limit=10&country=${cc || 'US'}&term=${q}`)).results, g.names, song.title, r => r.artistName, r => r.trackName, r => r.previewUrl);
-    t = r && fromItunes(r);
   }
   return t;
 }
@@ -110,13 +104,13 @@ async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand
   const artists = new Set(songs.map(s => s.artistId)).size;
   const per = {};
   let count = 0;
-  const lim = { dz: 0, it: 0 }, seen = new Set();
+  const lim = { dz: 0 }, seen = new Set();
   const names = []; // artists in play order (tagged first), for the genre build script
   for (const { song, round } of order(songs, rand)) {
     if (count >= 10 || !live()) break;
     const n = per[song.artistId] || 0;
     if (!(round < 2 ? n < 2 : round === 2 && n < 3 && count < 8)) continue; // max 2 per artist; a 3rd only to reach 8
-    const g = guard.get(song.artistId), t = await lookup(get, g, song, cc, lim);
+    const g = guard.get(song.artistId), t = await lookup(get, g, song, lim);
     seen.add(songKey(song));
     if (!t || !live()) continue;
     per[song.artistId] = n + 1;
@@ -138,10 +132,10 @@ async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand
 async function stampMore(get, stamp, cursor, { emit = () => {}, live = () => true, rand = Math.random } = {}) {
   const { tags } = stamp, d = stamp.decade || 0, cc = stamp.cc || '';
   let { offset, done } = cursor;
-  const seen = new Set(cursor.seen), per = { ...cursor.per }, lim = { dz: 0, it: 0 };
+  const seen = new Set(cursor.seen), per = { ...cursor.per }, lim = { dz: 0 };
   let added = 0;
   const out = () => ({ offset, seen: [...seen], per, shown: cursor.shown + added, done });
-  while (!done && added < 10 && live() && (lim.dz < 40 || lim.it < 4)) {
+  while (!done && added < 10 && live() && lim.dz < 40) {
     const pg = await get(`${mbUrl('recording', `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`)}&offset=${offset}`);
     if (pg.error) return { error: true, next: out() };
     const recs = pg.recordings || [], guard = new Map();
@@ -154,9 +148,9 @@ async function stampMore(get, stamp, cursor, { emit = () => {}, live = () => tru
     let cut = false;
     for (const { song } of order(songsFrom(recs, guard, d).filter(s => !seen.has(songKey(s))), rand)) {
       if (!live()) return { added, next: out() };
-      if (added >= 10 || (lim.dz >= 40 && lim.it >= 4)) { cut = true; break; }
+      if (added >= 10 || lim.dz >= 40) { cut = true; break; }
       if ((per[song.artistId] || 0) >= 2) continue;
-      const g = guard.get(song.artistId), t = await lookup(get, g, song, cc, lim);
+      const g = guard.get(song.artistId), t = await lookup(get, g, song, lim);
       seen.add(songKey(song));
       if (!t || !live()) continue;
       per[song.artistId] = (per[song.artistId] || 0) + 1;
