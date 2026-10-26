@@ -16,6 +16,7 @@ const trackIn = t => {
 function create({ get, audio, open, store }) {
   // Family Tree: one build at a time. A newer tree makes the older one's live() false, so it stops before its next call.
   let tree = null, treeRun = 0;
+  const recent = []; // song keys shown in recent trees (session only): a similar root next time surfaces other songs
   const stampRunner = Stamps.stampRunner(get); // one playlist at a time, rows streamed as previews resolve
   const rowSink = (ctx, run) => row => ctx.send('stamps:row', run, row);
   return {
@@ -31,7 +32,8 @@ function create({ get, audio, open, store }) {
       if (!root || typeof root.artist !== 'string' || typeof root.title !== 'string') throw new Error('bad root');
       const mine = ++treeRun;
       const live = () => mine === treeRun && ctx.alive();
-      tree = Tree.newTree(get, root, { settings: Tree.validSettings(settings), heard: Array.isArray(heard) ? heard.map(String) : [], live,
+      recent.splice(0, recent.length - 150);
+      tree = Tree.newTree(get, root, { recent, settings: Tree.validSettings(settings), heard: Array.isArray(heard) ? heard.map(String) : [], live,
         saved: Array.isArray(saved) ? saved.filter(s => s && typeof s.artist === 'string' && typeof s.title === 'string')
           .map(s => ({ source: String(s.source), id: s.id == null ? null : String(s.id), artist: s.artist, title: s.title })) : [], emit: n => live() && ctx.send('tree:node', run, n) });
       await Tree.growTree(tree);

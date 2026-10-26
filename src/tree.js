@@ -167,9 +167,9 @@ function soundtrackTracks(rel, artist, sound) {
 // Saved songs never come back as tree songs (the root is shown as given): by id, or artist + base title so a remaster counts too.
 const songKey = t => `${norm(t.artist)}|${baseTitle(t.title)}`;
 const isSaved = (T, t) => T.saved.has(`id:${t.source}:${t.id}`) || T.saved.has(songKey(t));
-function newTree(get, root, { emit = () => {}, live = () => true, heard = [], saved = [], settings } = {}) {
+function newTree(get, root, { emit = () => {}, live = () => true, heard = [], saved = [], settings, rand = Math.random, recent = [] } = {}) {
   // MusicBrainz is paced, so the build gets a fixed call budget: past it MB calls answer {error} and that edge is skipped.
-  const T = { S: validSettings(settings), fans: new Map(), rels: new Map(), mbLeft: MB_BUDGET, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0,
+  const T = { S: validSettings(settings), rand, recent, fans: new Map(), rels: new Map(), mbLeft: MB_BUDGET, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0,
     fails: 0, // network errors seen, so an offline More is not mistaken for "no more family"
     get: url => String(url).startsWith(MB) && T.mbLeft-- <= 0 ? Promise.resolve({ error: 'budget' }) : get(url).then(res => { if (res && res.error && res.error.message) T.fails++; return res; }),
     saved: new Set(saved.flatMap(s => [s.id != null && `id:${s.source}:${s.id}`, songKey(s)]).filter(Boolean)) };
@@ -187,6 +187,7 @@ function addNode(T, parent, track, c) {
     artist: track.artist, track, label: c.label, mbid: c.mbid || null, mb: c.mb || null, dzId: track.artistDzId ?? null,
     pending: [], done: new Set() };
   T.nodes.push(n);
+  T.recent.push(songKey(track)); // the caller's list of songs shown lately (handlers.js trims it)
   if (parent) parent.kids++;
   T.emit({ id: n.id, parentId: n.parent, depth: n.depth, edgeType: parent ? c.kind : 'root', label: n.label, track });
   return n;
@@ -209,10 +210,23 @@ const dzTrack = r => r && { source: 'dz', id: r.id, artist: r.artist.name, artis
   cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, previewUrl: r.preview,
   title: (r.title_short || r.title).replace(/\s*[([-][^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || r.title }; // "Beautiful Ones (Remastered)"
 
-// First top track with a preview that isn't a live/remix/demo cut.
-async function topTrack(get, dzId) {
-  const res = await get(`${DZ}/artist/${enc(dzId)}/top?limit=10`);
-  return dzTrack((res.data || []).find(t => t.preview && !/\b(live|remix|demo|version)\b/i.test(t.title)));
+// Variety: sort by rank plus noise (rand = () => 0 keeps strict rank order); items shown lately sink to the back.
+const JITTER = 4, RECENT_PENALTY = 8;
+const recentArtist = (T, a) => T.recent.some(k => k.startsWith(`${norm(a)}|`));
+const jitter = (T, list) => list.map((c, i) => ({ c, k: i + T.rand() * JITTER + (recentArtist(T, c.artist) ? RECENT_PENALTY : 0) }))
+  .sort((x, y) => x.k - y.k).map(x => x.c);
+
+// One of the artist's top 5 usable tracks (preview, not a live/remix/demo cut), rank-weighted; the Fame setting flattens (obscure) or sharpens (famous) the weights.
+// Tracks already saved or shown lately are left out unless nothing else is left.
+async function topTrack(T, dzId) {
+  const res = await T.get(`${DZ}/artist/${enc(dzId)}/top?limit=10`);
+  const ok = (res.data || []).filter(t => t.preview && !/\b(live|remix|demo|version)\b/i.test(t.title)).map(dzTrack);
+  const fresh = ok.filter(x => !isSaved(T, x) && !T.recent.includes(songKey(x)));
+  const pool = (fresh.length ? fresh : ok).slice(0, 5), p = T.S.fame > 50 ? 0 : T.S.fame < 50 ? 2 : 1;
+  const w = pool.map((_, i) => 1 / (i + 1) ** p);
+  let r = T.rand() * w.reduce((a, b) => a + b, 0), i = 0;
+  while (i < pool.length - 1 && r >= w[i]) r -= w[i++];
+  return pool[i];
 }
 
 // A work we only know by title ("based on" carries no performer): its first recording on MB names the artist.
@@ -293,13 +307,15 @@ async function rank(T, node) {
       return { artist: a.name, mbid: a.id, mb: a, dzId: r ? r.id : undefined, fans: r && r.nb_fan, kind: 'scene',
         score: (r ? 3 : 2) + (a.score || 0) / 100 - (heardOf(a, r) ? 0.5 : 0), label: sceneLabel(tag, a, r && node.artist) };
     }).sort((a, b) => b.score - a.score));
+    lists[0] = jitter(T, lists[0]);
   }
   const rows = (list, kind, label) => list.map(a => ({ artist: a.name, mbid: a.id, mb: a, kind, score: (a.score || 0) / 100 - (heardOf(a) ? 0.5 : 0), label: label(a) }))
     .sort((a, b) => b.score - a.score);
+  const rowsJ = (...x) => jitter(T, rows(...x));
   const b = yearOf(((node.mb || {})['life-span'] || {}).begin), cc = node.mb && node.mb.country;
-  if (has('era')) lists.push(rows(era, 'era', () => `Same era: ${[S_cc(T, cc), b && `${b - (b % 10)}s`].filter(Boolean).join(', ')}`));
-  if (has('place')) lists.push(rows(place, 'place', a => `Also from ${areaOf(a) && areaOf(a) === areaOf(node.mb || {}) ? areaOf(a) : ccName(a.country || cc)}`));
-  if (has('related') || (has('scene') && !lists[0].length)) lists.push(await relatedEdge(T, node, rel, scene, !has('related')));
+  if (has('era')) lists.push(rowsJ(era, 'era', () => `Same era: ${[S_cc(T, cc), b && `${b - (b % 10)}s`].filter(Boolean).join(', ')}`));
+  if (has('place')) lists.push(rowsJ(place, 'place', a => `Also from ${areaOf(a) && areaOf(a) === areaOf(node.mb || {}) ? areaOf(a) : ccName(a.country || cc)}`));
+  if (has('related') || (has('scene') && !lists[0].length)) lists.push(jitter(T, await relatedEdge(T, node, rel, scene, !has('related'))));
   const out = []; // one from each kind in turn, so a tree with several edge types shows them all
   for (let i = 0; lists.some(l => i < l.length); i++) for (const l of lists) if (i < l.length) out.push(l[i]);
   return out;
@@ -351,7 +367,7 @@ async function tryAdd(T, node, c) {
     if (dzId == null || (c.dzId == null && T.used.has(`dz:${dzId}`))) return null;
     if (FAMED.has(c.kind) && !fameOk(c.fans ?? T.fans.get(dzId), T.S.fame)) return null;
     T.used.add(`dz:${dzId}`);
-    track = await topTrack(T.get, dzId, x => isSaved(T, x)); // a saved hit: the artist's next track instead
+    track = await topTrack(T, dzId);
   }
   if (!track || !T.live() || isSaved(T, track) || (taken(T, { artist: track.artist }) && norm(track.artist) !== norm(c.artist))) return null;
   claim(T, { artist: track.artist, dzId: track.artistDzId });
@@ -515,4 +531,4 @@ function soundEdge(T, node) {
   })().catch(() => []);
 }
 
-module.exports = { validSettings, fameOk, eraQuery, placeQuery, bestSoundtrack, soundtrackTracks, EDGES, SETTINGS, topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, growTree, moreTree, CAP };
+module.exports = { validSettings, fameOk, eraQuery, placeQuery, bestSoundtrack, soundtrackTracks, EDGES, SETTINGS, topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, songKey, growTree, moreTree, CAP };

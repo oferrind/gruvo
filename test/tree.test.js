@@ -56,12 +56,14 @@ function world(over = () => undefined) {
   return { get, calls };
 }
 const ROOT = { source: 'dz', id: 5, title: 'Wonderwall', artist: 'Oasis', artistDzId: dzId('Oasis') };
+// rand = () => 0 reproduces strict rank order, so the older tests stay deterministic.
+const mk = (get, root, o) => t.newTree(get, root, { rand: () => 0, ...o });
 const SOURCE_WORDS = /musicbrainz|deezer|wikidata|wikipedia/i;
 
 test('tree: 3 + 9 children, one artist once, tag guard, homonyms dropped, labels explain without naming a source', async () => {
   const { get, calls } = world();
   const emitted = [];
-  const T = t.newTree(get, ROOT, { emit: n => emitted.push({ ...n, at: calls.length }) });
+  const T = mk(get, ROOT, { emit: n => emitted.push({ ...n, at: calls.length }) });
   await t.growTree(T);
   assert.equal(T.nodes.length, 13);
   assert.ok(T.nodes.every(n => n.kids <= 3 && n.depth <= 2));
@@ -88,7 +90,7 @@ test('tree: 3 + 9 children, one artist once, tag guard, homonyms dropped, labels
 
 test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', async () => {
   const { get } = world();
-  const T = t.newTree(get, ROOT);
+  const T = mk(get, ROOT);
   await t.growTree(T);
   const r = await t.moreTree(T, 0);
   assert.equal(r.added, 3);
@@ -98,7 +100,7 @@ test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', as
   assert.equal(T.nodes.filter(n => n.parent === 0).length, 6);
 
   const w2 = world();
-  const T2 = t.newTree(w2.get, ROOT);
+  const T2 = mk(w2.get, ROOT);
   await t.growTree(T2);
   T2.roots = 2; // the tree already used its 2 Roots nodes
   await t.moreTree(T2, 0);
@@ -109,7 +111,7 @@ test('tree: saved songs are skipped (by id, or artist + base title) and the next
   const { get } = world();
   const saved = [ROOT, { source: 'dz', id: dzId('Blur') * 10 + 1, artist: 'Blur', title: 'whatever' },
     { source: 'it', id: 1, artist: 'The Verve', title: 'Hit (Remastered)' }, { source: 'dz', artist: 'The Kinks', title: 'Hit' }];
-  const T = t.newTree(get, ROOT, { saved });
+  const T = mk(get, ROOT, { saved });
   await t.growTree(T);
   assert.equal(T.nodes.length, 13);
   assert.equal(T.nodes[0].artist, 'Oasis'); // the root itself is still shown
@@ -122,7 +124,7 @@ test('tree: saved songs are skipped (by id, or artist + base title) and the next
 test('tree: a cancelled build stops making calls', async () => {
   const { get, calls } = world();
   let n = 0, cut;
-  const T = t.newTree(get, ROOT, { emit: () => { if (++n === 2) cut = calls.length; }, live: () => n < 2 }); // root + one child, then a newer tree took over
+  const T = mk(get, ROOT, { emit: () => { if (++n === 2) cut = calls.length; }, live: () => n < 2 }); // root + one child, then a newer tree took over
   await t.growTree(T);
   const after = calls.length;
   assert.equal(T.nodes.length, 2);
@@ -169,7 +171,7 @@ test('built on by title only: the work\'s first studio recording names the artis
 
 // ---------- Grow settings ----------
 const grow = async (settings, over) => {
-  const w = world(over), T = t.newTree(w.get, ROOT, { settings });
+  const w = world(over), T = mk(w.get, ROOT, { settings });
   await t.growTree(T);
   return { T, calls: w.calls.map(decodeURIComponent) };
 };
@@ -278,11 +280,36 @@ test('soundtrack: grows from the song\'s soundtrack tracklist with one tracklist
 test('tree: More while offline reports an error and works again once the network is back', async () => {
   const { get } = world();
   let offline = false;
-  const T = t.newTree(url => offline ? Promise.resolve({ error: { message: 'Unable to resolve host' } }) : get(url), ROOT);
+  const T = mk(url => offline ? Promise.resolve({ error: { message: 'Unable to resolve host' } }) : get(url), ROOT);
   await t.growTree(T);
   offline = true;
   const r = await t.moreTree(T, 0);
   assert.deepEqual([r.added, r.error], [0, true]);
   offline = false;
   assert.ok((await t.moreTree(T, 0)).added > 0); // some edges memoised their failure, so not necessarily all 3
+});
+
+const seeded = seed => () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+const grown = async (seed, o = {}) => { const T = t.newTree(world().get, ROOT, { rand: seeded(seed), ...o }); await t.growTree(T); return T; };
+const picks = T => T.nodes.map(n => `${n.artist}:${n.track.id}`).join();
+// Several tracks per artist so track choice can vary too.
+const manyTracks = u => { const m = u.match(/artist\/(\d+)\/top/); if (!m) return undefined; const artist = { id: +m[1], name: DZ_NAMES[m[1] - 1] };
+  return { data: [1, 2, 3, 4, 5].map(i => ({ id: m[1] * 10 + i, title: `Hit ${i}`, preview: 'https://x.dzcdn.net/p.mp3', artist, album: {} })) }; };
+
+test('tree variety: same seed same tree, different seeds different trees, still the family', async () => {
+  const a = await grown(1), b = await grown(1), c = await grown(2), d = await grown(3);
+  assert.equal(picks(a), picks(b));
+  assert.ok(new Set([picks(a), picks(c), picks(d)]).size > 1);
+  for (const T of [a, c, d]) assert.ok(T.nodes.slice(1).every(n => n.label) && !T.nodes.some(n => ['Metallica', 'Cast'].includes(n.artist)));
+});
+
+test('tree variety: songs shown in recent trees are avoided', async () => {
+  const T1 = t.newTree(world(manyTracks).get, ROOT, { rand: () => 0 });
+  await t.growTree(T1);
+  const shown = new Set(T1.nodes.slice(1).map(n => t.songKey(n.track)));
+  const T2 = t.newTree(world(manyTracks).get, ROOT, { rand: () => 0, recent: [...shown] });
+  await t.growTree(T2);
+  const again = T2.nodes.slice(1).filter(n => T1.nodes.some(o => o.artist === n.artist));
+  assert.ok(again.every(n => !shown.has(t.songKey(n.track)))); // a repeated artist gets a different track
+  assert.ok(T2.nodes.slice(1).some(n => !T1.nodes.some(o => o.artist === n.artist))); // and fresh artists come in
 });
