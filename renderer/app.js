@@ -212,7 +212,7 @@ function teach(t, kind) {
   }
   fingerprint(t).then(v => {
     if (!v || (kind === 'love' && !isLiked(t))) return; // unloved while we were listening
-    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
+    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v, ...(t.ab && { ab: t.ab }) }].slice(-500); // store.js keeps the same cap
     save();
   });
 }
@@ -406,14 +406,55 @@ function fingerprint(c) {
 // Warm: only candidates within reach of a love play (deep cuts of loved artists always may); the rest are dropped and refilled.
 // After 12 misfits in a row the best of what's there plays anyway, so a narrow taste never stalls the Blind Test.
 let misfits = 0;
+
+// Taste experiment (prefs.abTest): picker B judges a candidate by its artist's MusicBrainz tags vs. the tags of the artists you loved.
+// Every candidate gets its tag similarity (c.tagSim: undefined = pending, null = unknown); the recent passes of the sound picker set B's cut so both pass a similar share.
+let loveTags = null, loveTagsKey = '';
+async function lovedTags() {
+  const names = [...new Set(profile.likes.map(l => l.artist))].slice(-60), key = names.join('|');
+  if (key !== loveTagsKey) {
+    loveTagsKey = key;
+    loveTags = (async () => {
+      const sum = {};
+      for (const n of names) { const t = await call('artistTags', n); for (const [k, v] of Object.entries(t || {})) sum[k] = (sum[k] || 0) + Math.max(0, v); }
+      return sum;
+    })();
+  }
+  return loveTags;
+}
+const seenSims = [], seenFits = [];
+function tagScore(c) {
+  const fresh = !c.tagP;
+  c.tagP ??= (async () => {
+    const [mine, theirs] = [await lovedTags(), await call('artistTags', c.artist)];
+    c.tagSim = theirs ? Features.tagCos(theirs, mine) : null;
+    return c;
+  })().catch(() => { c.tagSim = null; return c; });
+  if (fresh) c.tagP.then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // first call only: no re-entry loop
+  return c.tagP;
+}
+function observe(c) { // once both scores exist: feed the calibration window
+  if (c.obs || !c.vec || c.tagSim === undefined || !warm()) return;
+  c.obs = true;
+  if (c.tagSim !== null) { seenSims.push(c.tagSim); seenFits.push(Features.fits(c.vec, profile.ratings, profile.adventure)); }
+  if (seenSims.length > 80) { seenSims.shift(); seenFits.shift(); }
+}
+let nextAb = null; // drawn once per mystery, before any filtering, so readiness can't steer it
 function nextFromQueue() {
   if (!warm()) return queue.shift() || null;
-  const fit = c => c.back || misfits >= 12 || Features.fits(c.vec, profile.ratings, profile.adventure);
-  const drop = queue.filter(c => c.vec && !fit(c));
+  const ab = profile.prefs.abTest.on;
+  if (ab) { nextAb ??= Math.random() < 0.5 ? 'fp' : 'tags'; queue.forEach(c => { tagScore(c); observe(c); }); } else nextAb = null;
+  const tags = nextAb === 'tags';
+  const cut = tags && Features.tagCut(seenSims, seenFits.length ? seenFits.filter(Boolean).length / seenFits.length : 0.5, profile.adventure);
+  const known = c => (tags ? c.tagSim !== undefined : true);
+  const fit = c => c.back || misfits >= 12 || (tags ? c.tagSim !== null && Features.tagFits(c.tagSim, cut) : Features.fits(c.vec, profile.ratings, profile.adventure));
+  const drop = queue.filter(c => c.vec && known(c) && !fit(c));
   misfits += drop.length;
-  const ready = queue.filter(c => c.vec && fit(c));
+  const ready = queue.filter(c => c.vec && known(c) && fit(c));
   if (!ready.length) { queue.splice(0, queue.length, ...queue.filter(c => !drop.includes(c) && c.vec !== null)); return null; } // wait for more fingerprints
-  const [best, ...rest] = Features.rank(ready, profile.ratings, profile.adventure);
+  const [best, ...rest] = tags ? ready.sort((x, y) => (y.tagSim || 0) - (x.tagSim || 0)) : Features.rank(ready, profile.ratings, profile.adventure);
+  if (ab) best.ab = nextAb; // stays in memory and in the rating entry; never rendered
+  nextAb = null;
   misfits = 0;
   rest.forEach(c => { c.passed = (c.passed || 0) + 1; });
   const keep = queue.filter(c => c !== best && !drop.includes(c) && !(c.passed >= 3) && c.vec !== null); // vec null = preview failed to decode: can't be ranked, drop it
@@ -460,6 +501,7 @@ const excluded = () => [...queue, mystery].filter(Boolean).map(c => norm(c.artis
 function accept(c) {
   if (!c || (isHeard(c) && !c.back) || excluded().includes(norm(c.artist))) return false;
   queue.push(c);
+  if (profile.prefs.abTest.on && warm()) tagScore(c);
   fingerprint(c).then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // warm: a candidate can only play once it has been listened to
   if (!mystery) showMystery();
   return true;
@@ -1369,6 +1411,8 @@ function renderPrefs() {
   renderSchemes();
   $('#pref-decades').append(...DECADES.map(d => toggleChip(`${d}s`, p.decades.includes(d), on => { profile.prefs.decades = setIn(profile.prefs.decades, d, on); })));
   $('#pref-bringback').checked = p.bringBack;
+  $('#pref-ab').checked = p.abTest.on;
+  $('#pref-ab').onchange = e => { profile.prefs.abTest = { on: e.target.checked, started: e.target.checked ? Date.now() : profile.prefs.abTest.started }; save(); };
   $('#pref-bringback').onchange = e => { profile.prefs.bringBack = e.target.checked; save(); };
   $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
 }

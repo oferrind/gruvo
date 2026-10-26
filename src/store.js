@@ -9,7 +9,7 @@ const MAX_RATINGS = 500;
 const RATING = { love: 1, ok: 1, skip: 1 };
 const validRatings = r => (Array.isArray(r) ? r : []).filter(x => x && typeof x.id === 'string' && Object.hasOwn(RATING, x.rating)
   && Array.isArray(x.features) && x.features.length > 0 && x.features.length <= 64 && x.features.every(Number.isFinite))
-  .slice(-MAX_RATINGS).map(({ id, rating, features, seed }) => (seed === true ? { id, rating, features, seed } : { id, rating, features }));
+  .slice(-MAX_RATINGS).map(({ id, rating, features, seed, ab }) => ({ id, rating, features, ...(seed === true && { seed }), ...(ab === 'fp' || ab === 'tags' ? { ab } : null) }));
 
 // Taste preferences from the first-launch step: anything malformed is dropped, lists capped.
 const name = s => typeof s === 'string' && s.trim() !== '' && s.length <= 200;
@@ -25,6 +25,7 @@ function validPrefs(p) {
     regions: uniq(list(p.regions, r => typeof r === 'string' && Object.hasOwn(COUNTRIES, r), 10)),
     tree: validSettings(p.tree), // Family Tree grow settings
     bringBack: p.bringBack !== false, // Blind Test: loved artists return with a deep cut (default on)
+    abTest: { on: !!(p.abTest && p.abTest.on === true), started: p.abTest && Number.isFinite(p.abTest.started) ? p.abTest.started : 0 }, // blind A/B of two pickers
     scheme: SCHEMES.includes(p.scheme) ? p.scheme : 'shop', // colour scheme (renderer/styles.css [data-scheme])
   };
 }

@@ -476,8 +476,23 @@ async function about(get, { source, id, albumId, title, artist }) {
   return { text: factSentence(new Set(rows.map(r => r.id)).size === 1 ? rows[0] : null, facts), facts }; // two same-name artists: say nothing about either
 }
 
+// Taste experiment: an artist's MusicBrainz tags {name: count}, or null when unknown/ambiguous. Same URL as about(), so the net cache is shared; memoised per artist.
+const tagMemo = new Map();
+function artistTags(get, name) {
+  const k = norm(name || '');
+  if (!k) return Promise.resolve(null);
+  if (!tagMemo.has(k)) tagMemo.set(k, (async () => {
+    const rows = ((await get(`${MB}/artist?query=${enc(`artist:"${name}"`)}&limit=5&fmt=json`)).artists || []).filter(r => r.score >= 90 && norm(r.name) === k);
+    if (new Set(rows.map(r => r.id)).size !== 1) return null;
+    const tags = {};
+    for (const t of rows[0].tags || []) tags[String(t.name).toLowerCase()] = t.count;
+    return Object.keys(tags).length ? tags : null;
+  })().catch(e => { tagMemo.delete(k); throw e; }));
+  return tagMemo.get(k);
+}
+
 module.exports = {
   COUNTRIES, norm, isHeard, artistMatch, shuffle, fromDeezer, pickDeezer, adventureMix, chooseSource, pickRelated,
   bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, mbSong, pickTrip, prefHeard, rankArtists, TRIP_BIAS, returnShare, pickReturnArtist, pickDeepCut, BACK_GAP, BACK_COOLDOWN,
-  flows: { deepCut, resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about },
+  flows: { deepCut, resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about, artistTags },
 };

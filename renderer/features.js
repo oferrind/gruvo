@@ -177,7 +177,24 @@
     return (w.find(([, n]) => (x -= n) < 0) || w[0])[0];
   }
 
-  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource };
+  // Method B (A/B test): MusicBrainz artist-tag similarity. Tags are {name: count}; cosine on the count vectors.
+  function tagCos(a, b) {
+    let dot = 0, na = 0, nb = 0;
+    for (const [k, v] of Object.entries(a || {})) { const x = Math.max(0, v); na += x * x; if (b && b[k] > 0) dot += x * b[k]; }
+    for (const v of Object.values(b || {})) nb += Math.max(0, v) ** 2;
+    return na && nb ? dot / Math.sqrt(na * nb) : 0;
+  }
+  // Fixed fallback until enough candidates were seen to calibrate; looser as Adventure rises, like reach().
+  const tagReach = adventure => 0.3 * (1 - 0.6 * clamp(adventure / 100));
+  // Cut that lets the top `share` of recently seen tag similarities pass, so B passes as many candidates as fits() does. Needs >= 12 samples.
+  function tagCut(sims, share, adventure) {
+    if (sims.length < 12) return tagReach(adventure);
+    const s = sims.slice().sort((x, y) => y - x), i = Math.min(s.length - 1, Math.max(0, Math.round(share * s.length) - 1));
+    return Math.max(s[i], 1e-9); // never pass a zero-similarity candidate
+  }
+  const tagFits = (sim, cut) => sim >= cut;
+
+  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource, tagCos, tagReach, tagCut, tagFits };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.Features = api;
 })(this);

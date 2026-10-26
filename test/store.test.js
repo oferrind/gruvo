@@ -74,7 +74,7 @@ test('sound ratings survive save/load; malformed ones are dropped; capped at the
 test('prefs survive save/load; malformed entries are dropped; seed ratings keep their flag', () => {
   tmp();
   const p = store.load(), p0 = { ...p.prefs };
-  assert.deepEqual(p.prefs, { genres: [], artists: [], decades: [], regions: [], tree: { edges: ['scene', 'member', 'builton', 'roots'], era: 'near', place: 'same', fame: 50, width: 3 }, bringBack: true, scheme: 'shop' });
+  assert.deepEqual(p.prefs, { genres: [], artists: [], decades: [], regions: [], tree: { edges: ['scene', 'member', 'builton', 'roots'], era: 'near', place: 'same', fame: 50, width: 3 }, bringBack: true, abTest: { on: false, started: 0 }, scheme: 'shop' });
   p.prefs = { tree: p0.tree,
     genres: [{ id: 152, name: 'Rock', x: 1 }, { id: '1', name: 'bad' }, null],
     artists: [{ dzId: 27, name: 'Daft Punk' }, { dzId: 3, name: '' }, { name: 'no id' }],
@@ -85,7 +85,7 @@ test('prefs survive save/load; malformed entries are dropped; seed ratings keep 
   p.ratings = [{ id: 'seed:27:1', rating: 'love', features: [0.5], seed: true }, { id: 'dz:2', rating: 'ok', features: [0.1], seed: 'yes' }];
   store.save(p);
   const q = store.load();
-  assert.deepEqual(q.prefs, { genres: [{ id: 152, name: 'Rock' }], artists: [{ dzId: 27, name: 'Daft Punk' }], decades: [1970, 2010], regions: ['Africa', 'Asia'], tree: p0.tree, bringBack: true, scheme: 'shop' });
+  assert.deepEqual(q.prefs, { genres: [{ id: 152, name: 'Rock' }], artists: [{ dzId: 27, name: 'Daft Punk' }], decades: [1970, 2010], regions: ['Africa', 'Asia'], tree: p0.tree, bringBack: true, abTest: { on: false, started: 0 }, scheme: 'shop' });
   assert.deepEqual(q.ratings, [{ id: 'seed:27:1', rating: 'love', features: [0.5], seed: true }, { id: 'dz:2', rating: 'ok', features: [0.1] }]);
 });
 
