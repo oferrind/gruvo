@@ -1,3 +1,6 @@
+// @capacitor/filesystem compiles Kotlin with jvmToolchain(21); Android Studio ships JDK 25, so Gradle downloads a JDK 21 once (~/.gradle/jdks).
+plugins { id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0' }
+
 include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')

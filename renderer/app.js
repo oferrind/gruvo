@@ -42,10 +42,10 @@ async function play(item, { label, onFail: failCb, extra, from } = {}) {
   // Stop the old track now: while the new preview is fetched (or turns out unavailable) its time must not drive the new scrubber or tonearm.
   if (audio.getAttribute('src')) { audio.removeAttribute('src'); audio.load(); }
   // Saved likes have no preview URL (they expire); fetch one at play time.
-  const url = item.previewUrl || await call('freshPreview', plain(item));
-  if (current !== item) return;
+  const url = await phoneSrc(item.previewUrl || await call('freshPreview', plain(item)));
+  if (current !== item) return URL.revokeObjectURL(url);
   if (!url) return unavailable();
-  audio.src = url;
+  setSrc(url);
   audio.play().catch(() => {});
 }
 function togglePlay() {
@@ -61,13 +61,27 @@ audio.addEventListener('error', async () => {
   if (!item || !audio.getAttribute('src')) return;
   if (retried) return unavailable();
   retried = true;
-  const url = await call('freshPreview', plain(item), true); // bypass cache: token likely expired
-  if (current !== item) return;
+  const url = await phoneSrc(await call('freshPreview', plain(item), true)); // bypass cache: token likely expired
+  if (current !== item) return URL.revokeObjectURL(url);
   if (!url) return unavailable();
-  audio.src = url;
+  setSrc(url);
   audio.play().catch(() => {});
 });
 const plain = o => JSON.parse(JSON.stringify(o));
+// Phone (api.caps.blobAudio): play the preview from in-memory bytes, so the WebView never caches it on disk. Desktop: the url as is.
+async function phoneSrc(url) {
+  if (!url || !api.caps?.blobAudio) return url;
+  const buf = await api.audio(url);
+  if (!buf || !buf.byteLength) return null;
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/mpeg' }));
+}
+// Frees the previous preview's bytes when a new one replaces it (play() clears src while fetching, so audio.src can't say which blob to free).
+let blobUrl = '';
+function setSrc(url) {
+  if (blobUrl && blobUrl !== url) URL.revokeObjectURL(blobUrl);
+  blobUrl = url.startsWith('blob:') ? url : '';
+  audio.src = url;
+}
 
 // Keep every play/pause control and the "playing" row highlight in sync with the audio element.
 function syncPlayState() {
@@ -1363,6 +1377,7 @@ $('#tree-export').onclick = e => {
 // ---------- start ----------
 (async () => {
   sp = await spotify.status().catch(() => sp);
+  document.body.classList.toggle('no-spotify', !!sp.unavailable); // phone: no Spotify login, so no Preferences section or Export
   renderSpotifyPrefs();
   profile = await store.load();
   applyScheme(profile.prefs.scheme);

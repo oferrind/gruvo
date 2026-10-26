@@ -17,7 +17,10 @@
     "esbuild": "0.28.2"
   },
   "dependencies": {
+    "@capacitor-community/keep-awake": "8.0.1",
     "@capacitor/android": "8.5.3",
-    "@capacitor/core": "8.5.3"
+    "@capacitor/app-launcher": "8.0.1",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.4"
   }
 }
