@@ -7,9 +7,9 @@
 
 ## Platform
 
-web
+android
 
-(An Electron desktop app for Windows; the UI is a single HTML/CSS/JS renderer, so the design language is web.)
+(One HTML/CSS/JS renderer ships twice: an Electron desktop app for Windows and an Android app via Capacitor. Phone-first design: native Android feel at ≤840px, desktop stays web.)
 
 ## Users
 
