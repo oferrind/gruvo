@@ -58,3 +58,19 @@ test('two concurrent requests for one url share a single fetch (the tree asks fo
     assert.deepEqual([a, b], [{ n: 1 }, { n: 1 }]);
     assert.equal(calls.length, 1);
   }));
+
+test('cache file never holds Deezer preview URLs, and a reload refetches Deezer instead of serving audio-less rows', async () => {
+  let disk = null;
+  const body = { data: [{ id: 1, preview: 'https://cdnt-preview.dzcdn.net/a.mp3', title: 't' }] };
+  net.initCache({ read: () => null, write: t => { disk = t; } });
+  await withFetch(async () => ({ ok: true, status: 200, json: async () => body }), async calls => {
+    const u = 'https://api.deezer.com/search?q=privacy1';
+    await net.get(u);
+    net.flushCache();
+    assert.ok(disk && !/preview|dzcdn/.test(disk));
+    assert.equal(JSON.parse(disk)[u].body.data[0].title, 't');
+    net.initCache({ read: () => JSON.parse(disk), write() {} });
+    assert.equal((await net.get(u)).data[0].preview, body.data[0].preview);
+    assert.equal(calls.length, 2);
+  });
+});

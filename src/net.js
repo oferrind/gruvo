@@ -14,6 +14,8 @@ function configure({ fetch } = {}) { if (fetch) doFetch = fetch; }
 function initCache(io) {
   cacheIO = io;
   try { cache = io.read() || {}; } catch { cache = {}; }
+  // Deezer bodies are written without `preview` URLs (privacy), so a loaded one would serve rows with no audio: refetch instead.
+  for (const k of Object.keys(cache)) if (k.startsWith('https://api.deezer.com/')) delete cache[k];
 }
 
 function scheduleSave() {
@@ -25,7 +27,7 @@ function flushCache() {
   clearTimeout(saveTimer);
   saveTimer = null;
   prune(cache, cacheIO.cap, cacheIO.maxBytes);
-  try { cacheIO.write(JSON.stringify(cache)); }
+  try { cacheIO.write(JSON.stringify(cache, (k, v) => (k === 'preview' && typeof v === 'string' ? undefined : v))); }
   catch (e) { console.error('cache save failed', e.message); }
 }
 

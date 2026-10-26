@@ -117,6 +117,14 @@ A session is one focused agent block (~2-3 h plus your review), in a git worktre
 
 **Total 12-17 sessions.** Play is not scheduled; when wanted: privacy policy, Data safety ("no data collected"), 12 testers for 14 days, neutral name/icon, and a MusicBrainz caching proxy before ~1k users (doc 14).
 
+**M5 release build (code side done):**
+- **Keystore (once, outside the repo):** `keytool -genkeypair -v -keystore %USERPROFILE%\stumble-keys\stumble-release.jks -alias stumble -keyalg RSA -keysize 4096 -validity 10000`. Back it up: lose it and no update can ever install over existing copies.
+- **`android/keystore.properties`** (gitignored; template `keystore.properties.example`): `storeFile` (forward slashes), `storePassword`, `keyAlias`, `keyPassword`. Without it any release task fails with a clear message; debug builds are unaffected.
+- **Build:** `npm run mobile:release` writes the signed APK to `android/app/build/outputs/apk/release/app-release.apk` and the Play bundle to `android/app/build/outputs/bundle/release/app-release.aab`.
+- **Hardening:** `allowBackup=false`, cleartext off, WebView debugging off in release (Capacitor defaults it to the debuggable flag), R8/minify off (Capacitor plugins use reflection; turn on only after an on-device test). Permissions: `INTERNET` only (keep-awake needs none).
+- **Updates:** keep the same keystore and raise `versionCode` (integer, +1 per release) in `android/app/build.gradle`; bump `versionName` (currently 0.1.0) to match. Android refuses an update with a lower versionCode or a different key.
+- **Cache privacy:** `src/net.js` never writes Deezer `preview` URLs to the cache file, and drops Deezer entries at load so nothing serves audio-less rows. Stored/saved tracks refetch through `freshPreview` by Deezer id.
+
 **Installing a debug APK (Windows 11, low RAM):**
 - **No emulator:** it needs 2-4 GB on top of Android Studio (2-3 GB) and the Gradle daemon (1-2 GB).
 - Open Android Studio once to install the SDK and JDK, then close it and build from the terminal. Set `org.gradle.jvmargs=-Xmx1536m` in `android/gradle.properties`.

@@ -7,7 +7,8 @@
     "start": "electron .",
     "test": "node --test",
     "mobile:build": "node scripts/build-mobile.js && cap sync android",
-    "mobile:apk": "npm run mobile:build && cd android && gradlew assembleDebug"
+    "mobile:apk": "npm run mobile:build && cd android && gradlew assembleDebug",
+    "mobile:release": "node scripts/build-mobile.js && cap sync android && cd android && gradlew assembleRelease bundleRelease"
   },
   "license": "ISC",
   "type": "commonjs",

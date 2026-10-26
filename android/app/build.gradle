@@ -1,5 +1,17 @@
 apply plugin: 'com.android.application'
 
+// Gitignored; never commit. Release builds fail without it, debug builds don't need it.
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = null
+if (keystorePropsFile.exists()) {
+    keystoreProps = new Properties()
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+gradle.taskGraph.whenReady { graph ->
+    if (!keystoreProps && graph.allTasks.any { it.name ==~ /(assemble|bundle|package)Release/ })
+        throw new GradleException('Release build needs android/keystore.properties (storeFile, storePassword, keyAlias, keyPassword). Copy keystore.properties.example and fill it in; see docs/13 M5.')
+}
+
 android {
     namespace = "com.stumble.music"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +19,8 @@ android {
         applicationId "com.stumble.music"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 1       // bump every release (see docs/13 M5)
+        versionName "0.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +28,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystoreProps) {
+                storeFile file(keystoreProps.storeFile)
+                storePassword keystoreProps.storePassword
+                keyAlias keystoreProps.keyAlias
+                keyPassword keystoreProps.keyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystoreProps) signingConfig signingConfigs.release
+            // R8 left off: Capacitor plugins are found by reflection and this is untested on a device
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
