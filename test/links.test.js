@@ -11,6 +11,14 @@ test('openExternal allowlist: only https YouTube / Spotify / Deezer', () => {
     assert.equal(safeExternal(bad), null, String(bad));
 });
 
+test('Data sources links in Preferences all pass the allowlist', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'renderer/index.html'), 'utf8');
+  const urls = [...html.matchAll(/data-url="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(urls.length >= 7);
+  for (const u of urls) assert.equal(safeExternal(u), new URL(u).href, u);
+  assert.equal(safeExternal('https://creativecommons.org.evil.com/x'), null);
+});
+
 test('search links: YouTube / Spotify results for "artist title", allowlisted', () => {
   const Links = require('../renderer/links');
   const t = { artist: 'Oasis', title: 'Sad Song & more' };

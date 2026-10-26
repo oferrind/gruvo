@@ -439,7 +439,7 @@ function aboutBlock(t) {
     box.setAttribute('aria-busy', 'false');
     const chips = [facts.album, facts.year, facts.label, facts.genre].filter(Boolean).map(f => el('li', { textContent: f }));
     box.replaceChildren(...[
-      text && el('p', { className: 'about-text' }, text, url ? ' ' : null, url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'Wikipedia',
+      text && el('p', { className: 'about-text' }, text, url ? ' ' : null, url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'from Wikipedia',
         ariaLabel: 'Read more on Wikipedia (opens your browser)', onclick: () => api.open(url).catch(() => toast('Could not open the browser')) }) : null),
       chips.length && el('ul', { className: 'facts', ariaLabel: 'Release details' }, ...chips)].filter(Boolean));
   });
@@ -581,7 +581,7 @@ function revealDetails(m) {
     const more = el('button', { type: 'button', className: 'more-toggle', textContent: 'More' });
     more.setAttribute('aria-expanded', 'false');
     more.onclick = () => { const shut = p.classList.toggle('clamp'); more.textContent = shut ? 'More' : 'Less'; more.setAttribute('aria-expanded', !shut); };
-    const src = url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'Wikipedia',
+    const src = url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'from Wikipedia',
       ariaLabel: 'Read more on Wikipedia (opens your browser)', onclick: () => api.open(url).catch(() => toast('Could not open the browser')) }) : null;
     box.replaceChildren(p, el('div', { className: 'about-links' }, more, src));
     requestAnimationFrame(() => { more.hidden = p.scrollHeight <= p.clientHeight + 1; }); // short text: nothing to expand
@@ -1352,7 +1352,8 @@ $('#sp-connect').addEventListener('submit', async e => {
   renderSpotifyPrefs();
 });
 $('#sp-off').onclick = async () => { sp = await spotify.disconnect(); renderSpotifyPrefs(); $('#sp-client').focus(); };
-$('#sp-dash').onclick = () => api.open('https://developer.spotify.com/dashboard').catch(() => toast('Could not open the browser'));
+document.querySelectorAll('#sources [data-url]').forEach(b => { b.onclick = () => api.open(b.dataset.url).catch(() => toast('Could not open the browser')); });
+$('#sp-dash').onclick =() => api.open('https://developer.spotify.com/dashboard').catch(() => toast('Could not open the browser'));
 
 // Plays that exact track on the user's Spotify device; several idle devices: ask which, next to the button.
 async function playInSpotify(t, b, deviceId) {

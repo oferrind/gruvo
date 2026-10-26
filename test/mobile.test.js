@@ -91,6 +91,8 @@ test('mobile bundle builds for the browser with no node built-ins', () => {
   const r = esbuild.buildSync({ entryPoints: [require.resolve('../mobile/api.js')], bundle: true, platform: 'browser', format: 'iife', write: false, logLevel: 'silent' });
   const js = r.outputFiles[0].text;
   assert.ok(!/require\(["'](fs|http|crypto|electron|path)["']\)/.test(js));
-  assert.ok(!js.includes('itunes.apple.com'));
+  assert.ok(!js.includes('itunes.apple.com') && !js.includes('mzstatic'));
+  assert.ok(!/require\(["'](node:[a-z_/]+|net|os|child_process|stream|zlib|https?)["']\)/.test(js));
+  assert.ok(!/^\/\/ .*spotify\.js/m.test(js), 'spotify.js must not be bundled');
   assert.ok(js.includes('window.api'));
 });
