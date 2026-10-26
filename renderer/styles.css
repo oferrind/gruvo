@@ -417,11 +417,18 @@ main:has(> #tree:not([hidden])) { padding-bottom: 0; } /* the tree ends at its l
 .panel-head .muted { font-size: 15px; max-width: 60ch; }
 
 /* ---------- intro ---------- */
-.intro h1 { font-size: 36px; max-width: 16ch; }
-.intro .modes { list-style: none; padding: 0; margin: var(--space-6) 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--space-4); }
-.intro .modes li { border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-4) var(--space-5) var(--space-5); background: var(--color-surface); }
-.intro .modes h2 { margin: 0 0 var(--space-2); font-size: 22px; }
-.intro .why { color: var(--color-muted); font-size: var(--font-size-sm); }
+/* the headline, the one button straight under it, then the three ways in printed like the back of a sleeve (Side A, three tracks) */
+.intro { max-width: 600px; }
+.intro h1 { font-size: 40px; line-height: 1; max-width: 15ch; margin: var(--space-4) 0 var(--space-5); text-wrap: balance; }
+.intro-go { min-height: 52px; padding-inline: var(--space-6); font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; }
+.intro-side { margin: var(--space-6) 0 var(--space-2); font: 700 13px/1.1 var(--font-display); text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); }
+.tracklist { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-border); }
+.tracklist button { display: grid; grid-template-columns: 2.4em minmax(0, 1fr); align-items: baseline; gap: 2px var(--space-3); width: 100%; min-height: 0;
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-1); border: none; border-bottom: 1px solid var(--color-border); border-radius: 0; background: none; text-align: left; }
+.tl-no { grid-row: 1 / 3; font: 600 13px/1.5 var(--font-mono); color: var(--color-accent); font-variant-numeric: tabular-nums; }
+.tl-name { font: 700 19px/1.2 var(--font-display); }
+.tl-say { grid-column: 2; color: var(--color-muted); font-size: var(--font-size-sm); line-height: 1.4; }
+@media (hover: hover) { .tracklist button:hover:not(:disabled) { background: var(--color-surface); } .tracklist button:hover .tl-name { color: var(--color-accent); } }
 
 /* ---------- cards / states ---------- */
 .card { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); background: var(--paper), var(--color-surface); box-shadow: inset 0 1px 0 rgb(255 255 255 / .04); }
@@ -544,7 +551,7 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .reveal-card { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border); }
 .reveal-artist { font-size: 38px; font-weight: 800; line-height: 1; margin: 0; overflow-wrap: anywhere; animation: type 400ms steps(16, end) 120ms backwards; }
 @keyframes type { from { clip-path: inset(0 100% 0 0); } }
-.reveal-title { font-size: 17px; font-weight: 600; margin: var(--space-1) 0 var(--space-3); animation: rise 160ms ease-out 360ms backwards; }
+.reveal-artist + .meta-row { margin-top: var(--space-3); }
 .reveal-card > :is(.meta-row, .reason, .about, .reveal-actions) { animation: rise 160ms ease-out 440ms backwards; }
 @keyframes rise { from { opacity: 0; translate: 0 6px; } }
 .meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); margin: 0 0 var(--space-3); }
@@ -663,6 +670,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 :is(.builder, #cat-filter, #genre-family, #genre-tier) :is(option, optgroup) { font: 14px var(--font-body); background: var(--color-surface); color: var(--color-text); }
 /* Play is the sentence's last word: an amber arrow, no box */
 .builder-row { flex-basis: 100%; margin-top: var(--space-2); } /* the Play button sits on its own line under the sentence */
+.builder-go .icon { width: 20px; height: 20px; stroke-width: 2.2; vertical-align: -4px; } /* the arrow: drawn, in the icons' stroke */
 
 .catalogue-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .catalogue-head h2 { margin: 0; }
@@ -680,7 +688,6 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .cat-blurb { grid-column: 1 / -1; font-size: var(--font-size-sm); color: var(--color-muted); }
 
 /* Scenes | Genres switch, the genre search, and the "Nearby" chips (docs/12) */
-.browse-switch { margin: 0 0 var(--space-3); }
 .stamp-mode { margin-top: var(--space-3); }
 .genre-q { margin-bottom: var(--space-2); }
 .genre-dig { margin: var(--space-2) 0 0; }
@@ -819,8 +826,25 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 .node-actions details[open] > summary { color: var(--color-text); }
 .node-actions details[open] > summary::after { transform: translateY(1px) rotate(-135deg); }
 .node-actions .about { margin: 0 var(--space-2) var(--space-2); }
-.full-more .full-label { display: none; }
-.full-more .full-song { padding: 0 var(--space-2) var(--space-2); }
+/* the ⋯ menu: the song's name, then one plain list of actions (About opens in place; each "Full song on …" is one tap) */
+.menu-title { margin: 0; padding: var(--space-1) var(--space-2) var(--space-2); border-bottom: 1px solid var(--color-surface-2); font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.node-menu > :is(button, button.ext) { display: flex; align-items: center; justify-content: flex-start; gap: 6px; width: 100%; min-height: 32px; padding: 0 var(--space-2); border: none; border-radius: var(--radius);
+  background: none; color: var(--color-text); font-size: var(--font-size-sm); font-weight: 600; text-align: left; text-decoration: none; }
+.node-menu > button.ext::after { margin-left: auto; }
+@media (hover: hover) { .node-menu > :is(button, button.ext):hover:not(:disabled) { background: var(--color-surface-2); color: var(--color-text); } }
+.node-menu > .about-more summary { display: flex; min-height: 32px; width: auto; padding: 0 var(--space-2); align-items: center; color: var(--color-text); font-weight: 600; }
+.node-menu > .about-more summary::after { margin-left: auto; }
+.node-menu > .about-more .about { margin: 0 var(--space-2) var(--space-2); }
+.node-menu > .sp-devices { padding: 0 var(--space-2) var(--space-2); }
+.node-menu > button.sp-play { justify-content: center; margin: var(--space-1) 0; background: var(--color-accent); color: var(--color-on-accent); }
+.node-menu > details[open] { order: 0; }
+.node-menu > button.more { color: var(--color-accent); }
+/* Saved: the row's ⋯ (About, Full song) hangs under it, right-aligned */
+#saved-list .track { position: relative; }
+#saved-list .node-actions { margin: 0; }
+#saved-list .node-menu { top: calc(100% - 6px); left: auto; right: var(--space-2); width: min(340px, 100%); }
+#saved-list .track:has(.node-menu:not([hidden])) { z-index: 4; }
+.tree-canvas .reason.same { display: none; } /* the relation is on the song above it in this branch: say it once */
 /* ⋯ menu: About and Full song hang under the card, over its neighbours (the open card is lifted) */
 .node-menu-wrap { display: inline-flex; margin-left: 4px; } /* static: the menu hangs off the card, card-wide, so it never runs off the canvas */
 .node-actions .dots { min-width: 28px; display: inline-grid; place-items: center; }
@@ -1071,7 +1095,6 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   html, body { overflow-x: clip; }
   .topbar { min-height: 56px; gap: var(--space-3); padding: env(safe-area-inset-top, 0px) calc(var(--space-3) + env(safe-area-inset-right, 0px)) 0 calc(var(--space-3) + env(safe-area-inset-left, 0px)); }
   .brand { min-height: 48px; }
-  .theme-toggle { width: 48px; height: 48px; margin-right: 48px; } /* the gear sits to its right */
   main { padding: var(--space-4) max(var(--space-3), env(safe-area-inset-right, 0px)) var(--space-4) max(var(--space-3), env(safe-area-inset-left, 0px)); }
 
   /* bottom bar: Blind Test, Crate Dig, Tree, Saved. Home is the wordmark. The selected label is underlined in amber, no pill. */
@@ -1107,8 +1130,11 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .nowbar { left: calc(var(--space-2) + env(safe-area-inset-left, 0px)); right: calc(var(--space-2) + env(safe-area-inset-right, 0px)); bottom: calc(var(--tabbar-h) + var(--safe-b) + 6px);
     gap: var(--space-2); padding: 0 var(--space-2); border: 1px solid color-mix(in srgb, var(--tint) 22%, var(--color-border)); border-radius: 14px;
     background: linear-gradient(90deg, var(--tint-wash), transparent 70%), var(--color-surface); box-shadow: 0 12px 30px -12px rgb(0 0 0 / .65); }
-  .nowbar.is-idle { height: 0; padding: 0; border: none; background: none; box-shadow: none; }
-  .nowbar.is-idle > :not(.toast) { display: none; }
+  /* idle, or on the Blind Test (the deck is the player there): no mini-player, only its toast */
+  :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar) { height: 0; padding: 0; border: none; background: none; box-shadow: none; }
+  :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar) > :not(.toast) { display: none; }
+  body:has(#blind:not([hidden])) { padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--space-5)); }
+  .theme-toggle { display: none; } /* Light | Dark lives in Preferences on a phone */
   .np-line { flex-direction: column; align-items: flex-start; gap: 0; }
   .np-title { max-width: 100%; font-size: 14.5px; }
   .np-from { position: relative; font-size: 12.5px; color: var(--color-muted); }
@@ -1126,7 +1152,10 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   /* no card: the record sits on the room itself, centred and as big as the width allows */
   .mystery, .mystery.is-revealed { padding: 0; border: none; background: none; box-shadow: none; }
   .mystery-top { flex-direction: column; align-items: stretch; gap: var(--space-5); }
-  .deck { --rec: min(250px, calc((100vw - 40px) / 1.62)); align-self: center; margin-top: var(--space-5); }
+  /* the revealed deck (sleeve + record slid out + tonearm) is ~1.7 records wide: keep all of it, and the verdict stamp, inside the gutters */
+  .deck { --rec: min(250px, calc((100vw - 2 * var(--space-4) - 16px) / 1.7)); align-self: center; margin-top: var(--space-5); }
+  .verdict { left: 6px; }
+  :is(#mystery, #stamp-head) { scroll-margin-top: calc(56px + env(safe-area-inset-top, 0px) + var(--space-3)); }
   .mystery h2 { font-size: 24px; text-align: center; margin-bottom: var(--space-3); }
   .rate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
   .rate button { min-height: 56px; font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; }
@@ -1140,11 +1169,26 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .roll { max-width: none; }
   .reels { --reel-h: 56px; }
   .reel { font-size: 19px; }
+  .roll-row { flex-direction: column; align-items: stretch; gap: var(--space-2); }
   .roll-go { flex: 1; }
   .roll-btn { flex: 1; min-height: 56px; }
-  .builder-go { width: 100%; }
+  /* Adventurous: a phone switch, label left, track right, the whole row is the target */
+  .adventurous { flex-direction: row-reverse; justify-content: space-between; min-height: 48px; font-size: 16px; color: var(--color-text); }
+  #roll-pane .adventurous input { -webkit-appearance: none; appearance: none; position: relative; flex: none; width: 52px; height: 32px; margin: 0; border: 2px solid transparent; border-radius: 16px;
+    background: color-mix(in srgb, var(--color-text) 20%, transparent); cursor: pointer; transition: background var(--dur); }
+  #roll-pane .adventurous input::before { content: ""; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%; background: var(--color-text);
+    box-shadow: 0 1px 3px rgb(0 0 0 / .4); transition: translate 220ms cubic-bezier(.16,1,.3,1), background var(--dur); }
+  #roll-pane .adventurous input:checked { background: var(--color-accent); }
+  #roll-pane .adventurous input:checked::before { translate: 20px 0; background: var(--color-on-accent); }
+  /* Pick one's arrow: a round go-button at the end of the sentence, the size of a thumb */
+  .builder { align-items: center; }
+  .builder-row { flex-basis: auto; margin: 0 0 0 auto; }
+  .builder-go { display: grid; place-items: center; width: 56px; height: 56px; min-height: 56px; padding: 0; border-radius: 50%;
+    border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 8px 18px -10px rgb(0 0 0 / .7); }
+  .builder-go .icon { width: 26px; height: 26px; stroke-width: 2.2; }
   .genre-q { position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 2; box-shadow: 0 6px 10px -8px rgb(0 0 0 / .5); }
   .stamp-head { flex-wrap: wrap; }
+  .stamp-main:has(.stamp-info) { min-height: calc(100dvh - 56px - var(--tabbar-h) - var(--safe-b)); } /* room to bring a fresh pick to the top while its songs load */
 
   /* Family Tree: the narrow trail, with less indent so a second-level card stays readable */
   .tree-picker { padding: var(--space-3); }
@@ -1153,6 +1197,9 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .tree-node:not([data-depth="0"]) > .branches { padding-left: 28px; }
   .tree-node[data-depth="1"] > .branches { padding-left: calc(var(--gutter) + 20px); }
   .tree-node:not([data-depth="0"]) > .branches > .branch > ol { padding-left: 16px; }
+  /* the branch's sticker names the relation; on the card the detail is a quiet line, not another sticker */
+  .tree-canvas .node-card .reason { display: block; padding: 0; background: none; box-shadow: none; rotate: none; color: var(--color-muted); font: 500 13px/1.35 var(--font-body); }
+  .tree-canvas .node-card .reason .edge-icon { display: none; }
   .grow-filters label { flex: 1 1 140px; }
   .grow-filters input[type=range] { width: 100%; }
 
@@ -1182,8 +1229,10 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .track .meta { overflow-wrap: anywhere; }
   .about-src { white-space: normal; }
   #main .node-menu summary { min-height: 48px; display: flex; align-items: center; font-size: 15px; }
-  #main .node-menu .full-song { padding: 0 0 var(--space-3); font-size: 15px; }
-  .node-card:has(.node-menu:not([hidden])), #stamp-songs .track:has(.node-menu:not([hidden])) { z-index: 30; }
+  #main .node-menu > button { min-height: 48px; font-size: 15px; }
+  #main .menu-title { padding: 0 var(--space-2) var(--space-3); margin-bottom: var(--space-2); font: 700 18px/1.25 var(--font-display); }
+  .menu-rate { padding: 0 0 var(--space-2); }
+  .node-card:has(.node-menu:not([hidden])), :is(#stamp-songs, #saved-list) .track:has(.node-menu:not([hidden])) { z-index: 30; }
 
   /* Android zooms into inputs under 16px */
   input[type=search], input[type=text], select { font-size: 16px; min-height: 48px; }
@@ -1245,8 +1294,9 @@ html { -webkit-tap-highlight-color: transparent; }
   .state.empty, .rail-empty { border: none; border-radius: 14px; padding: var(--space-5); text-align: center; background: color-mix(in srgb, var(--color-text) 5%, transparent); }
   .state.error { border-radius: 14px; padding: var(--space-5); }
   .state.error button { width: 100%; min-height: 48px; margin-top: var(--space-3); }
-  .intro .modes li { border-color: transparent; border-radius: 16px; }
-  .intro .row > button { flex: 1 1 100%; min-height: 52px; }
+  .intro h1 { font-size: 38px; margin-top: var(--space-2); }
+  .intro-go { width: 100%; min-height: 56px; }
+  .tracklist button { min-height: 64px; }
 
   /* Blind Test: tonal Skip and OK, Love in ink; the slider gets a thumb you can find */
   .rate button:not([data-rate=love]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
@@ -1258,11 +1308,15 @@ html { -webkit-tap-highlight-color: transparent; }
   .reveal-actions > button:not(.link) { min-height: 48px; }
 
   /* segmented controls (Roll | Browse, Scenes | Genres, Loved | Recent): one track, the chosen side inked */
-  :is(.stamp-mode, .browse-switch, .saved-seg) { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; padding: 4px;
+  :is(.stamp-mode, .saved-seg, .theme-seg) { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; padding: 4px;
     border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-text) 8%, transparent); }
-  :is(.stamp-mode, .browse-switch, .saved-seg) .chip { min-width: 108px; min-height: 44px; border-color: transparent; background: none; color: var(--color-muted); font-weight: 650; }
-  :is(.stamp-mode, .browse-switch, .saved-seg) .chip[aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 2px 6px -2px rgb(0 0 0 / .4); }
+  :is(.stamp-mode, .saved-seg, .theme-seg) .chip { min-width: 108px; min-height: 44px; border-color: transparent; background: none; color: var(--color-muted); font-weight: 650; }
+  :is(.stamp-mode, .saved-seg, .theme-seg) .chip[aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 2px 6px -2px rgb(0 0 0 / .4); }
   .saved-seg { display: inline-grid; }
+  /* Crate Dig: Roll | Scenes | Genres is one full-width switch */
+  .stamp-mode { display: grid; width: 100%; }
+  .stamp-mode .chip { min-width: 0; }
+  #genre-total { display: none; }
 
   /* text links become touch controls: "Show all" is a full-width button, outbound links are pills, sources are rows */
   button.cat-more { display: block; width: 100%; min-height: 48px; margin-top: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); text-align: center; text-decoration: none; }
@@ -1293,9 +1347,13 @@ html { -webkit-tap-highlight-color: transparent; }
   :is(#saved-list, #tree-hits, #tonight) > .track > .meta { grid-area: 1 / 2; }
   :is(#saved-list, #tree-hits, #tonight) > .track > .love { grid-area: 1 / 3; width: 48px; height: 48px; min-width: 0; padding: 0; gap: 0; font-size: 0; border-radius: 50%; border-color: transparent; background: none; }
   :is(#saved-list, #tree-hits, #tonight) > .track > .love .icon { width: 22px; height: 22px; }
+  /* Saved: compact rows, ▶ on the cover, then ♥ and ⋯ (About and Full song live in the ⋯ sheet) */
+  #saved-list > .track:not(.nopreview) { grid-template-columns: 56px minmax(0, 1fr) 48px 48px; column-gap: var(--space-2); align-items: center; padding-block: var(--space-2); }
+  #saved-list > .track > .node-actions { grid-area: 1 / 4; margin: 0; }
+  #saved-list .reason { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .track .full-song { margin-top: var(--space-2); }
   /* chips: tonal pills, the chosen ones inked */
-  :not(.stamp-mode, .browse-switch, .saved-seg) > .chip:not([aria-pressed=true]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
+  :not(.stamp-mode, .saved-seg, .theme-seg) > .chip:not([aria-pressed=true]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
 }
 @keyframes panel-in { from { opacity: 0; translate: 0 10px; } }
 @keyframes sheet-in { from { translate: 0 100%; box-shadow: 0 0 0 100vmax transparent; } }
