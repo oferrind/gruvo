@@ -614,9 +614,9 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 #builder-note:empty { display: none; }
 .reels { --reel-h: 46px; display: grid; }
 .reel { height: var(--reel-h); overflow: hidden; border: 1px solid var(--color-border); border-radius: 3px; box-shadow: inset 0 3px 7px rgb(0 0 0 / .45); color: var(--color-text); background: linear-gradient(var(--color-surface-2), var(--color-surface) 35% 65%, var(--color-surface-2));
-  font: 700 19px/var(--reel-h) var(--font-display); text-align: center; text-transform: uppercase; letter-spacing: .01em; }
+  font: 700 19px/var(--reel-h) var(--font-display); text-align: center; letter-spacing: .01em; container-type: inline-size; }
 .reel-strip { display: block; }
-.reel-strip > span { display: block; height: var(--reel-h); padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reel-strip > span { display: grid; place-items: center; height: var(--reel-h); padding: 0 6px; overflow: hidden; line-height: 1.05; text-wrap: balance; font-size: clamp(13px, 4cqi, 19px); } /* long names wrap to two lines, never "…" */
 .roll-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); }
 .roll-btn { min-height: 40px; padding: var(--space-2) var(--space-4); font: 750 17px/1 var(--font-display); text-transform: uppercase; letter-spacing: .05em; }
 .roll-go { display: inline-flex; align-items: center; gap: var(--space-2); }
@@ -625,7 +625,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .adventurous input { accent-color: var(--color-accent); width: 15px; height: 15px; margin: 0; }
 
 /* the builder reads as a sentence: Play me [90s] [Japanese] [rock] */
-.builder { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: 0; font: 650 22px/1.35 var(--font-display); }
+.builder { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: 0; font: 650 17px/1.35 var(--font-display); } /* quieter than the reel: Pick one is the second tool */
 .builder-lead { color: var(--color-muted); }
 /* the catalogue filter speaks the same dialect: an amber underlined select */
 .builder select, #cat-filter, #genre-family, #genre-tier { font: inherit; min-height: 0; max-width: 100%; width: auto; padding: 0 2px; border: none; border-bottom: 2px solid var(--color-accent); border-radius: 0; background: transparent; color: var(--color-accent); cursor: pointer; }
@@ -659,11 +659,12 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .cat-empty { padding: var(--space-3) var(--space-2); }
 .nearby { align-items: center; margin-top: var(--space-2); }
 .nearby-lead { color: var(--color-muted); font-size: var(--font-size-sm); }
-.book-family h4 { margin: var(--space-3) 0 var(--space-2); font: 650 14px/1.2 var(--font-display); }
+.book-family h4 { display: flex; justify-content: space-between; align-items: baseline; margin: var(--space-3) 0 var(--space-2); font: 650 14px/1.2 var(--font-display); }
 .book-family .quiet { color: var(--color-muted); font: 400 var(--font-size-sm) var(--font-body); }
 
 /* one fixed ink per continent (app.js INK), so the colour names a place: legacy, Africa, Asia, Europe, N. America, Latin America, Oceania */
 .ink-0 { --ink: var(--color-muted); }
+.ink-g { --ink: var(--color-accent); }
 .ink-1 { --ink: var(--ink-1); }
 .ink-2 { --ink: var(--ink-2); }
 .ink-3 { --ink: var(--ink-3); }
@@ -683,7 +684,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .r-legendary .stamp-face::after { border: 6px double var(--ink); inset: 2px; }
 .stamp-face > span { max-width: 100%; -webkit-mask-image: var(--ink-grain); mask-image: var(--ink-grain); }
 .stamp-decade { font: 800 26px/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.stamp-genre { font: 750 11.5px/1.05 var(--font-display); text-transform: uppercase; letter-spacing: .04em; overflow-wrap: anywhere; }
+.stamp-genre { font: 750 11.5px/1.05 var(--font-display); text-transform: uppercase; letter-spacing: .04em; hyphens: auto; }
 .stamp-place { width: 100%; padding-top: 3px; border-top: 1px solid var(--ink); font: 650 9.5px/1.1 var(--font-body); text-transform: uppercase; letter-spacing: .04em; text-wrap: balance; overflow-wrap: anywhere; } /* "South Africa" wraps, never "SOUTH A…" */
 /* gold: a foil frame and a sheen across the face */
 .stamp.is-gold { --ink: var(--edge-roots); --perf: linear-gradient(135deg, #8a6418, #f1d27a 28%, #a87a22 48%, #f6dd8f 68%, #8a6418); }
@@ -705,6 +706,8 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .stamp.big .stamp-face { padding: 12px 8px 9px; }
 .stamp.big .stamp-decade { font-size: 46px; }
 .stamp.big .stamp-genre { font-size: 16px; }
+.stamp .stamp-genre.long, .stamp.genre .stamp-genre.long { font-size: 9.5px; letter-spacing: 0; } /* 14+ letters: smaller, so a name breaks between words */
+.stamp.big .stamp-genre.long, .stamp.genre.big .stamp-genre.long { font-size: 13px; }
 .stamp.big .stamp-place { font-size: 11px; }
 /* earning it: one ink thump, the only celebration in the tab */
 .stamp.thump { animation: thump 280ms cubic-bezier(.2, .9, .3, 1); }
