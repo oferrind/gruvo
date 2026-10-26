@@ -5,7 +5,7 @@ const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'en.wikipedia.org'
 const UA = `MusicDiscovery/0.1 (${require('../stumble.config.json').contact})`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// Platform seams. The platform passes a cache {read() -> object, write(text)} to initCache, and may swap `fetch` via configure().
+// Platform seams. The platform passes a cache {read() -> object, write(text), cap?, maxBytes?} to initCache (cap/maxBytes: prune limits, phone keeps it smaller), and may swap `fetch` via configure().
 // Default fetch is looked up per call (Node/Electron global; tests replace it).
 let cacheIO = null, cache = {}, saveTimer = null, doFetch = (...a) => globalThis.fetch(...a);
 
@@ -24,7 +24,7 @@ function flushCache() {
   if (!cacheIO) return;
   clearTimeout(saveTimer);
   saveTimer = null;
-  prune(cache);
+  prune(cache, cacheIO.cap, cacheIO.maxBytes);
   try { cacheIO.write(JSON.stringify(cache)); }
   catch (e) { console.error('cache save failed', e.message); }
 }
