@@ -5,11 +5,19 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test"
+    "test": "node --test",
+    "mobile:build": "node scripts/build-mobile.js && cap sync android",
+    "mobile:apk": "npm run mobile:build && cd android && gradlew assembleDebug"
   },
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "electron": "^45.0.0"
+    "@capacitor/cli": "8.5.3",
+    "electron": "^45.0.0",
+    "esbuild": "0.28.2"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3"
   }
 }
