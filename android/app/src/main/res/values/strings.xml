@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Stumble</string>
-    <string name="title_activity_main">Stumble</string>
+    <string name="app_name">Gruvo</string>
+    <string name="title_activity_main">Gruvo</string>
     <string name="package_name">com.stumble.music</string>
     <string name="custom_url_scheme">com.stumble.music</string>
 </resources>

@@ -2,7 +2,7 @@
 const { isFresh, prune } = require('./cache');
 
 const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'en.wikipedia.org': 200, 'www.wikidata.org': 200 };
-const UA = `MusicDiscovery/0.1 (${require('../stumble.config.json').contact})`;
+const UA = `Gruvo/${require('../package.json').version} (${require('../stumble.config.json').contact})`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // Platform seams. The platform passes a cache {read() -> object, write(text), cap?, maxBytes?} to initCache (cap/maxBytes: prune limits, phone keeps it smaller), and may swap `fetch` via configure().

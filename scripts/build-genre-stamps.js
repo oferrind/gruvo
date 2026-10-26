@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const UA = 'MusicDiscovery/0.1 (you@example.com)';
+const UA = `Gruvo/${require('../package.json').version} (${require('../stumble.config.json').contact})`;
 const CHECKPOINT = path.join(__dirname, '.genre-verify.json');
 const OUT = path.join(__dirname, '..', 'renderer', 'genre-data.js');
 const MIN_SONGS = 6; // ≥6 playable on one fetch: margin above the runtime threshold of 5
