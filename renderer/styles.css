@@ -398,7 +398,8 @@ input::placeholder { color: var(--color-muted); opacity: 1; }
 
 /* ---------- top bar + tabs ---------- */
 .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--space-6); padding: 0 var(--space-5); background: var(--grain), var(--color-bg); border-bottom: 1px solid var(--color-border); }
-.brand { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 19px; font-weight: 800; letter-spacing: .02em; }
+.brand { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 19px; font-weight: 800; letter-spacing: .02em; padding: 0; min-height: 0; }
+.brand:hover:not(:disabled) { background: none; } /* a button (Home on phones) that still reads as the wordmark */
 .brand::before { content: ""; width: 18px; height: 18px; border-radius: 50%; flex: none;
   background: radial-gradient(circle, var(--color-bg) 0 9%, var(--color-accent) 10% 30%, var(--color-vinyl) 31%), var(--color-vinyl);
   box-shadow: 0 0 0 1px var(--color-border); }
@@ -923,11 +924,6 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 #pref-status:empty { display: none; }
 
 @media (max-width: 640px) {
-  .topbar { flex-wrap: wrap; gap: 0; padding: 0 var(--space-3); }
-  .brand { padding-top: var(--space-2); }
-  .theme-toggle { margin-top: var(--space-2); }
-  #tabs { width: 100%; }
-  main { padding: var(--space-4); }
   .intro h1 { font-size: 30px; }
   .mystery-top { flex-direction: column; align-items: stretch; }
   .deck { --rec: 148px; align-self: center; }
@@ -1029,3 +1025,101 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .sp-prefs { margin-top: var(--space-5); max-width: 70ch; }
 .sp-prefs ol { padding-left: 1.2em; line-height: 1.6; }
 .sp-prefs code { user-select: all; font-size: var(--font-size-sm); color: var(--color-text); }
+
+/* ---------- phone and small tablet (docs/15): tabs at the bottom, Preferences behind a gear, the mini-player on the tabs ---------- */
+@media (max-width: 840px) {
+  :root { --tabbar-h: 56px; --safe-b: env(safe-area-inset-bottom, 0px); }
+  body, body:has(.nowbar.is-idle) { padding-bottom: calc(var(--nowbar-h) + var(--tabbar-h) + var(--safe-b) + var(--space-4)); }
+  html, body { overflow-x: clip; }
+  .topbar { min-height: 56px; gap: var(--space-3); padding: env(safe-area-inset-top, 0px) calc(var(--space-3) + env(safe-area-inset-right, 0px)) 0 calc(var(--space-3) + env(safe-area-inset-left, 0px)); }
+  .brand { min-height: 48px; }
+  .theme-toggle { width: 48px; height: 48px; margin-right: 48px; } /* the gear sits to its right */
+  main { padding: var(--space-4) max(var(--space-3), env(safe-area-inset-right, 0px)) var(--space-4) max(var(--space-3), env(safe-area-inset-left, 0px)); }
+
+  /* bottom bar: Blind Test, Crate Dig, Tree, Saved. Home is the wordmark. The selected label is underlined in amber, no pill. */
+  #tabs { position: fixed; z-index: 6; left: 0; right: 0; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0;
+    padding: 0 env(safe-area-inset-right, 0px) var(--safe-b) env(safe-area-inset-left, 0px); background: var(--grain), var(--color-bg); border-top: 1px solid var(--color-border); }
+  #tabs [role=tab] { min-height: var(--tabbar-h); padding: 0 2px; font: 700 14px/1.1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; }
+  #tabs [aria-selected=true] { box-shadow: none; text-decoration: underline 3px var(--color-accent); text-underline-offset: 7px; }
+  #tabs .count { font-size: 11px; }
+  #tabs #tab-home { display: none; }
+  #tabs #tab-prefs { position: fixed; top: env(safe-area-inset-top, 0px); right: calc(var(--space-2) + env(safe-area-inset-right, 0px)); width: 48px; height: 56px; padding: 0; font-size: 0; display: flex; align-items: center; justify-content: center; }
+  #tabs #tab-prefs::before { content: ""; width: 22px; height: 22px; background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' fill='none' stroke='black'%3E%3Ccircle cx='11' cy='11' r='7.6' stroke-width='3.4' stroke-dasharray='2.4 3.57'/%3E%3Ccircle cx='11' cy='11' r='5.6' stroke-width='1.8'/%3E%3Ccircle cx='11' cy='11' r='2' stroke-width='1.8'/%3E%3C/svg%3E") center / contain no-repeat; }
+  #tabs #tab-prefs[aria-selected=true] { color: var(--color-accent); }
+
+  /* now playing: the 64px mini-player sits on the tab bar */
+  .nowbar { bottom: calc(var(--tabbar-h) + var(--safe-b)); gap: var(--space-3); padding: 0 calc(var(--space-3) + env(safe-area-inset-right, 0px)) 0 calc(var(--space-3) + env(safe-area-inset-left, 0px)); }
+  .np-toggle, .nowbar.is-idle .np-toggle { width: 48px; height: 48px; min-height: 48px; }
+  .nowbar .love { min-width: 0; width: 48px; height: 48px; min-height: 48px; padding: 0; gap: 0; font-size: 0; border-radius: 50%; } /* icon only: the label stays in aria-label */
+  .nowbar .love .icon { width: 20px; height: 20px; }
+  .nowbar .full-song, .np-time { display: none; }
+  .toast { bottom: calc(var(--nowbar-h) + var(--tabbar-h) + var(--safe-b) + var(--space-3)); max-width: calc(100vw - 32px); }
+
+  /* Blind Test: a record of up to 200px that still fits 360px; three equal 56px rate buttons in the thumb zone */
+  .mystery { padding: var(--space-4) var(--space-3); }
+  .deck { --rec: min(200px, calc((100vw - 72px) / 1.62)); }
+  .mystery h2 { font-size: 24px; }
+  .rate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+  .rate button { min-height: 56px; font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; }
+  .reveal-artist { font-size: 32px; }
+  .rail { position: static; }
+  .adventure { padding: 0; }
+  .slider { flex-wrap: wrap; justify-content: space-between; }
+  .slider input { flex: 1 1 100%; order: -1; min-height: 40px; }
+
+  /* Crate Dig: Roll is a thumb-wide bar; the genre search stays pinned while the list scrolls */
+  .roll { max-width: none; }
+  .reels { --reel-h: 56px; }
+  .reel { font-size: 19px; }
+  .roll-go { flex: 1; }
+  .roll-btn { flex: 1; min-height: 56px; }
+  .builder-go { width: 100%; }
+  .genre-q { position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 2; box-shadow: 0 6px 10px -8px rgb(0 0 0 / .5); }
+  .stamp-head { flex-wrap: wrap; }
+
+  /* Family Tree: the narrow trail, with less indent so a second-level card stays readable */
+  .tree-picker { padding: var(--space-3); }
+  .tree-picker .search { grid-template-columns: minmax(0, 1fr) auto; }
+  .tree-canvas { --gutter: 38px; container-type: normal; } /* no container: a fixed ⋯ sheet must hang off the screen, not the canvas */
+  .tree-node:not([data-depth="0"]) > .branches { padding-left: 28px; }
+  .tree-node[data-depth="1"] > .branches { padding-left: calc(var(--gutter) + 20px); }
+  .tree-node:not([data-depth="0"]) > .branches > .branch > ol { padding-left: 16px; }
+  .grow-filters label { flex: 1 1 140px; }
+  .grow-filters input[type=range] { width: 100%; }
+
+  /* Home on a phone: the record and the recent crate; the bottom bar replaces "Other ways in" */
+  .ways-row { display: none; }
+
+  /* ⋯ menu: a bottom sheet over a scrim (desktop keeps the hover popover) */
+  #main .node-menu { position: fixed; z-index: 30; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 75dvh; overflow-y: auto;
+    padding: var(--space-4) calc(var(--space-4) + env(safe-area-inset-right, 0px)) calc(var(--space-4) + var(--safe-b)) calc(var(--space-4) + env(safe-area-inset-left, 0px));
+    border-width: 1px 0 0; border-radius: var(--radius) var(--radius) 0 0; background: var(--paper), var(--color-surface); box-shadow: 0 0 0 100vmax rgb(0 0 0 / .5); }
+  #main .node-menu::before { content: ""; position: fixed; inset: 0; z-index: -1; } /* catches a tap on the scrim; app.js closes the sheet */
+  #main .node-menu summary { min-height: 48px; display: flex; align-items: center; font-size: 15px; }
+  #main .node-menu .full-song { padding: 0 0 var(--space-3); font-size: 15px; }
+  .node-card:has(.node-menu:not([hidden])), #stamp-songs .track:has(.node-menu:not([hidden])) { z-index: 30; }
+
+  /* Android zooms into inputs under 16px */
+  input[type=search], input[type=text], select { font-size: 16px; min-height: 48px; }
+  #cat-filter, #genre-family, #genre-tier { font-size: 16px; min-height: 48px; }
+  .builder select, .grow-filters select { min-height: 48px; }
+}
+
+/* ---------- touch screen, no mouse (app.js sets .touch): no key hints, every control a 48px target ---------- */
+.touch kbd, .touch .hint.keys { display: none; }
+/* after rating, the way on is a full-width button, not "Enter" */
+.touch #mystery-next { width: 100%; justify-content: center; min-height: 56px; margin: var(--space-5) 0 0; border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent);
+  font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; text-decoration: none; }
+.touch #mystery-next:hover:not(:disabled) { background: var(--color-accent); color: var(--color-on-accent); }
+.touch :is(.chip, .love, .track .play, .rate button, .suggest-row, .cat-item, .scheme, .way, .theme-toggle) { min-height: 48px; }
+.touch .track .play { width: 48px; height: 48px; margin-top: 0; }
+.touch :is(.node-actions > button, .node-actions .dots, .node-actions summary, .node-rate button) { min-height: 48px; min-width: 48px; padding-inline: var(--space-2); justify-content: center; }
+.touch :is(.more-toggle, button.ext, .cat-more, .sp-export button) { min-height: 44px; }
+.touch button.ext { display: inline-flex; align-items: center; }
+.touch .crate .love { width: 48px; height: 48px; }
+.touch .chip { padding-inline: var(--space-4); }
+.touch .grow-settings > summary { min-height: 48px; align-items: center; }
+.touch .about-more summary { padding-block: 12px; }
+.touch :is(.adventurous, .grow-edge) { min-height: 48px; }
+.touch :is(.adventurous input, .grow-edge input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }

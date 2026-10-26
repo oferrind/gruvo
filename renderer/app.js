@@ -329,6 +329,17 @@ function showTab(name, focus) {
   if (name === 'tree') renderTreePicker();
 }
 $('#tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) showTab(t.dataset.tab); });
+$('#brand').onclick = () => showTab('home'); // phones have no Home tab: the brand is the way back
+// Touch screen with no mouse: hide key hints (CSS .touch) and say "tap" where the copy says "press Enter".
+{
+  const mq = matchMedia('(hover: none) and (pointer: coarse)');
+  const sync = () => {
+    document.documentElement.classList.toggle('touch', mq.matches);
+    $('#pref-artist-help').textContent = mq.matches ? 'Tap a match below to add it.' : 'Press Enter to add the best match, or pick one below.';
+  };
+  mq.addEventListener('change', sync);
+  sync();
+}
 // Arrow / Home / End move between tabs (WAI-ARIA tabs pattern).
 $('#tabs').addEventListener('keydown', e => {
   const i = tabs.indexOf(document.activeElement);
@@ -986,6 +997,7 @@ function overflowMenu(id, name, ...items) {
   wrap.addEventListener('focusin', e => { if (!wrap.contains(e.relatedTarget)) set(true); });
   wrap.addEventListener('focusout', e => { if (!wrap.contains(e.relatedTarget)) set(false); });
   wrap.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { e.stopPropagation(); set(false); b.focus(); } });
+  menu.addEventListener('click', e => { if (e.target === menu && getComputedStyle(menu).position === 'fixed') set(false); }); // phone sheet: a tap on the scrim closes it
   set(false);
   return wrap;
 }
