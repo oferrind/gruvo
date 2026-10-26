@@ -318,8 +318,12 @@ function trackRow(t, { extra, reason, onOpen, full, tag = 'li', from } = {}) {
 // ---------- tabs + first-launch intro ----------
 const tabs = $$('#tabs [role=tab]');
 let introOpen = false;
+const tabHist = []; // tabs left behind, for the Android back button
+let goingBack = false;
 function showTab(name, focus) {
   closeIntro();
+  const prev = tabs.find(b => b.getAttribute('aria-selected') === 'true')?.dataset.tab;
+  if (prev && prev !== name && !goingBack) tabHist.push(prev);
   tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
   if (name === 'home') renderHome();
@@ -653,6 +657,7 @@ function buildStamps(regions) {
   $('#b-genre').append(...Object.entries(SD.GENRES).sort((a, b) => a[1][0].localeCompare(b[1][0])).map(([g, [name]]) => opt(g, name)));
   $('#cat-filter').append(...SD.CONTINENTS.map(c => opt(c, c)));
   syncBuilder(SD.makeStamp('1990-JP-rock'));
+  $('#builder').classList.toggle('has-sheet', SD.ATLAS.size > 0);
   $('#genre-family').append(...Object.entries(SD.FAMILIES).filter(([f]) => [...SD.ATLAS.values()].some(e => e.family === f)).map(([f, n]) => opt(f, n)));
   $('#genre-tier').append(...Object.entries(SD.TIERS).map(([t, n]) => opt(t, n)));
   $('#genre-total').textContent = SD.ATLAS.size ? `(${SD.ATLAS.size.toLocaleString()})` : '';
@@ -711,7 +716,27 @@ function syncBuilder(s) {
   if (s.decade) $('#b-decade').value = s.decade;
   if (s.cc) $('#b-place').value = s.cc;
   if (Object.hasOwn(SD.GENRES, s.genre)) $('#b-genre').value = s.genre;
+  syncGenreBtn();
 }
+// Phone: the genre select is replaced by a button that opens a searchable sheet over every atlas genre (CSS shows it only on phones).
+const syncGenreBtn = () => { $('#b-genre-btn').textContent = $('#b-genre').selectedOptions[0]?.textContent || 'any genre'; };
+const gSheet = el('div', { className: 'sheet', id: 'genre-sheet', role: 'dialog', ariaLabel: 'Pick a genre', hidden: true });
+const gSheetQ = el('input', { type: 'search', placeholder: 'Search genres: zeuhl, shoegaze...', autocomplete: 'off', spellcheck: false, ariaLabel: 'Search genres' });
+const gSheetList = el('ul', { className: 'cat-list' });
+function fillGenreSheet() {
+  const { stamps } = SD.searchGenres(gSheetQ.value, {}, 60);
+  gSheetList.replaceChildren(...stamps.map(s => el('li', {}, el('button', { type: 'button', className: 'cat-item ink-g', onclick: () => {
+    const sel = $('#b-genre');
+    if (!$$('#b-genre option').some(o => o.value === s.genre)) sel.append(el('option', { value: s.genre, textContent: s.label })); // an atlas slug: makeStamp takes it in any combo
+    sel.value = s.genre; syncGenreBtn(); gSheet.hidden = true; $('#b-genre-btn').focus();
+  } }, el('span', { className: 'cat-label', textContent: s.label }), el('span', { className: 'cat-blurb', textContent: `${SD.FAMILIES[s.family].toLowerCase()} · ${SD.TIERS[s.tier]}` })))));
+  if (!stamps.length) gSheetList.append(el('li', { className: 'muted cat-empty', textContent: 'No genre matches.' }));
+}
+gSheetQ.addEventListener('input', fillGenreSheet);
+gSheet.append(gSheetQ, gSheetList);
+gSheet.addEventListener('click', e => { if (e.target === gSheet) gSheet.hidden = true; }); // the scrim
+$('#main').append(gSheet);
+$('#b-genre-btn').onclick = () => { gSheetQ.value = ''; fillGenreSheet(); gSheet.hidden = false; gSheetQ.focus(); };
 $('#builder').addEventListener('submit', e => {
   e.preventDefault();
   // A catalogue combo opens that entry; "any decade" / "anywhere" give a decade + genre, place + genre or bare genre stamp.
@@ -752,11 +777,19 @@ function renderStamps() {
   renderCatalogue(); renderGenreList(); renderStampHead();
 }
 let stMenu = 0;
+const PHONE = matchMedia('(max-width: 840px)');
+PHONE.addEventListener('change', () => $$('#stamp-songs .track').forEach(r => r.fit?.()));
 function songRow(t) {
   const row = trackRow(t, { extra: extraOf(t), full: true });
   if (t.year) row.querySelector('.artist').textContent = `${t.artist}, ${t.year}`;
   // At rest: ▶, Skip / OK / Love (as in the Blind Test and the Tree) and ⋯ for About and Full song, as on the Tree cards.
-  row.append(el('div', { className: 'node-actions' }, rateGroup(t, row.querySelector('.love')), moreMenu(row, `stamp-menu-${++stMenu}`, `${t.artist} – ${t.title}`)));
+  const group = rateGroup(t, row.querySelector('.love')), more = moreMenu(row, `stamp-menu-${++stMenu}`, `${t.artist} – ${t.title}`);
+  row.append(el('div', { className: 'node-actions' }, group, more));
+  // Phone: Skip / OK live in the ⋯ sheet, so the row keeps only ▶, ♥ and ⋯.
+  const skipOk = [...group.querySelectorAll('[data-rate=skip], [data-rate=ok]')], slot = el('div', { className: 'menu-rate', role: 'group', ariaLabel: 'Rate this song' });
+  more.querySelector('.node-menu').prepend(slot);
+  row.fit = () => (PHONE.matches ? slot.append(...skipOk) : group.prepend(...skipOk));
+  row.fit();
   return row;
 }
 api.onStampRow((run, row) => {
@@ -918,7 +951,24 @@ $('#grow-settings').addEventListener('change', e => {
   profile.prefs.tree = { edges: on, era: $('#grow-era').value, place: $('#grow-place').value, fame: Number($('#grow-fame').value), width: Number($('#grow-width').value) };
   save(); growSummary();
 });
-$('#grow-regrow').onclick = () => trRoot && growTree(trRoot);
+// On a phone the open Grow settings are a bottom sheet (CSS); scrim tap, Done and Regrow close it.
+const closeGrow = () => { if (PHONE.matches) $('#grow-settings').open = false; };
+$('#grow-regrow').onclick = () => { closeGrow(); trRoot && growTree(trRoot); };
+$('#grow-done').onclick = closeGrow;
+$('.grow-body').addEventListener('click', e => { if (e.target === e.currentTarget) closeGrow(); });
+
+// Back (Android's button via api.onBack; Esc passes sheets only): an open sheet first, then the previous tab. False = nothing left, Android leaves the app.
+function goBack(leave = true) {
+  const menus = $$('.node-menu:not([hidden])');
+  if (menus.length) { menus.forEach(m => m.parentElement.close()); return true; }
+  if (!gSheet.hidden) { gSheet.hidden = true; return true; }
+  if (PHONE.matches && $('#grow-settings').open) { closeGrow(); return true; }
+  if (!leave || !tabHist.length) return false;
+  goingBack = true; showTab(tabHist.pop()); goingBack = false;
+  return true;
+}
+api.onBack?.(() => goBack());
+document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(false); });
 
 async function growTree(root) {
   const run = ++trRun;
@@ -1121,7 +1171,17 @@ async function moreTree(n) {
 }
 
 // ---------- Saved ----------
+// Phone only (CSS hides the chips on desktop, where Home has Recent finds): Loved | Recent.
+function setSeg(seg) {
+  $('#saved').dataset.seg = seg;
+  $('#seg-loved').setAttribute('aria-pressed', String(seg === 'loved')); $('#seg-recent').setAttribute('aria-pressed', String(seg === 'recent'));
+  ls('savedSeg', seg);
+}
+$('#seg-loved').onclick = () => setSeg('loved');
+$('#seg-recent').onclick = () => setSeg('recent');
 function renderSaved() {
+  setSeg(ls('savedSeg') === 'recent' ? 'recent' : 'loved');
+  fillCrate($('#saved-recent'), $('#saved-recent-count'));
   $('#saved-like-count').textContent = profile.likes.length;
   const list = $('#saved-list');
   list.replaceChildren(...profile.likes.slice().reverse().map(t => trackRow(t, {
@@ -1171,13 +1231,16 @@ function renderHome() {
   $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
     el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
 
-  // Recent finds: tonight's reveals and your newest loves, one crate of sleeves.
+  fillCrate($('#recent'), $('#recent-count'));
+}
+// Recent finds: tonight's reveals and your newest loves, one crate of sleeves (Home, and Saved > Recent on a phone).
+function fillCrate(list, count) {
   const seen = new Set(), finds = [];
   for (const { t, kind, extra } of tonight) finds.push({ t, extra, reason: `You said ${VERDICT[kind]} tonight` });
-  for (const t of likes.slice().reverse()) finds.push({ t, extra: extraOf(t), reason: t.ts ? `Loved ${day(t.ts)}` : 'Loved' });
+  for (const t of profile.likes.slice().reverse()) finds.push({ t, extra: extraOf(t), reason: t.ts ? `Loved ${day(t.ts)}` : 'Loved' });
   const crate = finds.filter(({ t }) => !seen.has(likeKey(t)) && seen.add(likeKey(t))).slice(0, 8);
-  $('#recent-count').textContent = crate.length || '';
-  $('#recent').replaceChildren(...(crate.length ? crate.map(({ t, extra, reason }) => trackRow(t, { extra, reason }))
+  count.textContent = crate.length || '';
+  list.replaceChildren(...(crate.length ? crate.map(({ t, extra, reason }) => trackRow(t, { extra, reason }))
     : [el('li', { className: 'state empty' }, el('p', { textContent: 'Nothing in the crate yet. Rate a mystery or love a track anywhere and it lands here.' }))]));
 }
 

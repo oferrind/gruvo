@@ -418,7 +418,7 @@ main:has(> #tree:not([hidden])) { padding-bottom: 0; } /* the tree ends at its l
 
 /* ---------- intro ---------- */
 .intro h1 { font-size: 36px; max-width: 16ch; }
-.intro .modes { list-style: none; padding: 0; margin: var(--space-6) 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.intro .modes { list-style: none; padding: 0; margin: var(--space-6) 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--space-4); }
 .intro .modes li { border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-4) var(--space-5) var(--space-5); background: var(--color-surface); }
 .intro .modes h2 { margin: 0 0 var(--space-2); font-size: 22px; }
 .intro .why { color: var(--color-muted); font-size: var(--font-size-sm); }
@@ -696,11 +696,13 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .search { display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-3); }
 .search input, .search select { flex: 1; }
 select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-muted); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); accent-color: var(--color-accent); }
-.tree-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4) var(--space-5); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+.tree-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--space-4) var(--space-5); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .tree-picker .search { display: grid; grid-template-columns: 1fr auto; margin: 0; }
 .tree-picker label { grid-column: 1 / -1; font-weight: 600; }
 .tree-picker select, .tree-picker input { background: var(--color-bg); }
 /* Grow settings: one quiet disclosure under the pickers. Connections are a plain two-column list of checkboxes (icon, name, one hint), filters are underlined selects. */
+.genre-btn, .grow-done, .saved-seg, #saved-recent-wrap, .sheet, .menu-rate:empty { display: none; }
+.genre-btn { font: inherit; padding: 0 2px; border: none; border-bottom: 2px solid var(--color-accent); border-radius: 0; background: transparent; color: var(--color-accent); }
 .grow-settings { margin: var(--space-3) 0 var(--space-4); }
 .grow-settings > summary { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); align-items: baseline; cursor: pointer; padding: var(--space-2) 0; }
 .grow-title { font-weight: 600; }
@@ -710,7 +712,7 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 .grow-body { display: grid; gap: var(--space-4); padding: var(--space-3) 0 var(--space-2); }
 .grow-edges { border: none; margin: 0; padding: 0; }
 .grow-edges legend { font-weight: 600; padding: 0 0 var(--space-2); }
-#grow-edges { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-1) var(--space-5); }
+#grow-edges { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--space-1) var(--space-5); }
 .grow-edge { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: var(--space-2); align-items: center; padding: var(--space-1) 0; cursor: pointer; }
 .grow-edge input { grid-row: 1 / 3; accent-color: var(--color-accent); margin: 0; }
 .grow-name { font-weight: 600; }
@@ -896,7 +898,7 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .prefs .field { margin: 0; }
 .prefs .field > .label .muted { font-weight: 400; }
 /* colour scheme picker: each swatch carries its own data-scheme, so it shows that scheme in the current theme */
-.schemes { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-2) var(--space-3); }
+.schemes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr)); gap: var(--space-2) var(--space-3); }
 .scheme { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: border-color var(--dur); }
 .scheme:hover { border-color: var(--color-muted); }
 .scheme:has(:checked) { border-color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
@@ -1093,10 +1095,23 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
   .ways-row { display: none; }
 
   /* ⋯ menu: a bottom sheet over a scrim (desktop keeps the hover popover) */
-  #main .node-menu { position: fixed; z-index: 30; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 75dvh; overflow-y: auto;
+  #main :is(.node-menu, .sheet, .grow-settings[open] > .grow-body) { position: fixed; z-index: 30; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 75dvh; overflow-y: auto;
     padding: var(--space-4) calc(var(--space-4) + env(safe-area-inset-right, 0px)) calc(var(--space-4) + var(--safe-b)) calc(var(--space-4) + env(safe-area-inset-left, 0px));
     border-width: 1px 0 0; border-radius: var(--radius) var(--radius) 0 0; background: var(--paper), var(--color-surface); box-shadow: 0 0 0 100vmax rgb(0 0 0 / .5); }
-  #main .node-menu::before { content: ""; position: fixed; inset: 0; z-index: -1; } /* catches a tap on the scrim; app.js closes the sheet */
+  #main :is(.node-menu, .sheet, .grow-settings[open] > .grow-body)::before { content: ""; position: fixed; inset: 0; z-index: -1; } /* catches a tap on the scrim; app.js closes the sheet */
+  #main .sheet { display: flex; flex-direction: column; gap: var(--space-3); }
+  #main .sheet[hidden] { display: none; }
+  #main .sheet .cat-list { margin: 0; padding: 0; list-style: none; }
+  .menu-rate { display: flex; gap: var(--space-2); padding-bottom: var(--space-3); }
+  .menu-rate button { flex: 1; min-height: 48px; }
+  .grow-done { display: block; width: 100%; min-height: 48px; margin-top: var(--space-3); }
+  .has-sheet #b-genre { display: none; }
+  .has-sheet .genre-btn { display: inline-block; }
+  .saved-seg { display: flex; margin-bottom: var(--space-3); }
+  #saved[data-seg=recent] .saved-loved, #saved:not([data-seg=recent]) #saved-recent-wrap { display: none; }
+  #saved[data-seg=recent] #saved-recent-wrap { display: block; }
+  .track .meta { overflow-wrap: anywhere; }
+  .about-src { white-space: normal; }
   #main .node-menu summary { min-height: 48px; display: flex; align-items: center; font-size: 15px; }
   #main .node-menu .full-song { padding: 0 0 var(--space-3); font-size: 15px; }
   .node-card:has(.node-menu:not([hidden])), #stamp-songs .track:has(.node-menu:not([hidden])) { z-index: 30; }

@@ -1,6 +1,6 @@
 // Phone implementation of window.api / window.store / window.spotify (the surface preload.js gives desktop).
 // Bundled by scripts/build-mobile.js into mobile/www/api.js, loaded before app.js. Calls src/ directly.
-import { CapacitorHttp } from '@capacitor/core';
+import { CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { KeepAwake } from '@capacitor-community/keep-awake';
@@ -35,6 +35,12 @@ window.api = {
   prefetchStamp: wrap(H.stampsPrefetch),
   onStampRow: on('stamps:row'),
 };
+// Android back: app.js registers goBack (true = it closed something or changed tab); otherwise the app leaves.
+// registerPlugin('App') is the native @capacitor/app plugin (pinned in package.json) without bundling its JS.
+let backCb = () => false;
+const App = registerPlugin('App');
+App.addListener('backButton', () => { if (!backCb()) App.exitApp(); });
+window.api.onBack = cb => { backCb = cb; };
 window.store = { load: wrap(H.storeLoad), save: wrap(H.storeSave) };
 // No Spotify login on the phone (no OAuth, no tokens): app.js hides Spotify Preferences and Export; full-song links still open Spotify.
 const NO = async () => ({ error: 'Spotify login is not available on the phone.' });

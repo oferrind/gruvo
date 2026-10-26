@@ -135,6 +135,7 @@
               <select id="b-decade" aria-label="Decade"></select>
               <select id="b-place" aria-label="Place"></select>
               <select id="b-genre" aria-label="Genre"></select>
+              <button type="button" id="b-genre-btn" class="genre-btn" aria-haspopup="dialog" aria-label="Genre"></button>
               <div class="builder-row"><button class="roll-btn builder-go" aria-label="Play" title="Play">&rarr;</button></div>
             </form>
             <p id="builder-note" class="hint" aria-live="polite"></p>
@@ -204,7 +205,7 @@
             <label>Branch size <select id="grow-width"><option value="3">3 songs per node</option><option value="5">5 songs per node</option></select></label>
             <label class="grow-fame">Fame <input id="grow-fame" type="range" min="0" max="100" step="10"><span class="grow-ends" aria-hidden="true"><span>Famous</span><span>Obscure</span></span></label>
           </div>
-          <div class="grow-actions"><button id="grow-regrow" type="button" class="primary" hidden>Regrow with these settings</button></div>
+          <div class="grow-actions"><button id="grow-regrow" type="button" class="primary" hidden>Regrow with these settings</button><button id="grow-done" type="button" class="grow-done">Done</button></div>
         </div>
       </details>
       <ul id="tree-hits" class="tracks"></ul>
@@ -219,8 +220,18 @@
         <p class="muted">Everything you loved, newest first.</p>
         <div class="sp-export"><button id="saved-export" type="button">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
-      <h2>Loved tracks <span id="saved-like-count" class="count">0</span></h2>
-      <ul id="saved-list" class="tracks"></ul>
+      <div class="chips saved-seg" role="group" aria-label="Show">
+        <button id="seg-loved" type="button" class="chip" aria-pressed="true">Loved</button>
+        <button id="seg-recent" type="button" class="chip" aria-pressed="false">Recent</button>
+      </div>
+      <div class="saved-loved">
+        <h2>Loved tracks <span id="saved-like-count" class="count">0</span></h2>
+        <ul id="saved-list" class="tracks"></ul>
+      </div>
+      <div id="saved-recent-wrap">
+        <h2>Recent finds <span id="saved-recent-count" class="count"></span></h2>
+        <ul id="saved-recent" class="tracks crate"></ul>
+      </div>
     </section>
 
     <!-- Preferences: first-launch step, editable later -->
