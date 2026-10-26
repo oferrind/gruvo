@@ -584,26 +584,23 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 /* left: the Roll, the sentence builder and the catalogue; centre: the playlist; right: the stamp book (below it when narrower) */
 main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .stamps-layout { display: grid; gap: var(--space-6); align-items: start; }
-/* one column: the Roll and the sentence, then the songs, then the catalogue and the book (never songs under 43 entries) */
-@media (max-width: 899px) { .stamp-side { display: contents; } .builder { margin: 0; } .stamp-main { order: 1; } .catalogue { order: 2; } .stamp-book { order: 3; } }
-/* 900-1239px: two columns and the page scrolls as one; no boxes scrolling inside boxes */
+/* one column: the Roll and the sentence, then the songs, then the catalogue (never songs under 43 entries) */
+@media (max-width: 899px) { .stamp-side { display: contents; } .builder { margin: 0; } .stamp-main { order: 1; } .catalogue { order: 2; } }
+/* 900-1239px: two columns and the page scrolls as one */
 @media (min-width: 900px) {
   .stamps-layout { grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); }
-  .stamp-side { grid-row: span 2; }
-  .stamp-book { grid-column: 2; }
 }
-/* 1240px and up: one screen, three columns; each column is its own single scroll (the catalogue list on the left) */
+/* 1240px and up: one screen; the catalogue list and the songs column each scroll on their own */
 @media (min-width: 1240px) {
   body:has(> main > #stamps:not([hidden])) { height: 100dvh; display: flex; flex-direction: column; }
   main:has(> #stamps:not([hidden])) { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-block: var(--space-5) 0; }
   #stamps:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #stamps .panel-head { margin-bottom: var(--space-4); }
-  .stamps-layout { flex: 1; min-height: 0; align-items: stretch; grid-template-columns: 270px minmax(0, 1fr) 296px; grid-template-rows: minmax(0, 1fr); }
+  .stamps-layout { flex: 1; min-height: 0; align-items: stretch; grid-template-columns: 290px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
   .stamp-side { grid-row: auto; display: flex; flex-direction: column; min-height: 0; }
   .catalogue, #scenes-view:not([hidden]), #genres-view:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .cat-list { flex: 0 1 auto; min-height: 96px; overflow-y: auto; }
-  .stamp-main, .stamp-book { min-height: 0; overflow-y: auto; padding-right: var(--space-2); }
-  .stamp-book { grid-column: auto; }
+  .stamp-main { min-height: 0; overflow-y: auto; padding-right: var(--space-2); }
 }
 .field > label, .field > .label { display: block; font-weight: 600; margin-bottom: var(--space-2); }
 
@@ -662,8 +659,6 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .cat-empty { padding: var(--space-3) var(--space-2); }
 .nearby { align-items: center; margin-top: var(--space-2); }
 .nearby-lead { color: var(--color-muted); font-size: var(--font-size-sm); }
-.book-family h4 { display: flex; justify-content: space-between; align-items: baseline; margin: var(--space-3) 0 var(--space-2); font: 650 14px/1.2 var(--font-display); }
-.book-family .quiet { color: var(--color-muted); font: 400 var(--font-size-sm) var(--font-body); }
 
 /* one fixed ink per continent (app.js INK), so the colour names a place: legacy, Africa, Asia, Europe, N. America, Latin America, Oceania */
 .ink-0 { --ink: var(--color-muted); }
@@ -731,19 +726,9 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .stamp-main .sp-export { margin-top: var(--space-4); }
 
 /* the book: a quiet progress line, the legacy Passport row (already earned) first, then the continents */
-.stamp-book h2 { margin-top: 0; }
-.book-line { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0 0 var(--space-2); color: var(--color-muted); font-size: var(--font-size-sm); }
-.decade-strip { display: inline-flex; gap: 7px; font: 500 12.5px/1.4 var(--font-body); font-variant: small-caps tabular-nums; }
-.decade-strip .on { color: var(--color-accent); font-weight: 700; text-decoration: underline 2px; text-underline-offset: 3px; }
-.book-group h3 { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2); margin: var(--space-5) 0 var(--space-2); font: 700 15px/1.1 var(--font-display); text-transform: uppercase; letter-spacing: .05em; }
-.book-group .quiet { color: var(--color-muted); font: 400 var(--font-size-sm) var(--font-body); text-transform: none; letter-spacing: 0; }
 .book-slots { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 9px 8px; }
 .book-slots > li.muted { padding: var(--space-2) 0; }
-.still { margin: var(--space-2) 0 0; color: var(--color-muted); font-size: var(--font-size-sm); line-height: 1.5; text-wrap: pretty; }
-.book-slots + .still { margin-top: var(--space-3); }
-.still-link { display: inline; min-height: 0; padding: 0; border: none; background: none; color: inherit; font: inherit; text-align: left;
   text-decoration: underline 1px color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 3px; }
-.still-link:hover:not(:disabled) { background: none; color: var(--color-text); text-decoration-color: var(--color-accent); }
 .slot { padding: 0; min-height: 0; border: none; border-radius: 2px; background: none; filter: drop-shadow(0 3px 3px rgb(0 0 0 / .35)); }
 .slot:hover:not(:disabled) { background: none; }
 .slot:has(.is-empty) { filter: none; }

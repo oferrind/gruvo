@@ -743,23 +743,6 @@ function renderBook() {
   const b = SD.book(profile.stamps);
   const earned = [...b.groups.flatMap(g => g.slots), ...b.legacy].filter(x => x.count);
   const genres = b.families.flatMap(f => f.slots), all = [...earned, ...genres];
-  const line = [`${b.catalogue} / ${SD.CATALOGUE.length} scenes`, b.atlasTotal ? `${b.atlas} / ${b.atlasTotal.toLocaleString()} genres` : '', b.custom ? `${b.custom} custom` : ''].filter(Boolean).join(' · ');
-  $('#book-line').replaceChildren(all.length ? line : 'No stamps yet',
-    el('span', { className: 'decade-strip', ariaLabel: `Decades stamped: ${b.decades.map(SD.decadeName).join(', ') || 'none yet'}` },
-      ...SD.DECADES.slice(0, 7).map(d => el('span', { className: b.decades.includes(d) ? 'on' : '', ariaHidden: 'true', textContent: SD.decadeName(d) }))));
-  // Only earned stamps are drawn; the rest of a continent is one muted line of names, each opens that stamp.
-  const group = (title, quiet, slots) => {
-    const got = slots.filter(x => x.count), left = slots.filter(x => !x.count);
-    return el('section', { className: 'book-group' }, el('h3', {}, title, quiet ? el('span', { className: 'quiet', textContent: quiet }) : null),
-      got.length ? el('ul', { className: 'book-slots' }, ...got.map(slotEl)) : null,
-      left.length ? el('p', { className: 'still' }, 'Still to find: ', ...left.flatMap(({ stamp: s }, i) =>
-        [i ? ', ' : '', el('button', { type: 'button', className: 'still-link', textContent: s.label, onclick: () => openStamp(s) })])) : null);
-  };
-  $('#book').replaceChildren(...[b.legacy.length ? group('Passport (legacy)', 'place and decade only', b.legacy) : null,
-    ...b.groups.map(g => group(g.continent, '', g.slots)),
-    b.atlasTotal ? el('section', { className: 'book-group' }, el('h3', {}, 'Genres', el('span', { className: 'quiet', textContent: `${b.atlas} / ${b.atlasTotal.toLocaleString()}` })),
-      ...(b.families.some(f => f.slots.length) ? b.families.filter(f => f.slots.length).sort((x, y) => y.earned - x.earned).map(f => el('div', { className: 'book-family' }, el('h4', {}, SD.FAMILIES[f.family], el('span', { className: 'quiet', textContent: ` ${f.earned} / ${f.total}` })),
-        el('ul', { className: 'book-slots' }, ...f.slots.map(slotEl)))) : [el('p', { className: 'still', textContent: 'Love a song in any genre and its stamp lands here, grouped by family.' })])) : null].filter(Boolean));
   $('#saved-stamp-count').textContent = all.length;
   $('#saved-stamps').replaceChildren(...(all.length ? all.map(slotEl) : [el('li', { className: 'muted', textContent: 'Love a song in Genre Stamps and its scene gets stamped here.' })]));
 }
