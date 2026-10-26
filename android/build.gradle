@@ -22,6 +22,8 @@ allprojects {
         google()
         mavenCentral()
     }
+    // Build output lives outside the project: the project folder syncs to OneDrive, which locks files mid-build.
+    layout.buildDirectory.set(new File(System.getenv("LOCALAPPDATA") ?: System.getProperty("java.io.tmpdir"), "gruvo-build/${project.name}"))
 }
 
 task clean(type: Delete) {
