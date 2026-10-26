@@ -367,16 +367,24 @@ function closeIntro() {
   $('#intro').hidden = true;
   try { localStorage.setItem('introSeen', '1'); } catch {}
 }
-$('#intro-start').onclick = () => {
+const startBlind = () => {
   showTab('blind');
   if (mystery && current !== mystery) playMystery();
   $('#mystery-play').focus();
 };
-$$('#intro [data-goto]').forEach(b => { b.onclick = () => showTab(b.dataset.goto); });
+$('#intro-start').onclick = startBlind;
+$$('#intro [data-goto]').forEach(b => { b.onclick = () => (b.dataset.goto === 'blind' ? startBlind() : showTab(b.dataset.goto)); });
 
 // ---------- A. Blind Taste Test ----------
 const queue = [], tonight = [];
-let mystery = null, rated = false, fails = 0, filling = false, trailing = false;
+let mystery = null, rated = false, fails = 0, filling = false, trailing = false, shownN = 0, tried = 0, side = 0;
+// While no mystery is ready: say what is happening (records looked at, candidates being listened to), not a static line.
+function finding() {
+  if (mystery) return;
+  const n = queue.length, which = shownN ? 'next' : 'first';
+  $('#mystery-title').textContent = n ? `Listening to ${n} candidate${n > 1 ? 's' : ''}…`
+    : tried ? `Finding your ${which} mystery… ${tried} record${tried > 1 ? 's' : ''} looked at` : `Finding your ${which} mystery…`;
+}
 
 // Sound Fingerprint: once 3 tracks are rated, keep ~6 candidates, listen to each, play the one the taste model likes best.
 const warm = () => profile.ratings.length >= 3;
@@ -432,7 +440,8 @@ const TAG_WAIT = 8000; // a busy MusicBrainz queue must not stall the Blind Test
 function tagScore(c) {
   const fresh = !c.tagP;
   c.tagP ??= (async () => {
-    const theirs = await Promise.race([call('artistTags', c.artist), new Promise(r => setTimeout(r, TAG_WAIT))]);
+    // No loved artists: nothing to compare tags with, so don't spend a MusicBrainz lookup (or the TAG_WAIT) on it.
+    const theirs = profile.likes.length ? await Promise.race([call('artistTags', c.artist), new Promise(r => setTimeout(r, TAG_WAIT))]) : null;
     const mine = lovedTags();
     c.tagSim = theirs && Object.keys(mine).length ? Features.tagCos(theirs, mine) : null;
     return c;
@@ -457,6 +466,10 @@ function nextFromQueue() {
   const drop = queue.filter(c => c.vec && known(c) && !fit(c));
   misfits += drop.length;
   const ready = queue.filter(c => c.vec && known(c) && fit(c));
+  if (!ready.length && !shownN) { // the session's first mystery: play the first listened-to preview, don't wait on tag lookups
+    const quick = queue.find(c => c.vec);
+    if (quick) { queue.splice(queue.indexOf(quick), 1); return quick; }
+  }
   if (!ready.length) { queue.splice(0, queue.length, ...queue.filter(c => !drop.includes(c) && c.vec !== null)); return null; } // wait for more fingerprints
   const [best, ...rest] = ready.sort((x, y) => Features.blend(y.sc, seen) - Features.blend(x.sc, seen));
   misfits = 0;
@@ -508,6 +521,7 @@ function accept(c) {
   if (warm()) tagScore(c);
   fingerprint(c).then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // warm: a candidate can only play once it has been listened to
   if (!mystery) showMystery();
+  finding();
   return true;
 }
 
@@ -526,7 +540,12 @@ async function fill() {
       if (!trailing) { trailing = true; ask().then(c => { trailing = false; if (queue.length < 6) accept(c); }); }
       continue;
     }
-    if (accept(await ask())) fails = 0;
+    // Nothing to play at all (first launch, cold cache): two more searches run on the side and the first to land plays. One slow
+    // MusicBrainz search no longer holds up the first mystery; net.js paces each request, so this stays polite.
+    if (!mystery && !queue.length) while (side < 2) { side++; ask().then(c => { side--; tried++; if (!accept(c)) finding(); }); }
+    const cc = await ask();
+    tried++;
+    if (accept(cc)) fails = 0;
     else if (++fails >= 5) {
       if (!mystery) {
         $('#blind-error').hidden = false;
@@ -534,7 +553,7 @@ async function fill() {
         $('#mystery').setAttribute('aria-busy', false);
       }
       break;
-    }
+    } else finding();
   }
   filling = false;
 }
@@ -562,11 +581,12 @@ function showMystery() {
   $$('#deck .sleeve, #deck .verdict').forEach(e => e.remove());
   $('#deck').style.setProperty('--p', 0);
   if (!mystery) {
-    $('#mystery-title').textContent = 'Finding the next mystery…';
+    tried = 0; finding();
     $('#mystery').setAttribute('aria-busy', true);
     $('#mystery-play').disabled = true; setRateEnabled(false);
     fill(); return;
   }
+  shownN++;
   $('#mystery').setAttribute('aria-busy', false);
   $('#mystery-title').textContent = 'Mystery track';
   $('#mystery-play').disabled = false; setRateEnabled(true);
@@ -597,10 +617,10 @@ function rate(kind) {
   $('#deck').append(el('span', { className: 'verdict', textContent: `You said ${said}`, ariaHidden: 'true' }));
   $('#deck').dataset.verdict = kind;
   const [meta, about] = revealDetails(m);
+  $('#mystery-title').textContent = m.title; // the song's name takes the "Mystery track" line; the artist leads the card below
   $('#reveal').replaceChildren(el('div', { className: 'reveal-card' },
-    el('p', { className: 'sr-only', textContent: `You said ${said}. It was` }),
+    el('p', { className: 'sr-only', textContent: `You said ${said}. It was ${m.title}, by` }),
     el('h3', { className: 'reveal-artist', textContent: m.artist }),
-    norm(m.title) === norm(m.artist) ? null : el('p', { className: 'reveal-title', textContent: m.title }), // self-titled: say it once
     meta, m.back ? el('p', { className: 'reason', textContent: `Back again: a deep cut from ${m.back.artist}${m.back.album ? `, off ${m.back.album}${m.back.year ? ` (${m.back.year})` : ''}` : ''}.` }) : null, reason, about,
     el('div', { className: 'reveal-actions' }, loveButton(m, extra), fullSong(m))));
   $('#mystery').classList.add('is-revealed');
@@ -608,7 +628,8 @@ function rate(kind) {
   renderTonight();
   if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); renderNpMeta(); remember(m); }
   $('#mystery-next').hidden = false; $('#enter-hint').hidden = false;
-  $('#mystery-next').focus();
+  $('#mystery-next').focus({ preventScroll: true }); // focusing the far button scrolled the title under the sticky header
+  if (PHONE.matches) $('#mystery').scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' }); // sleeve, name and verdict in view (scroll-margin clears the header)
 }
 
 const VERDICT = { skip: 'Skip', ok: 'OK', love: 'Love' };
@@ -656,7 +677,7 @@ $('#mystery-play').onclick = () => {
   if (current !== mystery) return rated ? play(mystery, { from: { tab: 'blind', label: tabName('blind') } }) : playMystery(); // resume after playing something else
   togglePlay();
 };
-$('#blind-retry').onclick = () => { fails = 0; $('#mystery-title').textContent = 'Finding your first mystery…'; fill(); };
+$('#blind-retry').onclick = () => { fails = 0; tried = 0; finding(); fill(); };
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey || e.target.matches?.('input, select, textarea')) return;
   // Space on a focused button presses it; elsewhere it is play/pause.
@@ -708,30 +729,32 @@ function buildStamps(regions) {
   $('#genre-tier').append(...Object.entries(SD.TIERS).map(([t, n]) => opt(t, n)));
   $('#genre-total').textContent = SD.ATLAS.size ? `(${SD.ATLAS.size.toLocaleString()})` : '';
   $('#br-genres').hidden = !SD.ATLAS.size;
-  setBrowse(SD.ATLAS.size && ls('stampBrowse') === 'genres' ? 'genres' : 'scenes');
-  setMode(ls('stampMode') === 'browse' ? 'browse' : 'roll');
+  const m = ls('stampMode');
+  setMode(m === 'browse' ? ls('stampBrowse') : m); // 'browse' + stampBrowse: the two switches before they became one
 }
-// Roll (Surprise me + Pick one) and Browse (the Scenes / Genres catalogue) are two tabs of the left column.
+// One switch for the left column: Roll (Surprise me + Pick one), or the catalogue by Scenes or by Genres.
 function setMode(mode) {
-  $('#roll-pane').hidden = mode !== 'roll'; $('#browse-pane').hidden = mode !== 'browse';
-  $('#mode-roll').setAttribute('aria-pressed', String(mode === 'roll')); $('#mode-browse').setAttribute('aria-pressed', String(mode === 'browse'));
+  if (mode === 'genres' && !SD.ATLAS.size) mode = 'scenes';
+  if (mode !== 'scenes' && mode !== 'genres') mode = 'roll';
+  $('#stamps').dataset.mode = mode;
+  $('#roll-pane').hidden = mode !== 'roll'; $('#browse-pane').hidden = mode === 'roll';
+  $('#scenes-view').hidden = mode !== 'scenes'; $('#genres-view').hidden = mode !== 'genres';
+  for (const [id, m] of [['mode-roll', 'roll'], ['br-scenes', 'scenes'], ['br-genres', 'genres']]) $(`#${id}`).setAttribute('aria-pressed', String(mode === m));
   ls('stampMode', mode);
+  if (mode === 'genres') renderGenreList();
+  renderStampHead(); // its empty line speaks to the chosen mode
 }
 $('#mode-roll').onclick = () => setMode('roll');
-$('#mode-browse').onclick = () => setMode('browse');
+$('#br-scenes').onclick = () => setMode('scenes');
+$('#br-genres').onclick = () => setMode('genres');
+// Phone: the songs sit under the Roll and the sentence; bring them up once a pick is made (after the reel lands, for a Roll).
+const toResults = (delay = 0) => { if (PHONE.matches) setTimeout(() => $('#stamp-head').scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' }), delay); };
+const pick = s => { openStamp(s); toResults(); };
 
 // ---- Genres view: search + family/tier filters over the atlas (docs/12) ----
 let gShown = 60, gDig = null, gTimer = 0;
-function setBrowse(mode) {
-  $('#scenes-view').hidden = mode !== 'scenes'; $('#genres-view').hidden = mode !== 'genres';
-  $('#br-scenes').setAttribute('aria-pressed', String(mode === 'scenes')); $('#br-genres').setAttribute('aria-pressed', String(mode === 'genres'));
-  ls('stampBrowse', mode);
-  if (mode === 'genres') renderGenreList();
-}
-$('#br-scenes').onclick = () => setBrowse('scenes');
-$('#br-genres').onclick = () => setBrowse('genres');
 function genreItem(s) {
-  const b = el('button', { type: 'button', className: `cat-item ink-g`, onclick: () => openStamp(s) },
+  const b = el('button', { type: 'button', className: `cat-item ink-g`, onclick: () => pick(s) },
     el('span', { className: 'cat-label', textContent: s.label }),
     el('span', { className: 'cat-blurb', textContent: `${SD.FAMILIES[s.family].toLowerCase()} · ${SD.TIERS[s.tier]}` }));
   if (stOpen && stOpen.id === s.id) b.setAttribute('aria-current', 'true');
@@ -790,7 +813,7 @@ $('#builder').addEventListener('submit', e => {
   const ALIAS = { psych: 'psychedelic-rock', prog: 'progressive-rock', indie: 'indie-rock', chanson: 'chanson-francaise' }; // builder genre -> atlas slug
   const s = SD.makeStamp(`${d}-${cc}-${d && cc ? g : ALIAS[g] || g}`);
   $('#builder-note').textContent = s ? '' : `${SD.GENRES[g][0]} needs a decade and a place.`;
-  if (s) openStamp(s);
+  if (s) pick(s);
 });
 $('#cat-filter').addEventListener('change', () => renderCatalogue());
 
@@ -798,7 +821,7 @@ let catAll = false; // the catalogue shows 8 rows until "Show all"
 function renderCatalogue() {
   const f = $('#cat-filter').value, list = SD.CATALOGUE.filter(s => !f || SD.continentOf(s.cc) === f);
   $('#catalogue').replaceChildren(...(catAll ? list : list.slice(0, 8)).map(s => {
-    const b = el('button', { type: 'button', className: `cat-item ink-${INK[SD.continentOf(s.cc)]}`, onclick: () => openStamp(s) },
+    const b = el('button', { type: 'button', className: `cat-item ink-${INK[SD.continentOf(s.cc)]}`, onclick: () => pick(s) },
       el('span', { className: 'cat-label', textContent: s.label }),
       el('span', { className: 'cat-blurb', textContent: s.blurb }));
     if (stOpen && stOpen.id === s.id) b.setAttribute('aria-current', 'true');
@@ -812,7 +835,8 @@ $('#cat-more').onclick = () => { catAll = true; renderCatalogue(); $$('#catalogu
 function renderStampHead() {
   const s = stOpen, head = $('#stamp-head');
   $('#stamp-export-box').hidden = !stSongs.length;
-  if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: 'Roll, or pick a genre. Add a decade or a place if you like.' }));
+  if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: { scenes: 'Pick a scene: a place, a decade and its sound. Ten songs from it.',
+    genres: 'Search or pick a genre, from the well-known to the deeply obscure.' }[$('#stamps').dataset.mode] || 'Roll, or pick a genre. Add a decade or a place if you like.' }));
   head.replaceChildren(el('div', { className: 'stamp-info' },
     el('h2', { textContent: s.label }), s.blurb ? el('p', { className: 'stamp-blurb', textContent: s.blurb }) : null,
     s.atlas && SD.nearby(s.genre).length ? el('div', { className: 'chips nearby' }, el('span', { className: 'nearby-lead', textContent: 'Nearby' }),
@@ -824,18 +848,14 @@ function renderStamps() {
 }
 let stMenu = 0;
 const PHONE = matchMedia('(max-width: 840px)');
-PHONE.addEventListener('change', () => $$('#stamp-songs .track').forEach(r => r.fit?.()));
+PHONE.addEventListener('change', () => $$('#stamp-songs .track, #tree-canvas .node-card').forEach(r => r.fit?.()));
 function songRow(t) {
   const row = trackRow(t, { extra: extraOf(t), full: true });
   if (t.year) row.querySelector('.artist').textContent = `${t.artist}, ${t.year}`;
   // At rest: ▶, Skip / OK / Love (as in the Blind Test and the Tree) and ⋯ for About and Full song, as on the Tree cards.
   const group = rateGroup(t, row.querySelector('.love')), more = moreMenu(row, `stamp-menu-${++stMenu}`, `${t.artist} – ${t.title}`);
   row.append(el('div', { className: 'node-actions' }, group, more));
-  // Phone: Skip / OK live in the ⋯ sheet, so the row keeps only ▶, ♥ and ⋯.
-  const skipOk = [...group.querySelectorAll('[data-rate=skip], [data-rate=ok]')], slot = el('div', { className: 'menu-rate', role: 'group', ariaLabel: 'Rate this song' });
-  more.querySelector('.node-menu').prepend(slot);
-  row.fit = () => (PHONE.matches ? slot.append(...skipOk) : group.prepend(...skipOk));
-  row.fit();
+  fitPhone(row, group, more);
   return row;
 }
 api.onStampRow((run, row) => {
@@ -910,6 +930,7 @@ function doRoll() {
   const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
   nextRoll = null;
   land(s, 2);
+  toResults(reduced() ? 0 : 1150);
 }
 // Lands a rolled stamp; one that comes back thin is re-rolled (up to `left` times) before the suggestion screen shows.
 function land(s, left) {
@@ -1054,7 +1075,12 @@ async function growTree(root) {
   if (trNodes.length > 1) trState('done', none.length ? `Nothing found for: ${none.join(', ')}.` : '');
   else trState('empty', `No family found${none.length ? ` for: ${none.join(', ')}` : ' yet'}. Try another connection, or More.`, { actions: [btn('Try More', () => trNodes[0] && moreTree(trNodes[0]))] });
 }
-api.onTreeNode((run, n) => { if (run === trRun) { trNodes[n.id] = n; renderTree({ nodes: trNodes }); } });
+api.onTreeNode((run, n) => {
+  if (run !== trRun) return;
+  trNodes[n.id] = n; renderTree({ nodes: trNodes });
+  const k = trNodes.filter(Boolean).length - 1; // a live count instead of a "Searching…" that sits over a tree already growing; cleared when the grow ends
+  if (trBusy && k > 0) trState('loading', `Growing… ${k} song${k > 1 ? 's' : ''} so far`);
+});
 
 // Render hook for the Family Tree. model.nodes: {id, parentId, depth, edgeType, label, track}; this adds `step` (a stable label: 1, 1.2, 1.2.1) and `spine`.
 // Each node is built once (open About panels survive re-renders). Children sit in one .branch per edgeType under their
@@ -1117,25 +1143,47 @@ function overflowMenu(id, name, ...items) {
   wrap.addEventListener('focusout', e => { if (!wrap.contains(e.relatedTarget)) set(false); });
   wrap.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { e.stopPropagation(); set(false); b.focus(); } });
   menu.addEventListener('click', e => { if (e.target === menu && getComputedStyle(menu).position === 'fixed') set(false); }); // phone sheet: a tap on the scrim closes it
+  menu.addEventListener('click', e => { if (e.target.closest('button.ext, button.more')) set(false); }); // a link or More is done with the menu
   set(false);
   return wrap;
 }
-// A full trackRow's About and Full song, moved behind ⋯ (Tree cards and Stamp rows).
+// A full trackRow's About and Full song, moved behind ⋯ (Tree cards, Stamp rows, Saved): the song's name on top, then one
+// plain list of actions, each link a single tap ("Full song on YouTube").
 function moreMenu(row, id, name) {
-  return overflowMenu(id, name, row.querySelector('.about-more'), el('details', { className: 'full-more' }, el('summary', { textContent: 'Full song' }), row.querySelector('.full-song')));
+  const full = row.querySelector('.full-song');
+  full.querySelector('.full-label')?.remove();
+  for (const b of full.querySelectorAll('button.ext')) if (!/^Open /.test(b.textContent)) b.textContent = `Full song on ${b.textContent}`;
+  const wrap = overflowMenu(id, name, el('p', { className: 'menu-title', textContent: name }), row.querySelector('.about-more'), ...full.children);
+  full.remove();
+  return wrap;
+}
+// Phone: Skip / OK (and any `extra`, e.g. the Tree's + More) move into the ⋯ sheet, so the row keeps only ▶, ♥ and ⋯.
+function fitPhone(owner, group, wrap, ...extra) {
+  const skipOk = group ? [...group.querySelectorAll('[data-rate=skip], [data-rate=ok]')] : [];
+  const slot = el('div', { className: 'menu-rate', role: 'group', ariaLabel: 'Rate this song' }), menu = wrap.querySelector('.node-menu');
+  menu.querySelector('.menu-title').after(slot);
+  owner.fit = () => {
+    if (PHONE.matches) { slot.append(...skipOk); menu.append(...extra); } else { group?.prepend(...skipOk); wrap.after(...extra); }
+    for (const e of extra) { e.dataset.short ??= e.textContent; e.textContent = PHONE.matches && e.dataset.long || e.dataset.short; } // a sheet row can say it in full
+  };
+  owner.fit();
 }
 document.addEventListener('pointerdown', e => $$('.node-menu:not([hidden])').forEach(m => { if (!m.parentElement.contains(e.target)) m.parentElement.close(); }));
 
 function placeNode(n, canvas) {
-  const row = trackRow(n.track, { reason: n.label || 'Your song', full: true, tag: 'div' });
+  // The branch heading already names the relation ("Same scene"): the card keeps only what follows it.
+  const lead = `${EDGE_NAMES[n.edgeType]}: `, label = n.label && n.label.startsWith(lead) ? n.label.slice(lead.length) : n.label;
+  const row = trackRow(n.track, { reason: label || 'Your song', full: true, tag: 'div' });
   if (EDGE_ICONS[n.edgeType]) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
   const more = btn('+ More', () => moreTree(n), 'more');
   more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
+  more.dataset.long = '+ More from this branch';
   // Secondary actions sit in one quiet row under the song: Skip / OK / Love (Love alone on your song), ⋯ (About, Full song), More.
-  const love = row.querySelector('.love');
-  const actions = el('div', { className: 'node-actions' }, n.parentId == null ? love : rateGroup(n.track, love),
-    moreMenu(row, `node-menu-${n.id}`, `${n.track.artist} – ${n.track.title}`), more);
+  const love = row.querySelector('.love'), group = n.parentId == null ? null : rateGroup(n.track, love);
+  const menu = moreMenu(row, `node-menu-${n.id}`, `${n.track.artist} – ${n.track.title}`);
+  const actions = el('div', { className: 'node-actions' }, group || love, menu);
   const card = el('div', { className: 'node-card' }, el('span', { className: 'step' }), row, actions);
+  fitPhone(card, group, menu, more);
   love.sync();
   const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node grow' }, card, el('div', { className: 'branches' }));
   Object.assign(node.dataset, { nodeId: n.id, parentId: n.parentId ?? '', edge: n.edgeType, depth: n.depth });
@@ -1155,6 +1203,8 @@ function placeNode(n, canvas) {
     el('h3', { className: 'branch-name' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol')));
   branch.dataset.edge = n.edgeType;
   branch.querySelector('ol').append(node);
+  if (branch.dataset.reason === label) row.querySelector('.reason').classList.add('same'); // the same relation as the song above: say it once
+  else branch.dataset.reason = label;
 }
 
 // Connectors: one SVG under the nodes (decorative, aria-hidden). The spine is a winding trail through the stops;
@@ -1253,9 +1303,12 @@ function renderSaved() {
   fillCrate($('#saved-recent'), $('#saved-recent-count'));
   $('#saved-like-count').textContent = profile.likes.length;
   const list = $('#saved-list');
-  list.replaceChildren(...profile.likes.slice().reverse().map(t => trackRow(t, {
-    extra: extraOf(t), full: true, // re-loving keeps the stamp
-    reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `loved ${new Date(t.ts).toLocaleDateString()}`].filter(Boolean).join(' · ') })));
+  list.replaceChildren(...profile.likes.slice().reverse().map((t, i) => {
+    const row = trackRow(t, { extra: extraOf(t), full: true, // re-loving keeps the stamp
+      reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `loved ${new Date(t.ts).toLocaleDateString()}`].filter(Boolean).join(' · ') });
+    row.append(el('div', { className: 'node-actions' }, moreMenu(row, `saved-menu-${i}`, `${t.artist} – ${t.title}`))); // About and Full song behind ⋯, as on the Tree
+    return row;
+  }));
   if (!profile.likes.length) list.append(el('li', { className: 'state empty' },
     el('p', { textContent: 'Nothing saved yet. Press Love on any track to keep it here.' }),
     el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Crate Dig', () => showTab('stamps')))));
@@ -1545,8 +1598,11 @@ $('#tree-export').onclick = e => {
   try { const t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') root.dataset.theme = t; } catch {}
   try { const s = localStorage.getItem('scheme'); if (Object.hasOwn(SCHEMES, s)) root.dataset.scheme = s; } catch {}
   const dark = () => (root.dataset.theme || (os.matches ? 'light' : 'dark')) === 'dark';
-  const sync = () => tbtn.setAttribute('aria-pressed', String(dark()));
-  tbtn.onclick = () => { root.dataset.theme = dark() ? 'light' : 'dark'; try { localStorage.setItem('theme', root.dataset.theme); } catch {} sync(); };
+  const picks = $$('[data-theme-pick]'); // Preferences: Light | Dark (on a phone the header toggle is hidden and this is the control)
+  const sync = () => { tbtn.setAttribute('aria-pressed', String(dark())); picks.forEach(b => b.setAttribute('aria-pressed', String((b.dataset.themePick === 'dark') === dark()))); };
+  const setTheme = t => { root.dataset.theme = t; try { localStorage.setItem('theme', t); } catch {} sync(); };
+  tbtn.onclick = () => setTheme(dark() ? 'light' : 'dark');
+  picks.forEach(b => { b.onclick = () => setTheme(b.dataset.themePick); });
   os.addEventListener('change', sync);
   sync();
 }
