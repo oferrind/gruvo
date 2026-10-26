@@ -14,7 +14,7 @@
     <nav id="tabs" role="tablist" aria-label="Modes">
       <button role="tab" id="tab-home" data-tab="home" aria-controls="home" aria-selected="true">Home</button>
       <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="false" tabindex="-1">Blind Test</button>
-      <button role="tab" id="tab-stamps" data-tab="stamps" aria-controls="stamps" aria-selected="false" tabindex="-1">Stamps</button>
+      <button role="tab" id="tab-stamps" data-tab="stamps" aria-controls="stamps" aria-selected="false" tabindex="-1">Crate Dig</button>
       <button role="tab" id="tab-tree" data-tab="tree" aria-controls="tree" aria-selected="false" tabindex="-1">Family Tree</button>
       <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
       <button role="tab" id="tab-prefs" data-tab="prefs" aria-controls="prefs" aria-selected="false" tabindex="-1">Preferences</button>
@@ -29,12 +29,12 @@
       <p class="muted">Three ways in. Each one starts from somewhere different.</p>
       <ol class="modes">
         <li><h2>Blind Test</h2><p>Hear a track with no name, no cover, no hype. Rate it first, then see who it was.</p><p class="why">Why: you judge the sound, not the name.</p></li>
-        <li><h2>Genre Stamps</h2><p>A genre, maybe with a decade or a place: ten songs from it. Love one to stamp it.</p><p class="why">Why: no algorithm, just a scene you have never been to.</p></li>
+        <li><h2>Crate Dig</h2><p>Roll or pick a genre, maybe with a decade or a place, and hear ten songs from it.</p><p class="why">Why: no algorithm, just a scene you have never been to.</p></li>
         <li><h2>Family Tree</h2><p>Start from a song you saved. Walk through its scene, step by step.</p><p class="why">Why: every step says how it is related.</p></li>
       </ol>
       <div class="row">
         <button id="intro-start" type="button" class="primary">Start the Blind Test</button>
-        <button type="button" data-goto="stamps">Open Genre Stamps</button>
+        <button type="button" data-goto="stamps">Open Crate Dig</button>
         <button type="button" data-goto="tree">Open Family Tree</button>
       </div>
     </section>
@@ -104,12 +104,12 @@
       </div>
     </section>
 
-    <!-- B. Genre Stamps -->
+    <!-- B. Crate Dig (code name: stamps) -->
     <section id="stamps" class="panel" role="tabpanel" aria-labelledby="tab-stamps" hidden>
       <div class="panel-head">
-        <h1>Genre Stamps</h1>
-        <p class="muted">A genre, a place, a decade, or all three. Love a song and it's stamped.</p>
-        <div class="chips stamp-mode" role="group" aria-label="Find a stamp">
+        <h1>Crate Dig</h1>
+        <p class="muted">A genre, a place, a decade, or all three. Ten songs from it.</p>
+        <div class="chips stamp-mode" role="group" aria-label="Find music">
           <button id="mode-roll" type="button" class="chip" aria-pressed="true">Roll</button>
           <button id="mode-browse" type="button" class="chip" aria-pressed="false">Browse</button>
         </div>
@@ -124,13 +124,13 @@
             </div>
             <p id="roll-said" class="sr-only" aria-live="polite"></p>
             <div class="roll-row">
-              <span class="roll-go"><button id="roll" type="button" class="primary roll-btn" aria-keyshortcuts="R" title="Roll a stamp (R)">Roll a stamp</button><kbd aria-hidden="true">R</kbd></span>
-              <label class="adventurous" title="Obscure genres can roll too, and after two rolls on continents you already hold, the next lands somewhere new"><input id="adventurous" type="checkbox"> Adventurous</label>
+              <span class="roll-go"><button id="roll" type="button" class="primary roll-btn" aria-keyshortcuts="R" title="Roll (R)">Roll</button><kbd aria-hidden="true">R</kbd></span>
+              <label class="adventurous" title="Obscure genres can roll too, and after two rolls in places you know, the next lands somewhere new"><input id="adventurous" type="checkbox"> Adventurous</label>
             </div>
           </section>
           <section class="stamp-tool" aria-labelledby="pick-head">
             <h2 id="pick-head" class="tool-head">Pick one</h2>
-            <form id="builder" class="builder" aria-label="Build your own stamp">
+            <form id="builder" class="builder" aria-label="Pick a genre">
               <span class="builder-lead">Play me</span>
               <select id="b-decade" aria-label="Decade"></select>
               <select id="b-place" aria-label="Place"></select>
@@ -147,7 +147,7 @@
             <div id="scenes-view">
               <div class="catalogue-head">
                 <h2 id="cat-title">Catalogue</h2>
-                <select id="cat-filter" aria-label="Show stamps from"><option value="">Everywhere</option></select>
+                <select id="cat-filter" aria-label="Show scenes from"><option value="">Everywhere</option></select>
               </div>
               <ul id="catalogue" class="cat-list" aria-labelledby="cat-title"></ul>
               <button id="cat-more" type="button" class="link cat-more" hidden></button>
@@ -218,8 +218,6 @@
         <p class="muted">Everything you loved, newest first.</p>
         <div class="sp-export"><button id="saved-export" type="button">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
-      <h2>Stamps <span id="saved-stamp-count" class="count">0</span></h2>
-      <ul id="saved-stamps" class="book-slots"></ul>
       <h2>Loved tracks <span id="saved-like-count" class="count">0</span></h2>
       <ul id="saved-list" class="tracks"></ul>
     </section>

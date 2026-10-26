@@ -184,8 +184,8 @@ function like(t, extra = {}) {
   const { source, id, title, artist, artistDzId, albumId, cover, isrc } = t;
   const entry = { source, id, title, artist, artistDzId, albumId, cover, isrc, ...extra, ts: Date.now() };
   profile.likes.push(entry);
-  entry.stamp = extra.stamp || null; // only a Genre Stamps song earns a stamp (Blind Test trips keep country + decade, no genre)
-  if (entry.stamp) { const n = profile.stamps[entry.stamp] = (profile.stamps[entry.stamp] || 0) + 1; if (n === 1 || n === 3) stampEarned(entry.stamp, n); }
+  entry.stamp = extra.stamp || null; // a Crate Dig song keeps its scene; the count steers rolls toward places and genres you have not loved yet
+  if (entry.stamp) { const n = profile.stamps[entry.stamp] = (profile.stamps[entry.stamp] || 0) + 1; }
   addHeard(t);
   save();
   afterLikeChange();
@@ -607,7 +607,7 @@ $('#adventure').addEventListener('input', e => { profile.adventure = Number(e.ta
 $('#adventure').addEventListener('change', save);
 
 // ---------- B. Genre Stamps (docs/06) ----------
-let SD, stRun = 0, stOpen = null, stSongs = [], nextRoll = null, thumpId = null;
+let SD, stRun = 0, stOpen = null, stSongs = [], nextRoll = null;
 const stState = (kind, msg, opts) => setState($('#stamp-state'), kind, msg, opts);
 // Per-viewer conveniences only (last rolls, combos that came back thin); losing them is harmless. Rarity lives in the profile.
 const ls = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch { return null; } };
@@ -617,32 +617,8 @@ const INK = { Africa: 1, Asia: 2, Europe: 3, 'North America': 4, 'Latin America 
 const stampOf = e => ('stamp' in e ? e.stamp : e.country && e.decade ? `${e.decade}-${e.country}-` : null);
 // Re-loving keeps the stamp. A saved like with no stamp field is an old Passport like: it re-earns its legacy stamp, as unloving took it away.
 const extraOf = t => (t.country || t.stamp ? { country: t.country, decade: t.decade, genre: t.genre, stamp: 'stamp' in t ? t.stamp : t.ts ? stampOf(t) : null } : undefined);
-const scene = s => (s.legacy ? 'Passport' : s.atlas ? SD.ATLAS.get(s.genre).label : s.label.replace(/^\S+\s/, '').replace(new RegExp(`^${SD.DEMONYM[s.cc]} `), ''));
-const tilt = id => ([...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 997, 7) % 7) - 3; // same stamp, same angle, every render
-const rarityOf = id => profile.rarity[id];
-
-// genre stamps share one ink: the six inks name continents
-const parentLabel = s => (SD.ATLAS.get(s.parent) || {}).label || SD.TIERS[s.tier];
-function stampFace(s, count = 0) {
-  const t = SD.tier(count), r = rarityOf(s.id), g = s.atlas && !s.cc; // no place: family ink, family on top when there is no decade, parent below
-  const e = el('span', { className: `stamp ink-${s.legacy ? 0 : g ? 'g' : INK[SD.continentOf(s.cc)]} ${s.atlas && !s.decade ? 'genre ' : ''}${t ? `is-${t}` : 'is-empty'}${r ? ` r-${r.toLowerCase()}` : ''}`, ariaHidden: 'true' },
-    el('span', { className: 'stamp-face' }, el('span', { className: 'stamp-decade', textContent: s.decade ? SD.decadeName(s.decade) : SD.FAMILIES[s.family] }),
-      el('span', { className: 'stamp-genre' + (scene(s).length > 13 ? ' long' : ''), textContent: scene(s) }), el('span', { className: 'stamp-place', textContent: s.cc ? countryNames[s.cc] || s.cc : parentLabel(s) })));
-  e.style.setProperty('--tilt', `${t ? tilt(s.id) : 0}deg`);
-  return e;
-}
-const earnedBy = s => profile.likes.find(l => stampOf(l) === s.id);
-function slotEl({ stamp: s, count }) {
-  const r = rarityOf(s.id), by = count && earnedBy(s);
-  const what = count ? `${count >= 3 ? 'gold' : 'stamped'}${r ? `, ${r.toLowerCase()}` : ''}${by ? `, earned with ${by.artist}, ${by.title}` : ''}` : 'not stamped yet';
-  return el('li', {}, el('button', { type: 'button', className: 'slot', title: s.label, ariaLabel: `${s.label}, ${what}. ${s.legacy ? 'Pick a genre for it' : 'Open'}`,
-    onclick: () => { showTab('stamps'); s.legacy ? prefillBuilder(s) : openStamp(s); } }, stampFace(s, count)));
-}
-
 function buildStamps(regions) {
   SD = StampData(regions, window.GENRE_DATA);
-  const old = ls('stampRarity'); // rarity used to live in localStorage: move it into the profile once
-  if (old && typeof old === 'object') { profile.rarity = { ...old, ...profile.rarity }; save(); try { localStorage.removeItem('stampRarity'); } catch {} }
   for (const list of Object.values(regions)) Object.assign(countryNames, list);
   const opt = (value, text) => el('option', { value, textContent: text });
   $('#b-decade').append(opt('', 'any decade'), ...SD.DECADES.map(d => opt(d, SD.decadeName(d))));
@@ -678,9 +654,8 @@ function setBrowse(mode) {
 $('#br-scenes').onclick = () => setBrowse('scenes');
 $('#br-genres').onclick = () => setBrowse('genres');
 function genreItem(s) {
-  const n = profile.stamps[s.id] || 0, held = n >= 3 ? 'Gold stamp' : 'Stamped';
   const b = el('button', { type: 'button', className: `cat-item ink-g`, onclick: () => openStamp(s) },
-    el('span', { className: 'cat-label', textContent: s.label }), n ? el('span', { className: `cat-held${n >= 3 ? ' is-gold' : ''}`, role: 'img', ariaLabel: held, title: held }) : null,
+    el('span', { className: 'cat-label', textContent: s.label }),
     el('span', { className: 'cat-blurb', textContent: `${SD.FAMILIES[s.family].toLowerCase()} · ${SD.TIERS[s.tier]}` }));
   if (stOpen && stOpen.id === s.id) b.setAttribute('aria-current', 'true');
   return el('li', {}, b);
@@ -711,7 +686,6 @@ function syncBuilder(s) {
   if (s.cc) $('#b-place').value = s.cc;
   if (Object.hasOwn(SD.GENRES, s.genre)) $('#b-genre').value = s.genre;
 }
-function prefillBuilder(s) { setMode('roll'); syncBuilder(s); $('#b-genre').focus(); toast(`Pick a genre for the ${s.label}`); }
 $('#builder').addEventListener('submit', e => {
   e.preventDefault();
   // A catalogue combo opens that entry; "any decade" / "anywhere" give a decade + genre, place + genre or bare genre stamp.
@@ -727,9 +701,8 @@ let catAll = false; // the catalogue shows 8 rows until "Show all"
 function renderCatalogue() {
   const f = $('#cat-filter').value, list = SD.CATALOGUE.filter(s => !f || SD.continentOf(s.cc) === f);
   $('#catalogue').replaceChildren(...(catAll ? list : list.slice(0, 8)).map(s => {
-    const n = profile.stamps[s.id] || 0, held = n >= 3 ? 'Gold stamp' : 'Stamped';
     const b = el('button', { type: 'button', className: `cat-item ink-${INK[SD.continentOf(s.cc)]}`, onclick: () => openStamp(s) },
-      el('span', { className: 'cat-label', textContent: s.label }), n ? el('span', { className: `cat-held${n >= 3 ? ' is-gold' : ''}`, role: 'img', ariaLabel: held, title: held }) : null,
+      el('span', { className: 'cat-label', textContent: s.label }),
       el('span', { className: 'cat-blurb', textContent: s.blurb }));
     if (stOpen && stOpen.id === s.id) b.setAttribute('aria-current', 'true');
     return el('li', {}, b);
@@ -739,41 +712,19 @@ function renderCatalogue() {
 }
 $('#cat-more').onclick = () => { catAll = true; renderCatalogue(); $$('#catalogue .cat-item')[8]?.focus(); };
 
-function renderBook() {
-  const b = SD.book(profile.stamps);
-  const earned = [...b.groups.flatMap(g => g.slots), ...b.legacy].filter(x => x.count);
-  const genres = b.families.flatMap(f => f.slots), all = [...earned, ...genres];
-  $('#saved-stamp-count').textContent = all.length;
-  $('#saved-stamps').replaceChildren(...(all.length ? all.map(slotEl) : [el('li', { className: 'muted', textContent: 'Love a song in Genre Stamps and its scene gets stamped here.' })]));
-}
-
 function renderStampHead() {
   const s = stOpen, head = $('#stamp-head');
   $('#stamp-export-box').hidden = !stSongs.length;
-  if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: 'Roll a stamp, or pick a genre. Add a decade or a place if you like.' }));
-  const n = profile.stamps[s.id] || 0, r = rarityOf(s.id), by = n && earnedBy(s);
-  const face = stampFace(s, n);
-  face.classList.add('big');
-  if (thumpId === s.id) { face.classList.add('thump'); thumpId = null; }
-  // Gold and rarity are drawn (foil, ink weight), never written; the plain words only reach the accessible name.
-  if (n) Object.assign(face, { role: 'img', ariaHidden: null, ariaLabel: `${n >= 3 ? 'Gold stamp' : 'Stamp'}${r ? `, ${r.toLowerCase()}` : ''}`, title: `${n >= 3 ? 'Gold' : 'Stamped'}${r ? `, ${r.toLowerCase()}` : ''}` });
-  head.replaceChildren(face, el('div', { className: 'stamp-info' },
+  if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: 'Roll, or pick a genre. Add a decade or a place if you like.' }));
+  head.replaceChildren(el('div', { className: 'stamp-info' },
     el('h2', { textContent: s.label }), s.blurb ? el('p', { className: 'stamp-blurb', textContent: s.blurb }) : null,
-    by ? el('p', { className: 'stamp-meta', textContent: `Stamped ${day(by.ts)} with ${by.artist}, “${by.title}”` }) : null,
     s.atlas && SD.nearby(s.genre).length ? el('div', { className: 'chips nearby' }, el('span', { className: 'nearby-lead', textContent: 'Nearby' }),
       ...SD.nearby(s.genre).map(x => btn(x.label, () => openStamp(x), 'chip'))) : null));
 }
 function renderStamps() {
   if (!SD) return;
-  renderBook(); renderCatalogue(); renderGenreList(); renderStampHead();
+  renderCatalogue(); renderGenreList(); renderStampHead();
 }
-function stampEarned(id, n) {
-  const s = SD.makeStamp(id);
-  if (!s) return;
-  thumpId = id;
-  toast(n >= 3 ? `Stamped in gold: ${s.label}` : `Stamped: ${s.label}`);
-}
-
 let stMenu = 0;
 function songRow(t) {
   const row = trackRow(t, { extra: extraOf(t), full: true });
@@ -838,7 +789,6 @@ async function openStamp(s, rerolls = 0) {
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
   if (!stSongs.length) return stState('empty', 'No songs came through for this one.', { actions: [btn('Try again', () => openStamp(s), 'primary')] }); // never a silent empty list
-  profile.rarity[s.id] = res.rarity; save();
   const doneMsg = n => (s.atlas ? `${n} songs tagged ${SD.ATLAS.get(s.genre).name}${s.decade ? `, first released in the ${SD.decadeName(s.decade)}` : ''}${s.cc ? `, by artists from ${countryNames[s.cc]}` : ''}.`
     : `${n} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
   stState('done', doneMsg(res.count));
@@ -895,7 +845,7 @@ function renderTreePicker() {
   $('#tree-root').replaceChildren(...trRoots.map((t, i) => el('option', { value: i, textContent: `${t.title} – ${t.artist}` })));
   $('#tree-pick').hidden = !trRoots.length;
   renderGrowSettings();
-  if (!trRoots.length && !trNodes.length) trState('empty', 'Nothing saved yet. Search any song to grow its tree, or save songs in Blind Test or Genre Stamps.',
+  if (!trRoots.length && !trNodes.length) trState('empty', 'Nothing saved yet. Search any song to grow its tree, or save songs in Blind Test or Crate Dig.',
     { actions: [btn('Search a song', () => $('#tree-q').focus(), 'primary')] });
 }
 $('#tree-pick').addEventListener('submit', e => { e.preventDefault(); const t = trRoots[$('#tree-root').value]; if (t) growTree(t); });
@@ -1152,7 +1102,7 @@ function renderSaved() {
     reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `loved ${new Date(t.ts).toLocaleDateString()}`].filter(Boolean).join(' · ') })));
   if (!profile.likes.length) list.append(el('li', { className: 'state empty' },
     el('p', { textContent: 'Nothing saved yet. Press Love on any track to keep it here.' }),
-    el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Genre Stamps', () => showTab('stamps')))));
+    el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Crate Dig', () => showTab('stamps')))));
 }
 
 // ---------- Home ----------
@@ -1187,9 +1137,9 @@ function renderHome() {
 
   // Other ways in: a quiet row (the tabs are the ways in); the stamps tab is whatever the tab after Blind Test is called now.
   const stampTab = tabs.find(b => !['home', 'blind', 'tree', 'saved', 'prefs'].includes(b.dataset.tab));
-  const stamps = Object.keys(profile.stamps || {}).length, newest = likes[likes.length - 1];
+  const newest = likes[likes.length - 1];
   const ways = [['blind', tonight.length ? `${tonight.length} revealed tonight` : 'a mystery is cued up'],
-    stampTab && [stampTab.dataset.tab, `${stamps} stamp${stamps === 1 ? '' : 's'} so far`],
+    stampTab && [stampTab.dataset.tab, 'roll a genre you have never heard'],
     ['tree', newest ? `grow one from “${newest.title}”` : 'start from any song']].filter(Boolean);
   $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
     el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
