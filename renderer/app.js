@@ -1015,6 +1015,29 @@ function goBack(leave = true) {
 }
 api.onBack?.(() => goBack());
 document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(false); });
+// Phone sheets follow a downward drag from their top and close past 80px. Every sheet already closes on a click on itself (the scrim).
+{
+  let drag = null;
+  document.addEventListener('touchstart', e => {
+    const s = e.target.closest?.('#main :is(.node-menu, .sheet, .grow-body)');
+    if (s && PHONE.matches && s.scrollTop <= 0 && getComputedStyle(s).position === 'fixed') drag = { s, y: e.touches[0].clientY, dy: 0 };
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!drag) return;
+    drag.dy = Math.max(0, e.touches[0].clientY - drag.y);
+    drag.s.style.transition = 'none';
+    drag.s.style.translate = `0 ${drag.dy}px`;
+  }, { passive: true });
+  const end = () => {
+    if (!drag) return;
+    const { s, dy } = drag; drag = null;
+    s.style.transition = 'translate 200ms cubic-bezier(.16,1,.3,1)';
+    s.style.translate = '';
+    if (dy > 80) s.click();
+  };
+  document.addEventListener('touchend', end);
+  document.addEventListener('touchcancel', end);
+}
 
 async function growTree(root) {
   const run = ++trRun;
