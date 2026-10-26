@@ -656,6 +656,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 
 /* Scenes | Genres switch, the genre search, and the "Nearby" chips (docs/12) */
 .browse-switch { margin: 0 0 var(--space-3); }
+.stamp-mode { margin-top: var(--space-3); }
 .genre-q { margin-bottom: var(--space-2); }
 .genre-dig { margin: var(--space-2) 0 0; }
 .cat-empty { padding: var(--space-3) var(--space-2); }

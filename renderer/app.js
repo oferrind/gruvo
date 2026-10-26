@@ -656,7 +656,16 @@ function buildStamps(regions) {
   $('#genre-total').textContent = SD.ATLAS.size ? `(${SD.ATLAS.size.toLocaleString()})` : '';
   $('#br-genres').hidden = !SD.ATLAS.size;
   setBrowse(SD.ATLAS.size && ls('stampBrowse') === 'genres' ? 'genres' : 'scenes');
+  setMode(ls('stampMode') === 'browse' ? 'browse' : 'roll');
 }
+// Roll (Surprise me + Pick one) and Browse (the Scenes / Genres catalogue) are two tabs of the left column.
+function setMode(mode) {
+  $('#roll-pane').hidden = mode !== 'roll'; $('#browse-pane').hidden = mode !== 'browse';
+  $('#mode-roll').setAttribute('aria-pressed', String(mode === 'roll')); $('#mode-browse').setAttribute('aria-pressed', String(mode === 'browse'));
+  ls('stampMode', mode);
+}
+$('#mode-roll').onclick = () => setMode('roll');
+$('#mode-browse').onclick = () => setMode('browse');
 
 // ---- Genres view: search + family/tier filters over the atlas (docs/12) ----
 let gShown = 60, gDig = null, gTimer = 0;
@@ -702,7 +711,7 @@ function syncBuilder(s) {
   if (s.cc) $('#b-place').value = s.cc;
   if (Object.hasOwn(SD.GENRES, s.genre)) $('#b-genre').value = s.genre;
 }
-function prefillBuilder(s) { syncBuilder(s); $('#b-genre').focus(); toast(`Pick a genre for the ${s.label}`); }
+function prefillBuilder(s) { setMode('roll'); syncBuilder(s); $('#b-genre').focus(); toast(`Pick a genre for the ${s.label}`); }
 $('#builder').addEventListener('submit', e => {
   e.preventDefault();
   // A catalogue combo opens that entry; "any decade" / "anywhere" give a decade + genre, place + genre or bare genre stamp.
@@ -858,6 +867,7 @@ async function openStamp(s, rerolls = 0) {
 const rollState = () => ({ held: profile.stamps, recent: ls('stampRecent') || [], adventurous: $('#adventurous').checked, streak: ls('stampStreak') || 0, gstreak: ls('stampGStreak') || 0,
   short: ls('stampShort') || [], topTags: [...profile.prefs.genres.map(g => g.name), ...profile.likes.filter(l => l.genre && SD.GENRES[l.genre]).flatMap(l => SD.GENRES[l.genre][1])] });
 function doRoll() {
+  setMode('roll'); // R from Browse: show the reel it lands on
   const st = rollState();
   const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
   nextRoll = null;

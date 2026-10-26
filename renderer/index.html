@@ -109,9 +109,14 @@
       <div class="panel-head">
         <h1>Genre Stamps</h1>
         <p class="muted">A genre, a place, a decade, or all three. Love a song and it's stamped.</p>
+        <div class="chips stamp-mode" role="group" aria-label="Find a stamp">
+          <button id="mode-roll" type="button" class="chip" aria-pressed="true">Roll</button>
+          <button id="mode-browse" type="button" class="chip" aria-pressed="false">Browse</button>
+        </div>
       </div>
       <div class="stamps-layout">
         <div class="stamp-side">
+          <div id="roll-pane">
           <section class="roll stamp-tool" aria-labelledby="roll-head">
             <h2 id="roll-head" class="tool-head">Surprise me</h2>
             <div id="reels" class="reels" aria-hidden="true">
@@ -133,7 +138,8 @@
             </form>
             <p id="builder-note" class="hint" aria-live="polite"></p>
           </section>
-          <div class="catalogue">
+          </div>
+          <div id="browse-pane" class="catalogue" hidden>
             <div class="chips browse-switch" role="group" aria-label="Browse by">
               <button id="br-scenes" type="button" class="chip" aria-pressed="true">Scenes</button>
               <button id="br-genres" type="button" class="chip" aria-pressed="false">Genres <span id="genre-total"></span></button>
