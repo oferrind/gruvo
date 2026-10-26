@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 // Gitignored; never commit. Release builds fail without it, debug builds don't need it.
-def keystorePropsFile = rootProject.file('keystore.properties')
+// Signing secrets live outside the repo (the project folder syncs to OneDrive): ~/stumble-keys/keystore.properties, else android/keystore.properties.
+def keystorePropsFile = [new File(System.getProperty('user.home'), 'stumble-keys/keystore.properties'), rootProject.file('keystore.properties')].find { it.exists() } ?: rootProject.file('keystore.properties')
 def keystoreProps = null
 if (keystorePropsFile.exists()) {
     keystoreProps = new Properties()
@@ -9,7 +10,7 @@ if (keystorePropsFile.exists()) {
 }
 gradle.taskGraph.whenReady { graph ->
     if (!keystoreProps && graph.allTasks.any { it.name ==~ /(assemble|bundle|package)Release/ })
-        throw new GradleException('Release build needs android/keystore.properties (storeFile, storePassword, keyAlias, keyPassword). Copy keystore.properties.example and fill it in; see docs/13 M5.')
+        throw new GradleException('Release build needs %USERPROFILE%/stumble-keys/keystore.properties or android/keystore.properties (storeFile, storePassword, keyAlias, keyPassword). Copy keystore.properties.example and fill it in; see docs/13 M5.')
 }
 
 android {
