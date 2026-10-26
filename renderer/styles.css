@@ -586,23 +586,24 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .stamps-layout { display: grid; gap: var(--space-6); align-items: start; }
 /* one column: the Roll and the sentence, then the songs, then the catalogue and the book (never songs under 43 entries) */
 @media (max-width: 899px) { .stamp-side { display: contents; } .builder { margin: 0; } .stamp-main { order: 1; } .catalogue { order: 2; } .stamp-book { order: 3; } }
-/* 900px and up: one screen. The page stops at the now-playing bar; the catalogue, the songs and the book scroll inside their own column. */
+/* 900-1239px: two columns and the page scrolls as one; no boxes scrolling inside boxes */
 @media (min-width: 900px) {
+  .stamps-layout { grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); }
+  .stamp-side { grid-row: span 2; }
+  .stamp-book { grid-column: 2; }
+}
+/* 1240px and up: one screen, three columns; each column is its own single scroll (the catalogue list on the left) */
+@media (min-width: 1240px) {
   body:has(> main > #stamps:not([hidden])) { height: 100dvh; display: flex; flex-direction: column; }
   main:has(> #stamps:not([hidden])) { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-block: var(--space-5) 0; }
   #stamps:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #stamps .panel-head { margin-bottom: var(--space-4); }
-  .stamps-layout { flex: 1; min-height: 0; align-items: stretch; grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .stamp-side { grid-row: 1 / -1; display: flex; flex-direction: column; min-height: 0; }
-  .catalogue, #scenes-view:not([hidden]), #genres-view:not([hidden]), .stamp-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .stamps-layout { flex: 1; min-height: 0; align-items: stretch; grid-template-columns: 270px minmax(0, 1fr) 296px; grid-template-rows: minmax(0, 1fr); }
+  .stamp-side { grid-row: auto; display: flex; flex-direction: column; min-height: 0; }
+  .catalogue, #scenes-view:not([hidden]), #genres-view:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .cat-list { flex: 0 1 auto; min-height: 96px; overflow-y: auto; }
-  #stamp-songs { flex: 0 1 auto; min-height: min(200px, 28vh); overflow-y: auto; } /* never squeezed to nothing by the stamp, More and Export */
-  .stamp-main { overflow-y: auto; } /* a short window scrolls this column instead of spilling onto the book */
-  .stamp-book { grid-column: 2; max-height: 32vh; overflow-y: auto; }
-}
-@media (min-width: 1240px) {
-  .stamps-layout { grid-template-columns: 270px minmax(0, 1fr) 296px; grid-template-rows: minmax(0, 1fr); }
-  .stamp-book { grid-column: auto; max-height: none; }
+  .stamp-main, .stamp-book { min-height: 0; overflow-y: auto; padding-right: var(--space-2); }
+  .stamp-book { grid-column: auto; }
 }
 .field > label, .field > .label { display: block; font-weight: 600; margin-bottom: var(--space-2); }
 
