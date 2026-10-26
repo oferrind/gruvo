@@ -1412,7 +1412,7 @@ function renderPrefs() {
   $('#pref-decades').append(...DECADES.map(d => toggleChip(`${d}s`, p.decades.includes(d), on => { profile.prefs.decades = setIn(profile.prefs.decades, d, on); })));
   $('#pref-bringback').checked = p.bringBack;
   $('#pref-ab').checked = p.abTest.on;
-  $('#pref-ab').onchange = e => { profile.prefs.abTest = { on: e.target.checked, started: e.target.checked ? Date.now() : profile.prefs.abTest.started }; save(); };
+  $('#pref-ab').onchange = e => { profile.prefs.abTest = { on: e.target.checked, started: e.target.checked ? Date.now() : profile.prefs.abTest.started }; save(); if (e.target.checked) lovedTags(); }; // start the loved-artist tag lookups now (~1.5 s each)
   $('#pref-bringback').onchange = e => { profile.prefs.bringBack = e.target.checked; save(); };
   $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
 }
@@ -1500,6 +1500,7 @@ $('#tree-export').onclick = e => {
   document.body.classList.toggle('no-spotify', !!sp.unavailable); // phone: no Spotify login, so no Preferences section or Export
   renderSpotifyPrefs();
   profile = await store.load();
+  if (profile.prefs.abTest.on) lovedTags(); // taste experiment: warm the loved-artist tags before the first tags mystery
   applyScheme(profile.prefs.scheme);
   regionList = await api.countries();
   buildStamps(regionList);
