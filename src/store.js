@@ -1,6 +1,4 @@
-// Profile persistence: userData/profile.json, written atomically (tmp + rename).
-const fs = require('fs');
-const path = require('path');
+// Profile validation and migration: pure, no file access (src/store-fs.js is the desktop file layer).
 const { norm, COUNTRIES } = require('./music');
 const { validSettings } = require('./tree');
 
@@ -72,24 +70,17 @@ function validBack(b) {
   for (const [k, v] of Object.entries(b.seen && typeof b.seen === 'object' ? b.seen : {})) if (/^\d{1,12}$/.test(k) && int(v) && n - v < 20) seen[k] = v;
   return { n, last: int(b.last) ? b.last : 0, seen, ok: uniq(list(b.ok, i => Number.isInteger(i) && i > 0, 50)) };
 }
-let file = null;
-
-function init(dir) { file = path.join(dir, 'profile.json'); }
-
-function load() {
-  let raw, p;
-  try { raw = fs.readFileSync(file, 'utf8'); } catch { return DEFAULT(); }
+// raw = the stored text, or null when there is none. Returns {profile, corrupt}: corrupt means unreadable text the caller should move aside.
+function parse(raw) {
+  if (raw == null) return { profile: DEFAULT(), corrupt: false };
+  let p;
   try { p = JSON.parse(raw); } catch {}
-  if (!p || typeof p !== 'object') {
-    // Move it aside so the next save can't destroy the user's likes for good.
-    try { fs.renameSync(file, `${file}.corrupt-${Date.now()}`); } catch (e) { console.error('profile backup failed', e.message); }
-    return DEFAULT();
-  }
+  if (!p || typeof p !== 'object') return { profile: DEFAULT(), corrupt: true };
   const d = DEFAULT();
   const likes = Array.isArray(p.likes) ? p.likes : d.likes;
   // R4 migration: a name-only heard entry of a loved Deezer artist becomes its id(s), so same-name strangers aren't hidden.
   const ids = h => likes.filter(l => l && l.artistDzId != null && norm(l.artist) === h).map(l => `dz:${l.artistDzId}`);
-  return {
+  return { corrupt: false, profile: {
     likes,
     heard: Array.isArray(p.heard) ? [...new Set(p.heard.flatMap(h => { const x = ids(h); return x.length ? x : [h]; }))] : d.heard,
     stamps: validStamps(p.stamps),
@@ -99,15 +90,14 @@ function load() {
     prefs: validPrefs(p.prefs),
     last: validLast(p.last),
     back: validBack(p.back),
-  };
+  } };
 }
 
-function save(p) {
+// Validates a profile from the renderer and returns the text to store; throws if it is not a profile.
+function serialize(p) {
   if (!p || typeof p !== 'object' || !Array.isArray(p.likes) || !Array.isArray(p.heard)) throw new Error('invalid profile');
   const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), rarity: validRarity(p.rarity), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last), back: validBack(p.back) };
-  fs.writeFileSync(file + '.tmp', JSON.stringify(data, null, 1));
-  fs.renameSync(file + '.tmp', file);
-  return true;
+  return JSON.stringify(data, null, 1);
 }
 
-module.exports = { init, load, save };
+module.exports = { parse, serialize };

@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const store = require('../src/store');
+const store = require('../src/store-fs');
 
 const tmp = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'md-store-')); store.init(d); return d; };
 

@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const store = require('../src/store');
+const store = require('../src/store-fs');
 
 test('genre-only stamp keys (--slug) load next to legacy keys; junk keys are dropped; loading twice is idempotent', () => {
   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'md-store-'));

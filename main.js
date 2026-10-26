@@ -3,13 +3,17 @@ const { safeExternal } = require('./src/links');
 const fs = require('fs');
 const path = require('path');
 const net = require('./src/net');
-const store = require('./src/store');
-const { flows, COUNTRIES } = require('./src/music');
-const Tree = require('./src/tree');
+const store = require('./src/store-fs');
+const Handlers = require('./src/handlers');
 const Spotify = require('./src/spotify');
-const Stamps = require('./src/stamps');
 
 let win;
+
+// Desktop cache file for net.js: read once at start, written atomically (tmp + rename).
+const fileCache = file => ({
+  read: () => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return {}; } },
+  write: text => { fs.writeFileSync(file + '.tmp', text); fs.renameSync(file + '.tmp', file); },
+});
 
 const ZOOM_DEFAULT = 0.85;
 const zoomFile = () => path.join(app.getPath('userData'), 'zoom.json');
@@ -63,43 +67,21 @@ function createWindow() {
   }
 }
 
-ipcMain.handle('api:get', (e, url) => net.get(String(url)));
-ipcMain.handle('api:audio', (e, url) => net.audio(String(url)));
-ipcMain.handle('api:call', async (e, name, ...args) => {
-  if (!Object.hasOwn(flows, name)) throw new Error(`unknown call ${name}`);
-  return flows[name](net.get, ...args);
-});
-ipcMain.handle('api:countries', () => COUNTRIES);
-// Family Tree: one build at a time. A newer tree makes the older one's live() false, so it stops before its next call.
-let tree = null, treeRun = 0;
-ipcMain.handle('tree:grow', async (e, root, heard, run, saved, settings) => {
-  if (!root || typeof root.artist !== 'string' || typeof root.title !== 'string') throw new Error('bad root');
-  const mine = ++treeRun;
-  const live = () => mine === treeRun && !e.sender.isDestroyed();
-  tree = Tree.newTree(net.get, root, { settings: Tree.validSettings(settings), heard: Array.isArray(heard) ? heard.map(String) : [], live,
-    saved: Array.isArray(saved) ? saved.filter(s => s && typeof s.artist === 'string' && typeof s.title === 'string')
-      .map(s => ({ source: String(s.source), id: s.id == null ? null : String(s.id), artist: s.artist, title: s.title })) : [], emit: n => live() && e.sender.send('tree:node', run, n) });
-  await Tree.growTree(tree);
-  return live();
-});
-// Genre Stamps: one playlist at a time, rows streamed as previews resolve (src/stamps.js stampRunner). The id is rebuilt there, so only real stamps run.
-const stampRunner = Stamps.stampRunner(net.get);
-ipcMain.handle('stamps:open', (e, id, run) => stampRunner.open(id, row => e.sender.send('stamps:row', run, row), () => !e.sender.isDestroyed()));
-ipcMain.handle('stamps:more', (e, id, run) => stampRunner.more(id, row => e.sender.send('stamps:row', run, row), () => !e.sender.isDestroyed()));
-ipcMain.handle('stamps:prefetch', (e, id) => stampRunner.prefetch(id));
-ipcMain.handle('tree:more', (e, id) => tree ? Tree.moreTree(tree, Number(id)) : { added: 0 });
-// Full-song links open in the default browser, never in this window; only the https allowlist in src/links.js.
-ipcMain.handle('shell:open', (e, url) => {
-  const ok = safeExternal(url);
-  if (!ok) throw new Error('link not allowed');
-  return shell.openExternal(ok);
-});
-// Spotify: tokens stay in this process; the renderer only gets status, devices and results.
+const H = Handlers.create({ get: net.get, audio: net.audio, open: url => shell.openExternal(url), store });
+const ctxOf = e => ({ send: (...a) => e.sender.send(...a), alive: () => !e.sender.isDestroyed() });
+ipcMain.handle('api:get', (e, url) => H.get(url));
+ipcMain.handle('api:audio', (e, url) => H.audio(url));
+ipcMain.handle('api:call', (e, name, ...args) => H.call(name, ...args));
+ipcMain.handle('api:countries', () => H.countries());
+ipcMain.handle('tree:grow', (e, root, heard, run, saved, settings) => H.treeGrow(ctxOf(e), root, heard, run, saved, settings));
+ipcMain.handle('stamps:open', (e, id, run) => H.stampsOpen(ctxOf(e), id, run));
+ipcMain.handle('stamps:more', (e, id, run) => H.stampsMore(ctxOf(e), id, run));
+ipcMain.handle('stamps:prefetch', (e, id) => H.stampsPrefetch(id));
+ipcMain.handle('tree:more', (e, id) => H.treeMore(id));
+ipcMain.handle('shell:open', (e, url) => H.shellOpen(url));
+// Spotify (desktop only): tokens stay in this process; the renderer only gets status, devices and results.
 let spotify;
-const trackIn = t => {
-  if (!t || typeof t.artist !== 'string' || typeof t.title !== 'string') throw new Error('bad track');
-  return { source: String(t.source), id: t.id == null ? null : String(t.id), artist: t.artist.slice(0, 300), title: t.title.slice(0, 300), isrc: typeof t.isrc === 'string' ? t.isrc : undefined };
-};
+const trackIn = Handlers.trackIn;
 ipcMain.handle('spotify:status', () => spotify.status());
 ipcMain.handle('spotify:connect', (e, clientId) => spotify.connect(String(clientId)));
 ipcMain.handle('spotify:disconnect', () => spotify.disconnect());
@@ -109,12 +91,12 @@ ipcMain.handle('spotify:export', (e, name, tracks) => {
   if (!Array.isArray(tracks)) throw new Error('bad tracks');
   return spotify.exportPlaylist(String(name || 'Stumble').slice(0, 100), tracks.slice(0, 500).map(trackIn));
 });
-ipcMain.handle('store:load', () => store.load());
-ipcMain.handle('store:save', (e, profile) => store.save(profile));
+ipcMain.handle('store:load', () => H.storeLoad());
+ipcMain.handle('store:save', (e, profile) => H.storeSave(profile));
 
 app.whenReady().then(() => {
   const dir = app.getPath('userData');
-  net.initCache(dir);
+  net.initCache(fileCache(path.join(dir, 'cache.json')));
   store.init(dir);
   spotify = Spotify.create({ dir, send: net.send, getJson: net.get,
     crypt: { available: () => safeStorage.isAsyncEncryptionAvailable(), encrypt: s => safeStorage.encryptStringAsync(s),

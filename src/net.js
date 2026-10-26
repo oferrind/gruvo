@@ -1,17 +1,19 @@
 // All network access: host allowlist, per-host pacing, retries, JSON disk cache.
-const fs = require('fs');
-const path = require('path');
 const { isFresh, prune } = require('./cache');
 
 const GAP = { 'musicbrainz.org': 1500, 'api.deezer.com': 125, 'en.wikipedia.org': 200, 'www.wikidata.org': 200 };
 const UA = `MusicDiscovery/0.1 (${require('../stumble.config.json').contact})`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-let cacheFile = null, cache = {}, saveTimer = null;
+// Platform seams. The platform passes a cache {read() -> object, write(text)} to initCache, and may swap `fetch` via configure().
+// Default fetch is looked up per call (Node/Electron global; tests replace it).
+let cacheIO = null, cache = {}, saveTimer = null, doFetch = (...a) => globalThis.fetch(...a);
 
-function initCache(dir) {
-  cacheFile = path.join(dir, 'cache.json');
-  try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch { cache = {}; }
+function configure({ fetch } = {}) { if (fetch) doFetch = fetch; }
+
+function initCache(io) {
+  cacheIO = io;
+  try { cache = io.read() || {}; } catch { cache = {}; }
 }
 
 function scheduleSave() {
@@ -19,11 +21,11 @@ function scheduleSave() {
 }
 
 function flushCache() {
-  if (!cacheFile) return;
+  if (!cacheIO) return;
   clearTimeout(saveTimer);
   saveTimer = null;
   prune(cache);
-  try { fs.writeFileSync(cacheFile + '.tmp', JSON.stringify(cache)); fs.renameSync(cacheFile + '.tmp', cacheFile); }
+  try { cacheIO.write(JSON.stringify(cache)); }
   catch (e) { console.error('cache save failed', e.message); }
 }
 
@@ -60,7 +62,7 @@ async function load(url, fresh) {
     await slot(host);
     let res, body;
     try {
-      res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(15000) });
+      res = await doFetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal: AbortSignal.timeout(15000) });
       if (host === 'musicbrainz.org' && res.status === 503 && attempt < tries - 1) { await sleep(Math.min(6000, 2000 * (attempt + 1))); continue; }
       if (!res.ok) return { error: { status: res.status } };
       body = await res.json();
@@ -89,7 +91,7 @@ async function audio(url) {
   try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
   if (u.protocol !== 'https:' || !isAudioHost(u.hostname)) return { error: { message: 'host not allowed' } };
   try {
-    const res = await fetch(u.href, { redirect: 'error', signal: AbortSignal.timeout(15000) });
+    const res = await doFetch(u.href, { redirect: 'error', signal: AbortSignal.timeout(15000) });
     if (!res.ok) return { error: { status: res.status } };
     if (Number(res.headers.get('content-length')) > MAX_AUDIO) return { error: { message: 'too large' } };
     const chunks = [];
@@ -114,7 +116,7 @@ async function send(url, { method = 'GET', headers = {}, body } = {}) {
   try { u = new URL(url); } catch { return { error: { message: 'bad url' } }; }
   if (u.protocol !== 'https:' || !SPOTIFY.has(u.hostname) || u.port || u.username) return { error: { message: 'host not allowed' } };
   try {
-    const res = await fetch(u.href, { method, headers: { 'User-Agent': UA, ...headers }, body, redirect: 'error', signal: AbortSignal.timeout(15000) });
+    const res = await doFetch(u.href, { method, headers: { 'User-Agent': UA, ...headers }, body, redirect: 'error', signal: AbortSignal.timeout(15000) });
     const text = await res.text();
     let json = null;
     try { json = text ? JSON.parse(text) : null; } catch {}
@@ -124,4 +126,4 @@ async function send(url, { method = 'GET', headers = {}, body } = {}) {
   }
 }
 
-module.exports = { get, audio, send, initCache, flushCache };
+module.exports = { configure, get, audio, send, initCache, flushCache };
