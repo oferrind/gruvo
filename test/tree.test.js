@@ -274,3 +274,15 @@ test('soundtrack: grows from the song\'s soundtrack tracklist with one tracklist
   assert.deepEqual(T.nodes.slice(1).map(n => [n.artist, n.label]), [['Blur', 'Also on the The Film soundtrack (1998)']]);
   assert.equal(calls.filter(u => u.includes('/ws/2/release/rel1')).length, 1);
 });
+
+test('tree: More while offline reports an error and works again once the network is back', async () => {
+  const { get } = world();
+  let offline = false;
+  const T = t.newTree(url => offline ? Promise.resolve({ error: { message: 'Unable to resolve host' } }) : get(url), ROOT);
+  await t.growTree(T);
+  offline = true;
+  const r = await t.moreTree(T, 0);
+  assert.deepEqual([r.added, r.error], [0, true]);
+  offline = false;
+  assert.ok((await t.moreTree(T, 0)).added > 0); // some edges memoised their failure, so not necessarily all 3
+});

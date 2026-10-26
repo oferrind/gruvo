@@ -170,7 +170,8 @@ const isSaved = (T, t) => T.saved.has(`id:${t.source}:${t.id}`) || T.saved.has(s
 function newTree(get, root, { emit = () => {}, live = () => true, heard = [], saved = [], settings } = {}) {
   // MusicBrainz is paced, so the build gets a fixed call budget: past it MB calls answer {error} and that edge is skipped.
   const T = { S: validSettings(settings), fans: new Map(), rels: new Map(), mbLeft: MB_BUDGET, emit, live, heard: new Set(heard), nodes: [], used: new Set(), roots: 0,
-    get: url => String(url).startsWith(MB) && T.mbLeft-- <= 0 ? Promise.resolve({ error: 'budget' }) : get(url),
+    fails: 0, // network errors seen, so an offline More is not mistaken for "no more family"
+    get: url => String(url).startsWith(MB) && T.mbLeft-- <= 0 ? Promise.resolve({ error: 'budget' }) : get(url).then(res => { if (res && res.error && res.error.message) T.fails++; return res; }),
     saved: new Set(saved.flatMap(s => [s.id != null && `id:${s.source}:${s.id}`, songKey(s)]).filter(Boolean)) };
   addNode(T, null, root, { label: '' });
   claim(T, { artist: root.artist, dzId: root.artistDzId });
@@ -478,9 +479,11 @@ async function moreTree(T, id) {
     const lab = await labelEdge(T, node), sound = T.S.edges.includes('soundtrack') ? await soundEdge(T, node) : [];
     node.pending = [...built, ...prod.slice(0, 1), ...sound.slice(0, 1), ...lab.slice(0, 1), ...node.pending, ...prod.slice(1), ...sound.slice(1), ...lab.slice(1)];
   }
-  const start = T.nodes.length;
+  const start = T.nodes.length, f0 = T.fails;
   while (T.nodes.length - start < MORE && T.nodes.length < CAP && node.pending.length && T.live()) await tryAdd(T, node, node.pending.shift());
-  return { added: T.nodes.length - start, full: T.nodes.length >= CAP };
+  const added = T.nodes.length - start;
+  if (!added && T.fails > f0) { node.done.delete('more'); node.done.delete('ranked'); return { added, error: true }; } // offline: the next More tries again
+  return { added, full: T.nodes.length >= CAP };
 }
 
 async function producerEdge(T, node, rec) {

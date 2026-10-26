@@ -323,7 +323,7 @@ let goingBack = false;
 function showTab(name, focus) {
   closeIntro();
   const prev = tabs.find(b => b.getAttribute('aria-selected') === 'true')?.dataset.tab;
-  if (prev && prev !== name && !goingBack) tabHist.push(prev);
+  if (prev && prev !== name && !goingBack) { const i = tabHist.lastIndexOf(name); if (i >= 0) tabHist.length = i; tabHist.push(prev); } // revisiting a tab drops the loop, so Back never replays ping-pong
   tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
   if (name === 'home') renderHome();
@@ -1167,7 +1167,7 @@ async function moreTree(n) {
   trBusy--;
   more.disabled = !!(r && r.full);
   if (trBusy) return;
-  trState(r ? 'done' : 'error', !r ? "Couldn't reach the music services. Try again." : r.full ? 'This tree is full. Start a new one from any song.' : r.added ? '' : 'No more family found.');
+  trState(r && !r.error ? 'done' : 'error', !r || r.error ? "Couldn't reach the music services. Try again." : r.full ? 'This tree is full. Start a new one from any song.' : r.added ? '' : 'No more family found.');
 }
 
 // ---------- Saved ----------
