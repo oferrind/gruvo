@@ -70,6 +70,15 @@ test('search hits: MusicBrainz is not asked when Deezer has the song', async () 
   assert.ok(!urls.some(u => u.includes('musicbrainz')));
 });
 
+test('search hits: only live takes on Deezer still ask MusicBrainz for the studio original, which comes first', async () => {
+const rec = (id, title, artist, date, status) => ({ id, title, 'artist-credit': [{ name: artist }], 'first-release-date': date, releases: [{ status }] });
+  const get = fakeGet({ 'api.deezer.com/search': { data: [{ id: 1, title: "Wonderwall (Live at Knebworth)", artist: { id: 9, name: 'Oasis' }, rank: 900000, preview: 'p' }] },
+    'musicbrainz.org/ws/2/recording': { recordings: [rec('w', 'Wonderwall', 'Oasis', '1995-10-02', 'Official')] } });
+  const hits = await m.flows.searchTracks(get, 'wonderwall oasis');
+  assert.equal(hits[0].source, 'mb');
+  assert.equal(hits[1].title, 'Wonderwall (Live at Knebworth)');
+});
+
 test('resolvePreview is Deezer only', async () => {
   const t = await m.flows.resolvePreview(fakeGet({ 'api.deezer.com/search': fx('dz_search_creep') }), 'Radiohead', 'Creep');
   assert.equal(t.source, 'dz');

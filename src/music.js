@@ -320,14 +320,14 @@ async function seedTracks(get, artists, n = 2) {
 // Search rows: title/artist named in the query first, then most popular (Deezer rank); one row per song across versions.
 const baseTitle = t => norm(String(t).replace(/\s*[([].*$/, '')) || norm(t); // "Creep (Acoustic)" -> creep
 
+const altTake = r => +/[([][^)\]]*\b(live|demo|remix|rmx|acoustic|unplugged|karaoke|instrumental|cover)\b/i.test(r.title); // a live/demo/remix take: the studio take beats these
 function sortHits(rows, q) {
   const nq = norm(q), has = s => !!s && nq.includes(s);
   const base = r => baseTitle(r.title);
   const hit = r => 2 * has(base(r)) + has(norm(r.artist && r.artist.name)); // the title names the song; the artist alone doesn't
-  const alt = r => +/[([][^)\]]*\b(live|demo|remix|rmx|acoustic|unplugged|karaoke|instrumental|cover)\b/i.test(r.title); // the studio take beats these
   const key = r => `${norm(r.artist && r.artist.name)}|${base(r)}`, top = new Map(), seen = new Set();
   for (const r of rows) top.set(key(r), Math.max(top.get(key(r)) || 0, r.rank || 0)); // a song ranks by its most popular version
-  return rows.slice().sort((a, b) => hit(b) - hit(a) || top.get(key(b)) - top.get(key(a)) || alt(a) - alt(b) || (b.rank || 0) - (a.rank || 0))
+  return rows.slice().sort((a, b) => hit(b) - hit(a) || top.get(key(b)) - top.get(key(a)) || altTake(a) - altTake(b) || (b.rank || 0) - (a.rank || 0))
     .filter(r => !seen.has(key(r)) && seen.add(key(r)));
 }
 
@@ -348,8 +348,8 @@ async function searchTracks(get, q) {
   const res = await get(`${DZ}/search?q=${enc(q)}&limit=25`);
   const rows = sortHits(res.data || [], q).slice(0, 10).map(fromDeezer);
   const nq = norm(q);
-  // Only when Deezer has no row naming both title and artist: MusicBrainz is slow (1.5 s pacing).
-  if ((res.data || []).some(r => nq.includes(baseTitle(r.title)) && nq.includes(norm(r.artist.name)))) return rows;
+  // Only when Deezer has no studio take naming both title and artist (Wonderwall: live ones only). MusicBrainz is slow (1.5 s pacing).
+  if ((res.data || []).some(r => !altTake(r) && nq.includes(baseTitle(r.title)) && nq.includes(norm(r.artist.name)))) return rows;
   return [...(await mbSong(get, q)), ...rows];
 }
 
