@@ -397,7 +397,7 @@ input::placeholder { color: var(--color-muted); opacity: 1; }
 .chip[aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); font-weight: 650; }
 
 /* ---------- top bar + tabs ---------- */
-.topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--space-6); padding: 0 var(--space-5); background: var(--grain), var(--color-bg); border-bottom: 1px solid var(--color-border); }
+.topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--space-6); padding: env(safe-area-inset-top, 0px) max(var(--space-5), env(safe-area-inset-right, 0px)) 0 max(var(--space-5), env(safe-area-inset-left, 0px)); background: var(--grain), var(--color-bg); border-bottom: 1px solid var(--color-border); }
 .brand { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 19px; font-weight: 800; letter-spacing: .02em; padding: 0; min-height: 0; }
 .brand:hover:not(:disabled) { background: none; } /* a button (Home on phones) that still reads as the wordmark */
 .brand::before { content: ""; width: 18px; height: 18px; border-radius: 50%; flex: none;
@@ -411,7 +411,7 @@ input::placeholder { color: var(--color-muted); opacity: 1; }
 .theme-toggle:hover:not(:disabled) { color: var(--color-text); }
 .theme-toggle svg { width: 18px; height: 18px; }
 
-main { max-width: var(--content-w); margin: 0 auto; padding: var(--space-6) var(--space-5); }
+main { max-width: var(--content-w); margin: 0 auto; padding: var(--space-6) max(var(--space-5), env(safe-area-inset-right, 0px)) var(--space-6) max(var(--space-5), env(safe-area-inset-left, 0px)); }
 main:has(> #tree:not([hidden])) { padding-bottom: 0; } /* the tree ends at its last song; body padding alone clears the now-playing bar */
 .panel-head { margin-bottom: var(--space-5); }
 .panel-head .muted { font-size: 15px; max-width: 60ch; }
@@ -438,7 +438,7 @@ progress::-webkit-progress-bar { background: var(--color-surface-2); border-radi
 progress::-webkit-progress-value { background: var(--color-accent); border-radius: var(--radius-pill); }
 
 /* ---------- blind test: the deck, the sleeve and tonight's reveals ---------- */
-.blind-layout { display: grid; gap: var(--space-6); align-items: start; }
+.blind-layout { display: grid; gap: var(--space-6); align-items: start; grid-template-columns: minmax(0, 1fr); } /* min-content of a long reveal must not widen the column (phone) */
 @media (min-width: 1000px) { .blind-layout { grid-template-columns: minmax(0, 1fr) 300px; } }
 .mystery { transition: box-shadow 520ms cubic-bezier(.16,1,.3,1), border-color 520ms; } /* part of the reveal */
 .mystery.is-revealed { border-color: color-mix(in srgb, var(--tint) 35%, var(--color-border)); box-shadow: var(--shadow), 0 30px 70px -36px var(--tint-glow); }
@@ -1139,3 +1139,9 @@ button.ext:hover:not(:disabled) { background: none; color: var(--color-accent); 
 .touch .about-more summary { padding-block: 12px; }
 .touch :is(.adventurous, .grow-edge) { min-height: 48px; }
 .touch :is(.adventurous input, .grow-edge input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
+/* Phone: grid tracks may shrink and deep branches indent a little, so a tree of any depth stays inside the screen (device test, M4) */
+.tree-canvas .branch > ol { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 640px) {
+  .tree-node:not([data-depth="0"]) > .branches { padding-left: 16px; }
+  .tree-node:not([data-depth="0"]) > .branches > .branch > ol { padding-left: 8px; }
+}
