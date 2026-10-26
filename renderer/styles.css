@@ -378,7 +378,7 @@ button:hover:not(:disabled) { background: var(--color-surface-2); border-color: 
 button:disabled { opacity: .45; cursor: not-allowed; }
 button.primary { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); font-weight: 650; }
 button.primary:hover:not(:disabled) { background: var(--color-accent); border-color: var(--color-accent); filter: brightness(1.08); }
-button:not(.way, .link, .ext, .ghost, .builder-go, [role=tab]):active:not(:disabled) { translate: 0 1px; filter: brightness(.94); }
+button:not(.way, .link, .ext, .ghost, [role=tab]):active:not(:disabled) { translate: 0 1px; filter: brightness(.94); }
 button.ghost { border-color: transparent; background: transparent; }
 button.link { border: none; background: none; padding: 0; min-height: 0; text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; text-underline-offset: 3px; text-align: left; font-weight: 600; }
 button.link:hover:not(:disabled) { background: none; color: var(--color-accent); }
@@ -631,9 +631,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 :is(.builder select, #cat-filter, #genre-family, #genre-tier):hover { background: var(--tint-wash); }
 :is(.builder, #cat-filter, #genre-family, #genre-tier) :is(option, optgroup) { font: 14px var(--font-body); background: var(--color-surface); color: var(--color-text); }
 /* Play is the sentence's last word: an amber arrow, no box */
-.builder-end { display: inline-flex; align-items: baseline; gap: var(--space-1); max-width: 100%; } /* the arrow never wraps away from its genre */
-.builder-go { min-height: 0; padding: 0 4px; border: none; background: none; color: var(--color-accent); font: inherit; line-height: 1; transition: translate var(--dur); }
-.builder-go:hover:not(:disabled) { background: none; translate: 3px 0; }
+.builder-row { flex-basis: 100%; margin-top: var(--space-2); } /* the Play button sits on its own line under the sentence */
 
 .catalogue-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .catalogue-head h2 { margin: 0; }
