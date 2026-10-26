@@ -410,25 +410,31 @@ let misfits = 0;
 
 // Picker: 80% MusicBrainz artist-tag similarity to the artists you loved + 20% sound closeness (see Features.blend).
 // c.tagSim: undefined = lookup pending, null = unknown tags. Both are standardised against a window of recent candidates.
-let loveTags = null, loveTagsKey = '';
-async function lovedTags() {
+// The loved-artist profile fills in as lookups arrive (1.5 s each on a cold cache); candidates score against what's there so far.
+let loveSum = {}, loveTagsKey = '';
+function lovedTags() {
   const names = [...new Set(profile.likes.map(l => l.artist))].slice(-60), key = names.join('|');
   if (key !== loveTagsKey) {
     loveTagsKey = key;
-    loveTags = (async () => {
-      const sum = {};
-      for (const n of names) { const t = await call('artistTags', n); for (const [k, v] of Object.entries(t || {})) sum[k] = (sum[k] || 0) + Math.max(0, v); }
-      return sum;
-    })();
+    const sum = loveSum = {};
+    (async () => {
+      for (const n of names) {
+        if (loveTagsKey !== key) return; // likes changed: a newer pass took over
+        const t = await call('artistTags', n);
+        for (const [k, v] of Object.entries(t || {})) sum[k] = (sum[k] || 0) + Math.max(0, v);
+      }
+    })().catch(() => {});
   }
-  return loveTags;
+  return loveSum;
 }
 const seen = [];
+const TAG_WAIT = 8000; // a busy MusicBrainz queue must not stall the Blind Test: after this the tags count as unknown
 function tagScore(c) {
   const fresh = !c.tagP;
   c.tagP ??= (async () => {
-    const [mine, theirs] = [await lovedTags(), await call('artistTags', c.artist)];
-    c.tagSim = theirs ? Features.tagCos(theirs, mine) : null;
+    const theirs = await Promise.race([call('artistTags', c.artist), new Promise(r => setTimeout(r, TAG_WAIT))]);
+    const mine = lovedTags();
+    c.tagSim = theirs && Object.keys(mine).length ? Features.tagCos(theirs, mine) : null;
     return c;
   })().catch(() => { c.tagSim = null; return c; });
   if (fresh) c.tagP.then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // first call only: no re-entry loop
