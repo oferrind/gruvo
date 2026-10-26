@@ -212,7 +212,7 @@ function teach(t, kind) {
   }
   fingerprint(t).then(v => {
     if (!v || (kind === 'love' && !isLiked(t))) return; // unloved while we were listening
-    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v, ...(t.ab && { ab: t.ab }) }].slice(-500); // store.js keeps the same cap
+    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
     save();
   });
 }
@@ -226,6 +226,7 @@ function unlike(t) {
   afterLikeChange();
 }
 function afterLikeChange() {
+  lovedTags(); // loves changed: refresh the tag profile (paced and cached lookups)
   $$('.love').forEach(b => b.sync && b.sync());
   $('#saved-count').textContent = profile.likes.length || '';
   renderStamps();
@@ -407,8 +408,8 @@ function fingerprint(c) {
 // After 12 misfits in a row the best of what's there plays anyway, so a narrow taste never stalls the Blind Test.
 let misfits = 0;
 
-// Taste experiment (prefs.abTest): picker B judges a candidate by its artist's MusicBrainz tags vs. the tags of the artists you loved.
-// Every candidate gets its tag similarity (c.tagSim: undefined = pending, null = unknown); the recent passes of the sound picker set B's cut so both pass a similar share.
+// Picker: 80% MusicBrainz artist-tag similarity to the artists you loved + 20% sound closeness (see Features.blend).
+// c.tagSim: undefined = lookup pending, null = unknown tags. Both are standardised against a window of recent candidates.
 let loveTags = null, loveTagsKey = '';
 async function lovedTags() {
   const names = [...new Set(profile.likes.map(l => l.artist))].slice(-60), key = names.join('|');
@@ -422,7 +423,7 @@ async function lovedTags() {
   }
   return loveTags;
 }
-const seenSims = [], seenFits = [];
+const seen = [];
 function tagScore(c) {
   const fresh = !c.tagP;
   c.tagP ??= (async () => {
@@ -433,28 +434,25 @@ function tagScore(c) {
   if (fresh) c.tagP.then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // first call only: no re-entry loop
   return c.tagP;
 }
-function observe(c) { // once both scores exist: feed the calibration window
+function observe(c) { // once both scores exist: feed the calibration window (~80 recent candidates)
   if (c.obs || !c.vec || c.tagSim === undefined || !warm()) return;
   c.obs = true;
-  if (c.tagSim !== null) { seenSims.push(c.tagSim); seenFits.push(Features.fits(c.vec, profile.ratings, profile.adventure)); }
-  if (seenSims.length > 80) { seenSims.shift(); seenFits.shift(); }
+  const L = Features.nearest(c.vec, profile.ratings, 'love');
+  c.sc = { t: c.tagSim, s: L ? -L.d : null };
+  seen.push(c.sc);
+  if (seen.length > 80) seen.shift();
 }
-let nextAb = null; // drawn once per mystery, before any filtering, so readiness can't steer it
 function nextFromQueue() {
   if (!warm()) return queue.shift() || null;
-  const ab = profile.prefs.abTest.on;
-  if (ab) { nextAb ??= Math.random() < 0.5 ? 'fp' : 'tags'; queue.forEach(c => { tagScore(c); observe(c); }); } else nextAb = null;
-  const tags = nextAb === 'tags';
-  const cut = tags && Features.tagCut(seenSims, seenFits.length ? seenFits.filter(Boolean).length / seenFits.length : 0.5, profile.adventure);
-  const known = c => (tags ? c.tagSim !== undefined : true);
-  const fit = c => c.back || misfits >= 12 || (tags ? c.tagSim !== null && Features.tagFits(c.tagSim, cut) : Features.fits(c.vec, profile.ratings, profile.adventure));
+  queue.forEach(c => { tagScore(c); observe(c); });
+  const cut = Features.blendCut(seen, profile.adventure);
+  const known = c => c.sc;
+  const fit = c => c.back || misfits >= 12 || Features.blend(c.sc, seen) >= cut;
   const drop = queue.filter(c => c.vec && known(c) && !fit(c));
   misfits += drop.length;
   const ready = queue.filter(c => c.vec && known(c) && fit(c));
   if (!ready.length) { queue.splice(0, queue.length, ...queue.filter(c => !drop.includes(c) && c.vec !== null)); return null; } // wait for more fingerprints
-  const [best, ...rest] = tags ? ready.sort((x, y) => (y.tagSim || 0) - (x.tagSim || 0)) : Features.rank(ready, profile.ratings, profile.adventure);
-  if (ab) best.ab = nextAb; // stays in memory and in the rating entry; never rendered
-  nextAb = null;
+  const [best, ...rest] = ready.sort((x, y) => Features.blend(y.sc, seen) - Features.blend(x.sc, seen));
   misfits = 0;
   rest.forEach(c => { c.passed = (c.passed || 0) + 1; });
   const keep = queue.filter(c => c !== best && !drop.includes(c) && !(c.passed >= 3) && c.vec !== null); // vec null = preview failed to decode: can't be ranked, drop it
@@ -501,7 +499,7 @@ const excluded = () => [...queue, mystery].filter(Boolean).map(c => norm(c.artis
 function accept(c) {
   if (!c || (isHeard(c) && !c.back) || excluded().includes(norm(c.artist))) return false;
   queue.push(c);
-  if (profile.prefs.abTest.on && warm()) tagScore(c);
+  if (warm()) tagScore(c);
   fingerprint(c).then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // warm: a candidate can only play once it has been listened to
   if (!mystery) showMystery();
   return true;
@@ -1411,8 +1409,6 @@ function renderPrefs() {
   renderSchemes();
   $('#pref-decades').append(...DECADES.map(d => toggleChip(`${d}s`, p.decades.includes(d), on => { profile.prefs.decades = setIn(profile.prefs.decades, d, on); })));
   $('#pref-bringback').checked = p.bringBack;
-  $('#pref-ab').checked = p.abTest.on;
-  $('#pref-ab').onchange = e => { profile.prefs.abTest = { on: e.target.checked, started: e.target.checked ? Date.now() : profile.prefs.abTest.started }; save(); if (e.target.checked) lovedTags(); }; // start the loved-artist tag lookups now (~1.5 s each)
   $('#pref-bringback').onchange = e => { profile.prefs.bringBack = e.target.checked; save(); };
   $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
 }
@@ -1500,7 +1496,7 @@ $('#tree-export').onclick = e => {
   document.body.classList.toggle('no-spotify', !!sp.unavailable); // phone: no Spotify login, so no Preferences section or Export
   renderSpotifyPrefs();
   profile = await store.load();
-  if (profile.prefs.abTest.on) lovedTags(); // taste experiment: warm the loved-artist tags before the first tags mystery
+  lovedTags(); // warm the loved-artist tags before the first mystery
   applyScheme(profile.prefs.scheme);
   regionList = await api.countries();
   buildStamps(regionList);

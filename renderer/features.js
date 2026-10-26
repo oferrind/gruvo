@@ -184,17 +184,26 @@
     for (const v of Object.values(b || {})) nb += Math.max(0, v) ** 2;
     return na && nb ? dot / Math.sqrt(na * nb) : 0;
   }
-  // Fixed fallback until enough candidates were seen to calibrate; looser as Adventure rises, like reach().
-  const tagReach = adventure => 0.3 * (1 - 0.6 * clamp(adventure / 100));
-  // Cut that lets the top `share` of recently seen tag similarities pass, so B passes as many candidates as fits() does. Needs >= 12 samples.
-  function tagCut(sims, share, adventure) {
-    if (sims.length < 12) return tagReach(adventure);
-    const s = sims.slice().sort((x, y) => y - x), i = Math.min(s.length - 1, Math.max(0, Math.round(share * s.length) - 1));
-    return Math.max(s[i], 1e-9); // never pass a zero-similarity candidate
+  // Blind Test picker: 80% artist-tag similarity + 20% sound closeness, each standardised against a window of recent candidates.
+  // Candidate c = { t: tag cosine or null (unknown), s: -distance to the nearest loved fingerprint or null }.
+  const W_TAG = 0.8, W_SOUND = 0.2, UNKNOWN_TAG = 1; // unknown tags score one SD below the window mean
+  function z(x, xs) {
+    const v = xs.filter(Number.isFinite), m = v.reduce((a, b) => a + b, 0) / (v.length || 1);
+    return v.length ? (x - m) / Math.max(Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length), 1e-6) : 0;
   }
-  const tagFits = (sim, cut) => sim >= cut;
+  const blend = (c, win) => W_TAG * (Number.isFinite(c.t) ? z(c.t, win.map(w => w.t)) : -UNKNOWN_TAG)
+    + W_SOUND * (Number.isFinite(c.s) ? z(c.s, win.map(w => w.s)) : 0);
+  // Share of the window that passes: 35% at Adventure 0 up to 85% at 100. Features.fits passed roughly this share of a
+  // typical pool (reach 2/3 TMAX -> 1.5 TMAX), so Adventure keeps the same feel.
+  const passShare = adventure => 0.35 + 0.5 * clamp(adventure / 100);
+  // Lowest blended score that passes; with fewer than 12 samples nothing is rejected yet.
+  function blendCut(win, adventure) {
+    if (win.length < 12) return -Infinity;
+    const s = win.map(w => blend(w, win)).sort((x, y) => y - x);
+    return s[Math.min(s.length - 1, Math.max(0, Math.round(passShare(adventure) * s.length) - 1))];
+  }
 
-  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource, tagCos, tagReach, tagCut, tagFits };
+  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource, nearest, tagCos, W_TAG, W_SOUND, blend, passShare, blendCut };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.Features = api;
 })(this);

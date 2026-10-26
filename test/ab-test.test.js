@@ -12,13 +12,23 @@ test('tag cosine: identical 1, disjoint 0, partial in between', () => {
   assert.ok(Math.abs(F.tagCos({ rock: 1, pop: 1 }, { rock: 1 }) - Math.SQRT1_2) < 1e-9);
 });
 
-test('tag cut passes the requested share and falls back with few samples', () => {
-  const sims = Array.from({ length: 20 }, (_, i) => (i + 1) / 20);
-  const cut = F.tagCut(sims, 0.25, 50);
-  assert.equal(sims.filter(s => F.tagFits(s, cut)).length, 5);
-  assert.equal(F.tagCut([0.9], 0.25, 0), F.tagReach(0));
-  assert.ok(F.tagReach(100) < F.tagReach(0));
-  assert.ok(F.tagCut(new Array(20).fill(0), 0.5, 50) > 0, 'zero similarity never passes');
+test('blend: 80/20 weights, unknown tags penalised, missing sound neutral', () => {
+  assert.equal(F.W_TAG + F.W_SOUND, 1);
+  assert.equal(F.W_TAG, 0.8);
+  const win = Array.from({ length: 20 }, (_, i) => ({ t: i / 20, s: -i / 20 }));
+  const best = { t: 0.95, s: -0.5 }, tagsOnly = { t: 0.95, s: null };
+  assert.ok(F.blend(best, win) > F.blend({ t: 0.1, s: -0.5 }, win));
+  assert.ok(F.blend({ t: 0.5, s: -0.1 }, win) > F.blend({ t: 0.5, s: -0.9 }, win), 'closer sound wins on equal tags');
+  assert.ok(F.blend({ t: null, s: null }, win) < F.blend({ t: 0.5, s: null }, win), 'unknown tags score below the mean');
+  assert.ok(Math.abs(F.blend(tagsOnly, win) - F.W_TAG * (0.95 - 0.475) / Math.sqrt(399 / 4800)) < 1e-9);
+});
+
+test('blend cut: Adventure widens the passing share; few samples reject nothing', () => {
+  const win = Array.from({ length: 40 }, (_, i) => ({ t: i / 40, s: -i }));
+  const pass = a => win.filter(c => F.blend(c, win) >= F.blendCut(win, a)).length;
+  assert.equal(F.blendCut(win.slice(0, 5), 0), -Infinity);
+  assert.ok(pass(0) < pass(50) && pass(50) < pass(100));
+  assert.equal(pass(0), Math.round(F.passShare(0) * 40));
 });
 
 test('store: abTest validated (default off) and ab kept only as fp|tags', () => {
