@@ -490,9 +490,10 @@ async function moreTree(T, id) {
     node.done.add('more');
     await ranked(T, node);
     const r = await recordingOf(T, node);
-    const built = r && node.depth > 0 ? lookBack(r.rec, r.work) : [];
-    const prod = r ? await producerEdge(T, node, r.rec) : [];
-    const lab = await labelEdge(T, node), sound = T.S.edges.includes('soundtrack') ? await soundEdge(T, node) : [];
+    const has = k => T.S.edges.includes(k); // an unchecked connection stays out of More too
+    const built = r && has('builton') && node.depth > 0 ? lookBack(r.rec, r.work) : [];
+    const prod = r && has('producer') ? await producerEdge(T, node, r.rec) : [];
+    const lab = has('label') ? await labelEdge(T, node) : [], sound = has('soundtrack') ? await soundEdge(T, node) : [];
     node.pending = [...built, ...prod.slice(0, 1), ...sound.slice(0, 1), ...lab.slice(0, 1), ...node.pending, ...prod.slice(1), ...sound.slice(1), ...lab.slice(1)];
   }
   const start = T.nodes.length, f0 = T.fails;

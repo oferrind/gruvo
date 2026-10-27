@@ -65,7 +65,7 @@
               <circle class="lead" r="95.5"/><circle class="gap" r="82"/><circle class="gap" r="70"/><circle class="gap" r="59"/><circle class="gap" r="49.5"/>
               <circle class="runout" r="41"/><circle class="lock" r="38.5"/><circle class="label" r="33"/><circle class="label-ring" r="29.5"/>
               <path id="label-arc" class="label-arc" d="M0-23a23 23 0 1 1 0 46a23 23 0 1 1 0-46"/>
-              <text class="label-text"><textPath href="#label-arc" textLength="142" lengthAdjust="spacing">STUMBLE · SIDE A · 33 1/3 RPM · NO NAMES ·</textPath></text>
+              <text class="label-text"><textPath href="#label-arc" textLength="142" lengthAdjust="spacing">GRUVO · SIDE A · 33 1/3 RPM · NO NAMES ·</textPath></text>
               <text class="label-side" y="18.5" text-anchor="middle">A</text><circle class="spindle" r="3"/><circle class="lip" r="99.2"/>
             </svg></button>
             <svg class="tonearm" viewBox="0 0 40 164" aria-hidden="true" focusable="false">
@@ -184,7 +184,7 @@
       <div class="panel-head">
         <h1>Family Tree</h1>
         <p class="muted">Start from a song you saved. Walk through its scene, step by step.</p>
-        <div class="sp-export"><button id="tree-export" type="button">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
+        <div class="sp-export" hidden><button id="tree-export" type="button">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <div class="tree-picker">
         <form id="tree-pick" class="search">
@@ -221,7 +221,7 @@
       <div class="panel-head">
         <h1>Saved</h1>
         <p class="muted">Everything you loved, newest first.</p>
-        <div class="sp-export"><button id="saved-export" type="button">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
+        <div class="sp-export" hidden><button id="saved-export" type="button">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <div class="chips saved-seg" role="group" aria-label="Show">
         <button id="seg-loved" type="button" class="chip" aria-pressed="true">Loved</button>
