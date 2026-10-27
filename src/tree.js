@@ -1,7 +1,7 @@
 // Family Tree (docs/05-song-tree-spec.md): a small explained tree of songs around one root song.
 // Like src/music.js, everything takes `get(url)` so tests can feed recorded JSON. Runs in main; nodes stream out via `emit`.
 const COUNTRIES = require('./countries');
-const { norm, soleArtist, sharedNames, personTrail, dedupe, baseTitle, adventureMix, flows: { resolvePreview } } = require('./music');
+const { norm, soleArtist, sharedNames, personTrail, dedupe, baseTitle, fromDeezer, adventureMix, flows: { resolvePreview } } = require('./music');
 
 const DZ = 'https://api.deezer.com';
 const MB = 'https://musicbrainz.org/ws/2';
@@ -206,9 +206,7 @@ async function dzArtist(get, name, fans) {
   return hit.length ? pick(hit[0]) : null;
 }
 
-const dzTrack = r => r && { source: 'dz', id: r.id, artist: r.artist.name, artistDzId: r.artist.id,
-  cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, previewUrl: r.preview,
-  title: (r.title_short || r.title).replace(/\s*[([-][^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || r.title }; // "Beautiful Ones (Remastered)"
+const dzTrack = r => r && fromDeezer(r);
 
 // Variety: sort by rank plus noise (rand = () => 0 keeps strict rank order); items shown lately sink to the back.
 const JITTER = 4, RECENT_PENALTY = 8;

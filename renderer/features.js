@@ -130,7 +130,7 @@
     const beat = v[5] > 0.3 && l[5] > 0.3; // tempo of soft, sparse audio is a guess: only talk tempo when both have clear onsets
     const octave = Math.abs(Math.abs(log2(bpmOf(v) / bpmOf(l))) - 1) < 0.08; // half/double reads as the same feel, not faster/slower
     const shared = [
-      beat && Math.abs(bpmOf(v) / bpmOf(l) - 1) < 0.06 && `${v[5] > 0.45 && v[1] > 0.5 ? 'driving' : 'steady'} ~${bpmOf(l)} BPM pulse`,
+      beat && Math.abs(bpmOf(v) / bpmOf(l) - 1) < 0.06 && `${v[5] > 0.45 && v[1] > 0.5 ? 'driving' : 'steady'} pulse`,
       both(3, 0.35, 0.65) && (v[3] < 0.35 ? 'dark, warm tone' : 'bright, airy top end'),
       bass(v) > 0.8 && bass(l) > 0.8 && 'deep low end',
       both(5, 0.15, 0.45) && (v[5] > 0.45 ? 'busy, percussive rhythm' : 'sparse, gentle rhythm'),

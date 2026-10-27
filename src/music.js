@@ -43,7 +43,8 @@ function pickDeezer(rows, artist, title, requireTitle = false) {
   return soleArtist(ok, artist, r => r.artist.name, r => r.artist.id).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0] || null;
 }
 
-const fromDeezer = r => ({ source: 'dz', id: r.id, title: r.title, artist: r.artist.name, artistDzId: r.artist.id,
+const cleanTitle = t => t.replace(/\s*[([-][^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || t; // "Beautiful Ones (Remastered)", "Song - 2011 Remaster"; keeps (Live) / (feat. X)
+const fromDeezer = r => ({ source: 'dz', id: r.id, title: cleanTitle(r.title), artist: r.artist.name, artistDzId: r.artist.id,
   cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, isrc: r.isrc, previewUrl: r.preview });
 
 // Adventure 0-100 -> how the Blind Test picks candidates.
@@ -492,7 +493,7 @@ function artistTags(get, name) {
 }
 
 module.exports = {
-  COUNTRIES, norm, isHeard, artistMatch, shuffle, fromDeezer, pickDeezer, adventureMix, chooseSource, pickRelated,
+  COUNTRIES, norm, cleanTitle, isHeard, artistMatch, shuffle, fromDeezer, pickDeezer, adventureMix, chooseSource, pickRelated,
   bestRecording, groupCredits, trailPicks, trimSentences, wikiAccept, factSentence, dedupe, sharedNames, soleArtist, personTrail, sortHits, baseTitle, mbSong, pickTrip, prefHeard, rankArtists, TRIP_BIAS, returnShare, pickReturnArtist, pickDeepCut, BACK_GAP, BACK_COOLDOWN,
   flows: { deepCut, resolvePreview, freshPreview, passportArtists, nextCandidate, searchTracks, genres, searchArtists, seedTracks, about, artistTags },
 };

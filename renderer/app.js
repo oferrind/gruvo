@@ -26,6 +26,12 @@ document.head.append(el('script', { src: 'features.js' })); // Sound Fingerprint
 
 let profile, countryNames = {};
 
+function undoToast(msg, undo) {
+  const box = $('#toast');
+  box.replaceChildren(msg, ' ', el('button', { type: 'button', className: 'toast-undo', textContent: 'Undo', onclick: () => { clearTimeout(toast.t); box.textContent = ''; undo(); } }));
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => { box.textContent = ''; }, 5000);
+}
 function save() { store.save(profile).catch(e => toast('Could not save: ' + e.message)); }
 function toast(msg) {
   $('#toast').textContent = msg;
@@ -238,12 +244,21 @@ function teach(t, kind) {
 }
 function unlike(t) {
   const old = profile.likes.find(l => likeKey(l) === likeKey(t));
+  const at = profile.likes.indexOf(old), rating = profile.ratings.find(r => r.id === likeKey(t) && r.rating === 'love');
   const sk = old && stampOf(old);
   if (sk && profile.stamps[sk] && !--profile.stamps[sk]) delete profile.stamps[sk]; // R2: unloving undoes its stamp
   profile.likes = profile.likes.filter(l => likeKey(l) !== likeKey(t));
   profile.ratings = profile.ratings.filter(r => r.id !== likeKey(t) || r.rating !== 'love');
   save();
   afterLikeChange();
+  if (old && !$('#saved').hidden) undoToast(`Removed “${t.title}”`, () => { // Saved: put it back where it was
+    if (isLiked(t)) return;
+    profile.likes.splice(at, 0, old);
+    if (sk) profile.stamps[sk] = (profile.stamps[sk] || 0) + 1;
+    if (rating) profile.ratings.push(rating);
+    save();
+    afterLikeChange();
+  });
 }
 function afterLikeChange() {
   lovedTags(); // loves changed: refresh the tag profile (paced and cached lookups)
@@ -332,7 +347,10 @@ function trackRow(t, { extra, reason, full, tag = 'li', from } = {}) {
       reason ? el('small', { className: 'reason', textContent: reason }) : null, full || t.noPreview ? fullSong(t) : null, full ? aboutDetails(t) : null),
     loveButton(t, extra));
   row.dataset.key = likeKey(t);
-  if (current && likeKey(current) === row.dataset.key) row.classList.add('is-playing');
+  if (current && likeKey(current) === row.dataset.key) {
+    row.classList.add('is-playing');
+    if (!audio.paused && audio.getAttribute('src')) { playBtn.replaceChildren(icon('pause')); playBtn.setAttribute('aria-label', 'Pause'); } // same as syncPlayState
+  }
   return row;
 }
 
@@ -506,6 +524,7 @@ function soundReason(m, v) {
   const names = { ...seedNames(), ...Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${l.title}” by ${l.artist}`])) };
   const sound = v && window.Features ? Features.explain(v, profile.ratings.filter(r => r.id !== likeKey(m)), names, { close: true }) : '';
   if (!m.why) return sound || m.reason || '';
+  if (whyTag(m)) return sound; // the sticker already says how it was found
   const [text, key] = Features.whyLine(m.why, sound, lastWhy);
   lastWhy = key;
   return text;
@@ -666,7 +685,7 @@ function revealDetails(m) {
   const meta = el('div', { className: 'meta-row' }, tag ? el('span', { className: 'sticker', textContent: tag }) : null, facts);
   const box = el('div', { className: 'about', ariaBusy: 'true' }, el('p', { className: 'about-text is-loading', textContent: '…' }));
   aboutOf(m).then(({ text, url, facts: f = {} }) => {
-    facts.append(...[f.year, f.label, f.genre, f.album].filter(Boolean).map(x => el('li', { textContent: x })));
+    facts.append(...[f.year, f.label, f.genre, f.album].filter(x => x && ![m.title, m.artist].some(n => norm(n) === norm(x))).map(x => el('li', { textContent: x })));
     box.setAttribute('aria-busy', 'false');
     if (!text) return box.replaceChildren();
     const p = el('p', { className: 'about-text clamp', textContent: text });
@@ -905,6 +924,7 @@ function songRow(t) {
 api.onStampRow((run, row) => {
   if (run !== stRun) return;
   stSongs.push(row);
+  if (!stDone) stState('loading', `Found ${stSongs.length}…`); // not a stale "Searching…" over songs already arriving
   $('#stamp-songs').append(songRow(row));
 });
 
@@ -973,8 +993,8 @@ function doRoll() {
   const st = rollState();
   const s = nextRoll && !st.recent.includes(nextRoll.id) ? nextRoll : SD.roll(st);
   nextRoll = null;
+  rolling = true;
   land(s, 2);
-  toResults(reduced() ? 0 : 1150);
 }
 // Lands a rolled stamp; one that comes back thin is re-rolled (up to `left` times) before the suggestion screen shows.
 function land(s, left) {
@@ -989,10 +1009,11 @@ function land(s, left) {
   openStamp(s, left);
 }
 let reelPool = null;
+let rolling = false; // set by doRoll: only a Roll scrolls to the results, not a re-roll's reel
 function spinReels(s) { // one reel: random stamp names spin past and the rolled one lands
   reelPool ??= [...SD.CATALOGUE.map(x => x.label), ...[...SD.ATLAS.values()].map(e => e.label)];
   $('#roll-said').textContent = `Rolled: ${s.label}`;
-  const reel = $('#reels .reel'), strip = reel.firstElementChild, land = () => strip.replaceChildren(el('span', { textContent: s.label }));
+  const reel = $('#reels .reel'), strip = reel.firstElementChild, land = () => { strip.replaceChildren(el('span', { textContent: s.label })); if (rolling) { rolling = false; toResults(); } }; // scroll to the songs only once the reel has landed
   strip.getAnimations().forEach(a => a.cancel());
   if (reduced()) return land();
   const spin = Array.from({ length: 12 }, () => reelPool[Math.floor(Math.random() * reelPool.length)]);
