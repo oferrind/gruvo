@@ -51,4 +51,7 @@ const awake = on => () => (on ? KeepAwake.keepAwake() : KeepAwake.allowSleep()).
 document.addEventListener('playing', awake(true), true);
 for (const ev of ['pause', 'ended', 'emptied', 'error']) document.addEventListener(ev, awake(false), true);
 // Desktop flushes the response cache on quit; the phone may be killed in the background, so flush when hidden.
-document.addEventListener('visibilitychange', () => { if (document.hidden) net.flushCache(); });
+// Backgrounded, screen off or closing: stop the music (no auto-resume). The 'pause' event also releases keep-awake.
+const stopMusic = () => { document.querySelector('audio')?.pause(); KeepAwake.allowSleep().catch(() => {}); };
+App.addListener('pause', stopMusic);
+document.addEventListener('visibilitychange', () => { if (document.hidden) { stopMusic(); net.flushCache(); } });

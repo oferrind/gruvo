@@ -84,41 +84,54 @@ async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand
   const { tags } = stamp, d = stamp.decade || 0, cc = stamp.cc || '';
   const first = await get(mbUrl('recording', `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`));
   if (first.error) return { error: true };
-  let recs = first.recordings || [];
+  const recs = first.recordings || [];
   const ids = [...new Set(recs.map(r => (creditArtist(r) || {}).id).filter(Boolean))].slice(0, 80);
   const guard = new Map();
   if (ids.length) addGuard(guard, (await get(mbUrl('artist', ids.map(i => `arid:${i}`).join(' OR ')))).artists, cc, cc ? [] : tags);
   if (!live()) return null;
-  // artist-first top-up: tagged artists (from cc), then their in-era recordings. Genre-only: when under 8 *tagged* artists.
-  if (cc ? guard.size < 8 : [...guard.values()].filter(g => g.tagged).length < 8) {
+  const per = {}, lim = { dz: 0 }, seen = new Set(), names = []; // names: artists in play order (tagged first), for the genre build script
+  let count = 0;
+  const artistIds = new Set();
+  // Plays songs in order, 3 Deezer lookups in flight at once (src/net.js still paces the host); rows emit in order as each resolves.
+  const play = async songs => {
+    const list = order(songs, rand);
+    songs.forEach(s => artistIds.add(s.artistId));
+    for (let i = 0; i < list.length && count < 10 && live();) {
+      const batch = [], tent = {};
+      for (; i < list.length && batch.length < 3; i++) {
+        const { song, round } = list[i], n = (per[song.artistId] || 0) + (tent[song.artistId] || 0);
+        if (!(round < 2 ? n < 2 : round === 2 && n < 3 && count + batch.length < 8)) continue; // max 2 per artist; a 3rd only to reach 8
+        tent[song.artistId] = (tent[song.artistId] || 0) + 1;
+        batch.push({ song, p: lookup(get, guard.get(song.artistId), song, lim) });
+      }
+      for (const { song, p } of batch) {
+        const t = await p;
+        if (count >= 10) continue; // an overshoot lookup: not tried, so More still offers it
+        seen.add(songKey(song));
+        if (!t || !live()) continue;
+        per[song.artistId] = (per[song.artistId] || 0) + 1;
+        count++;
+        names.push(guard.get(song.artistId).name);
+        emit({ ...t, year: song.year, ...(cc && { country: cc }), ...(d && { decade: d }), genre: stamp.genre, stamp: stamp.id });
+      }
+    }
+  };
+  const songs = songsFrom(recs, guard, d);
+  await play(songs); // rows start streaming before the slow top-up below
+  // artist-first top-up: tagged artists (from cc), then their in-era recordings. Genre-only: when under 8 *tagged* artists. Skipped once the Roll is full.
+  if (count < 10 && live() && (cc ? guard.size < 8 : [...guard.values()].filter(g => g.tagged).length < 8)) {
     const want = new Set(tags.map(norm));
     const res = await get(mbUrl('artist', `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''}`));
     const extra = (res.artists || []).filter(a => (!cc || a.country === cc) && !guard.has(a.id) && (a.tags || []).some(t => want.has(norm(t.name)))).slice(0, 30);
     addGuard(guard, extra, cc, cc ? [] : tags);
+    let more = [];
     for (let i = 0; i < extra.length && live(); i += 10) {
       const r = await get(mbUrl('recording', `(${extra.slice(i, i + 10).map(a => `arid:${a.id}`).join(' OR ')}) AND ${eraQ(d)}`));
-      recs = recs.concat(r.recordings || []);
+      more = more.concat(r.recordings || []);
+      if (count < 10) await play(songsFrom(more.splice(0), guard, d).filter(s => !seen.has(songKey(s)))); // each batch plays as it arrives
     }
   }
-  const songs = songsFrom(recs, guard, d);
-  const artists = new Set(songs.map(s => s.artistId)).size;
-  const per = {};
-  let count = 0;
-  const lim = { dz: 0 }, seen = new Set();
-  const names = []; // artists in play order (tagged first), for the genre build script
-  for (const { song, round } of order(songs, rand)) {
-    if (count >= 10 || !live()) break;
-    const n = per[song.artistId] || 0;
-    if (!(round < 2 ? n < 2 : round === 2 && n < 3 && count < 8)) continue; // max 2 per artist; a 3rd only to reach 8
-    const g = guard.get(song.artistId), t = await lookup(get, g, song, lim);
-    seen.add(songKey(song));
-    if (!t || !live()) continue;
-    per[song.artistId] = n + 1;
-    count++;
-    names.push(g.name);
-    emit({ ...t, year: song.year, ...(cc && { country: cc }), ...(d && { decade: d }), genre: stamp.genre, stamp: stamp.id });
-  }
-  const mbCount = first.count; // recordings carrying the tag: the genre's tier
+  const artists = artistIds.size, mbCount = first.count; // recordings carrying the tag: the genre's tier
   if (!live()) return null; // cancelled (a prefetch that was dropped): not a thin stamp, so nobody marks it short
   if (count < (stamp.atlas && !d && !cc ? 3 : 5)) return { thin: true, count }; // a verified genre (>= 6 songs at build) shows what it has
   const res = { count, artists, mbCount, names, short: count < 8, rarity: count < 8 || artists < 8 ? 'Legendary' : artists < 15 ? 'Rare' : 'Common' };
