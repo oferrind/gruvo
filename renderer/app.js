@@ -239,9 +239,9 @@ function afterLikeChange() {
   renderSaved(); // R3: Saved reflects unloves immediately
   if (i < 0) return;
   // The focused row was just re-rendered away: land on the next row's Love, else the heading (R6).
-  const rows = $$('#saved-list > li .love'), h = $('#saved-like-count').parentElement;
+  const rows = $$('#saved-list > li .love');
   if (rows.length) return rows[Math.min(i, rows.length - 1)].focus();
-  h.tabIndex = -1; h.focus();
+  $('#saved-list .state button').focus(); // the list is empty: its heading is hidden, so land on the empty crate's first action
 }
 
 function loveButton(t, extra) {
@@ -696,13 +696,13 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Enter' && rated && e.target === document.body) showMystery();
 });
 
-const ADVENTURE = [[20, 'Stays close to artists you loved.'], [45, 'Mostly familiar, a few surprises.'],
-  [69, 'Half near what you loved, half complete strangers.'], [89, 'Mostly strangers, wandering further from your taste.'], [100, 'Almost all complete strangers.']];
+const ADVENTURE = [[20, 'Close to what you love'], [45, 'Mostly familiar, a few surprises'],
+  [69, 'Half familiar, half strangers'], [89, 'Mostly strangers'], [100, 'Nearly all strangers']];
 function showAdventure() {
-  const v = profile.adventure;
-  const text = ADVENTURE.find(([max]) => v <= max)[1];
-  $('#adventure-value').textContent = `${v}: ${text}${profile.likes.length ? '' : ' Love a few tracks first; until then every pick is a stranger.'}`;
-  $('#adventure').setAttribute('aria-valuetext', `${v}, ${text}`);
+  const text = ADVENTURE.find(([max]) => profile.adventure <= max)[1];
+  $('#adventure-value').textContent = text;
+  $('#adventure-help').textContent = profile.likes.length ? '' : 'Love a few tracks first; until then every pick is a stranger.';
+  $('#adventure').setAttribute('aria-valuetext', text);
 }
 $('#adventure').addEventListener('input', e => { profile.adventure = Number(e.target.value); showAdventure(); });
 $('#adventure').addEventListener('change', save);
@@ -874,7 +874,7 @@ function renderStamps() {
   renderCatalogue(); renderGenreList(); renderStampHead();
 }
 let stMenu = 0;
-const PHONE = matchMedia('(max-width: 840px)');
+const PHONE = matchMedia('(max-width: 840px), (pointer: coarse) and (max-height: 500px)'); // the phone layout, a landscape phone included (styles.css)
 PHONE.addEventListener('change', () => $$('#stamp-songs .track').forEach(r => r.fit?.()));
 function songRow(t) {
   const row = trackRow(t, { extra: extraOf(t), full: true });
@@ -1296,7 +1296,7 @@ function renderSaved() {
   const list = $('#saved-list');
   list.replaceChildren(...profile.likes.slice().reverse().map((t, i) => {
     const row = trackRow(t, { extra: extraOf(t), full: true, // re-loving keeps the stamp
-      reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `loved ${new Date(t.ts).toLocaleDateString()}`].filter(Boolean).join(' · ') });
+      reason: [t.country && `${countryNames[t.country] || t.country}, ${t.decade}s`, t.ts && `Loved ${day(t.ts)}`].filter(Boolean).join(' · ') });
     row.append(el('div', { className: 'node-actions' }, moreMenu(row, `saved-menu-${i}`, `${t.artist} – ${t.title}`))); // About and Full song behind ⋯, as on the Tree
     return row;
   }));
@@ -1306,7 +1306,8 @@ function renderSaved() {
 }
 
 // ---------- Home ----------
-const day = ts => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+// One short date everywhere: "26 Oct", with the year only when it is not this year ("26 Oct 2025").
+const day = ts => { const d = new Date(ts); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); };
 const topOf = (xs, n = 3) => Object.entries(xs.reduce((a, x) => ((a[x] = (a[x] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, n);
 function renderHome() {
   if (!profile) return;

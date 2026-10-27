@@ -45,7 +45,6 @@
   /* paper and print: a faint scan grain on the room, paper fibres on cards (static tiles, no animated filters) */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.94 0 0 0 0 0.86 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.88 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  --duotone: var(--duo-d);
   /* cover-art accent: hue + saturation from the playing cover (JS), lightness from the theme so text stays AA */
   --tint-h: 35;
   --tint-s: 86%;
@@ -61,7 +60,6 @@
   --shadow-bar: 0 -6px 18px -14px rgb(60 40 20 / .3);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.08 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  --duotone: var(--duo-l);
   --tint-l: 27%;
   --tint-glow: hsl(var(--tint-h) var(--tint-s) 35% / .35);
   --tint-wash: hsl(var(--tint-h) var(--tint-s) 40% / .1);
@@ -74,7 +72,6 @@
     --shadow-bar: 0 -6px 18px -14px rgb(60 40 20 / .3);
     --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.08 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-    --duotone: var(--duo-l);
     --tint-l: 27%;
     --tint-glow: hsl(var(--tint-h) var(--tint-s) 35% / .35);
     --tint-wash: hsl(var(--tint-h) var(--tint-s) 40% / .1);
@@ -115,8 +112,6 @@
   --sticker-ink: light-dark(#2b1f16, #2b1f16);
   --color-vinyl: #0f0b09;
   --color-groove: #2b221c;
-  --duo-d: url(#duo-dark);
-  --duo-l: url(#duo-light);
 }
 
 /* Blue label: a cold hard-bop jazz sleeve. Midnight navy, one flat cobalt block, cool proof-paper type. */
@@ -147,8 +142,6 @@
   --sticker-ink: light-dark(#121a26, #121a26);
   --color-vinyl: #07090d;
   --color-groove: #1c2230;
-  --duo-d: url(#duo-bluelabel-dark);
-  --duo-l: url(#duo-bluelabel-light);
   --tint-h: 215;
   --tint-s: 90%;
 }
@@ -163,7 +156,7 @@
   --color-muted: light-dark(#4e5266, #b7aba0);
   --color-accent: light-dark(#b21b54, #ff5f8f);
   --color-on-accent: light-dark(#fff4f7, #1d0a10);
-  --color-love: light-dark(#ad2f1d, #ff7a59);
+  --color-love: light-dark(#9c1a6a, #ff8ad0); /* a riso magenta: a red heart fights the fluoro pink */
   --color-focus: light-dark(#c21d5b, #ff9ab8);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f8d9d2, #3a1a1f);
@@ -181,8 +174,6 @@
   --sticker-ink: light-dark(#1d2233, #1d2233);
   --color-vinyl: #0c0a0a;
   --color-groove: #2a2324;
-  --duo-d: url(#duo-riso-dark);
-  --duo-l: url(#duo-riso-light);
   --tint-h: 340;
   --tint-s: 90%;
 }
@@ -215,8 +206,6 @@
   --sticker-ink: light-dark(#0f1d16, #0f1d16);
   --color-vinyl: #050806;
   --color-groove: #17231d;
-  --duo-d: url(#duo-tuner-dark);
-  --duo-l: url(#duo-tuner-light);
   --tint-h: 150;
   --tint-s: 70%;
 }
@@ -249,8 +238,6 @@
   --sticker-ink: light-dark(#2a1414, #2a1414);
   --color-vinyl: #0e0808;
   --color-groove: #2c1a1a;
-  --duo-d: url(#duo-soul-dark);
-  --duo-l: url(#duo-soul-light);
   --tint-h: 4;
   --tint-s: 80%;
 }
@@ -265,7 +252,7 @@
   --color-muted: light-dark(#4c4c55, #a2a2ab);
   --color-accent: light-dark(#5b2fc9, #ae94ff);
   --color-on-accent: light-dark(#f7f4ff, #120a26);
-  --color-love: light-dark(#a72e2c, #ff7a7a);
+  --color-love: light-dark(#a8285a, #ff8fb3); /* raspberry, a warm note beside the violet */
   --color-focus: light-dark(#5b2fc9, #cdbcff);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f6dad6, #321a1a);
@@ -283,8 +270,6 @@
   --sticker-ink: light-dark(#151518, #151518);
   --color-vinyl: #08080a;
   --color-groove: #222226;
-  --duo-d: url(#duo-bleep-dark);
-  --duo-l: url(#duo-bleep-light);
   --tint-h: 258;
   --tint-s: 70%;
 }
@@ -317,8 +302,6 @@
   --sticker-ink: light-dark(#1b1a22, #1b1a22);
   --color-vinyl: #0b0b0c;
   --color-groove: #26262a;
-  --duo-d: url(#duo-mixtape-dark);
-  --duo-l: url(#duo-mixtape-light);
   --tint-h: 178;
   --tint-s: 75%;
 }
@@ -351,8 +334,6 @@
   --sticker-ink: light-dark(#18170e, #18170e);
   --color-vinyl: #070706;
   --color-groove: #20201a;
-  --duo-d: url(#duo-acid-dark);
-  --duo-l: url(#duo-acid-light);
   --tint-h: 55;
   --tint-s: 95%;
 }
@@ -499,7 +480,10 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .deck.is-playing .bigplay > .icon { opacity: 0; scale: .8; }
 @media (hover: hover) { .deck.is-playing .bigplay:hover > .icon { opacity: 1; scale: 1; } }
 .deck.is-playing .bigplay:focus-visible > .icon { opacity: 1; scale: 1; }
-/* The tonearm parks beside the record, lifts and drops onto the outer groove on play, then sweeps in to the label as the
+/* not playing yet (or paused) and not revealed: a price sticker slapped on the platter edge says the record plays */
+.deck::after { content: "Play me" / ""; position: absolute; z-index: 4; left: calc(var(--rec) * .31 - 14px); bottom: calc(var(--rec) * .06); padding: 4px 9px 3px; border-radius: 3px; pointer-events: none;
+  background: var(--sticker); color: var(--sticker-ink); box-shadow: 0 1px 3px rgb(0 0 0 / .4); font: 750 14px/1.2 var(--font-display); letter-spacing: .08em; text-transform: uppercase; rotate: -7deg; opacity: 0; scale: .9; transition: opacity 160ms ease-out, scale 160ms cubic-bezier(.16,1,.3,1); }
+.mystery:not(.is-revealed) .deck:not(.is-playing):has(.bigplay:not(:disabled))::after { opacity: 1; scale: 1; }/* The tonearm parks beside the record, lifts and drops onto the outer groove on play, then sweeps in to the label as the
    preview plays (driven by --p from the audio's time); it lifts back when stopped. */
 .tonearm { position: absolute; z-index: 3; top: calc(var(--rec) * -.15 + 7px); left: calc(var(--rec) * 1.16 + 7px); width: calc(var(--rec) * .2); height: calc(var(--rec) * .82);
   overflow: visible; transform-origin: 50% 12.2%; rotate: -8deg; pointer-events: none;
@@ -560,7 +544,7 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 @media (hover: hover) { .more-toggle:hover:not(:disabled) { background: none; text-decoration: underline; text-underline-offset: 3px; } }
 .reveal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-5); margin-top: var(--space-4); }
 
-/* Tonight's reveals: a quiet side column; past covers sit in duotone until played or hovered. */
+/* Tonight's reveals: a quiet side column; covers always in their true colours. */
 .rail { position: sticky; top: 64px; }
 .rail h2 { margin: 0 0 var(--space-3); }
 .rail-list { margin: 0; max-height: calc(100vh - 210px); overflow-y: auto; }
@@ -584,10 +568,16 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .about-more summary { cursor: pointer; width: fit-content; font-size: var(--font-size-sm); color: var(--color-muted); }
 .about-more .about { margin-bottom: 0; font-size: var(--font-size-sm); }
 .adventure { margin-top: var(--space-5); padding: 0 var(--space-2); }
+.adventure-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-3); margin: 0; }
 .adventure label { font-weight: 600; }
-.slider { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
-.slider input { flex: 1; accent-color: var(--color-accent); }
-.slider .end { font-size: var(--font-size-sm); color: var(--color-muted); white-space: nowrap; }
+#adventure-value { color: var(--color-accent); font: 700 17px/1.2 var(--font-display); letter-spacing: .03em; }
+/* the two ends sit right under the track, one at each end */
+.slider { display: grid; grid-template-columns: 1fr 1fr; margin-top: var(--space-1); }
+.slider input { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--color-accent); }
+.slider .end { font-size: var(--font-size-sm); color: var(--color-muted); white-space: nowrap; line-height: 1.2; }
+.slider .end + .end { text-align: right; }
+#adventure-help { margin: var(--space-1) 0 0; }
+#adventure-help:empty { display: none; }
 
 /* ---------- track rows ---------- */
 .tracks { list-style: none; padding: 0; margin: var(--space-3) 0; }
@@ -596,7 +586,7 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 @media (hover: hover) { .track:hover { background: var(--color-surface); } }
 .track.is-playing { background: var(--color-surface-2); }
 .track img, .cover-ph { width: 44px; height: 44px; border-radius: 3px; flex: none; object-fit: cover; box-shadow: 0 2px 6px rgb(0 0 0 / .35); }
-.cover-ph { display: inline-block; background: radial-gradient(circle, var(--color-surface) 0 12%, var(--color-surface-2) 13%); }
+.cover-ph { display: inline-block; background: url("img/empty-unknown.png") center / 112% no-repeat, var(--color-surface-2); } /* no cover: the shop's "?" sleeve */
 .track .meta { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .track .title { font-weight: 600; }
 .track .artist { color: var(--color-muted); }
@@ -618,7 +608,7 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 
 /* ---------- Genre Stamps ---------- */
 /* left: the Roll, the sentence builder and the catalogue; centre: the playlist; right: the stamp book (below it when narrower) */
-main:has(> #stamps:not([hidden])) { max-width: 1320px; }
+main:has(> :is(#stamps, #tree):not([hidden])) { max-width: 1320px; } /* the two digging tabs share one width */
 .stamps-layout { display: grid; gap: var(--space-6); align-items: start; }
 /* one column: the Roll and the sentence, then the songs, then the catalogue (never songs under 43 entries) */
 @media (max-width: 899px) { .stamp-side { display: contents; } .builder { margin: 0; } .stamp-main { order: 1; } .catalogue { order: 2; }
@@ -652,13 +642,13 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .reel { height: var(--reel-h); overflow: hidden; border: 1px solid var(--color-border); border-radius: 3px; box-shadow: inset 0 3px 7px rgb(0 0 0 / .45); color: var(--color-text); background: linear-gradient(var(--color-surface-2), var(--color-surface) 35% 65%, var(--color-surface-2));
   font: 700 19px/var(--reel-h) var(--font-display); text-align: center; letter-spacing: .01em; container-type: inline-size; }
 .reel-strip { display: block; }
+.reel-strip > .reel-idle { color: var(--color-muted); font: 600 15px/1.2 var(--font-body); letter-spacing: 0; } /* before the first Roll: what the reel will land on */
 .reel-strip > span { display: grid; place-items: center; height: var(--reel-h); padding: 0 6px; overflow: hidden; line-height: 1.05; text-wrap: balance; font-size: clamp(13px, 4cqi, 19px); } /* long names wrap to two lines, never "…" */
 .roll-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); margin-top: var(--space-3); }
 .roll-btn { min-height: 40px; padding: var(--space-2) var(--space-4); font: 750 17px/1 var(--font-display); text-transform: uppercase; letter-spacing: .05em; }
 .roll-go { display: inline-flex; align-items: center; gap: var(--space-2); }
 .roll-go kbd { color: var(--color-muted); }
 .adventurous { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); color: var(--color-muted); cursor: pointer; }
-.adventurous input { accent-color: var(--color-accent); width: 15px; height: 15px; margin: 0; }
 
 /* the builder reads as a sentence: Play me [90s] [Japanese] [rock] */
 .builder { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); margin: 0; font: 650 17px/1.35 var(--font-display); } /* quieter than the reel: Pick one is the second tool */
@@ -668,8 +658,10 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 @media (hover: hover) { :is(.builder select, #cat-filter, #genre-family, #genre-tier):hover { background: var(--tint-wash); } }
 :is(.builder, #cat-filter, #genre-family, #genre-tier) :is(option, optgroup) { font: 14px var(--font-body); background: var(--color-surface); color: var(--color-text); }
 /* Play is the sentence's last word: an amber arrow, no box */
-.builder-row { flex-basis: 100%; margin-top: var(--space-2); } /* the Play button sits on its own line under the sentence */
-.builder-go .icon { width: 20px; height: 20px; stroke-width: 2.2; vertical-align: -4px; } /* the arrow: drawn, in the icons' stroke */
+.builder-row { align-self: center; } /* the Play button follows the sentence's last word, never alone on a line */
+.builder-go { display: grid; place-items: center; width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%; border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
+@media (hover: hover) { .builder-go:hover:not(:disabled) { background: var(--color-accent); border-color: var(--color-accent); filter: brightness(1.08); } }
+.builder-go .icon { width: 20px; height: 20px; stroke-width: 2.2; } /* the arrow: drawn, in the icons' stroke */
 
 .catalogue-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .catalogue-head h2 { margin: 0; }
@@ -688,6 +680,14 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 
 /* Scenes | Genres switch, the genre search, and the "Nearby" chips (docs/12) */
 .stamp-mode { margin-top: var(--space-3); }
+/* Roll | Scenes | Genres, Loved | Recent, Light | Dark: index-card tabs standing in a crate. The chosen card stands taller,
+   paper-white with an amber top edge; the others sit low and grey behind it. All share one rule along their foot. */
+:is(.stamp-mode, .saved-seg, .theme-seg) { display: flex; align-items: end; gap: 3px; padding: 0 var(--space-2); border-bottom: 2px solid var(--color-border); }
+:is(.stamp-mode, .saved-seg, .theme-seg) .chip { min-height: 40px; padding: 0 var(--space-4); border: 1px solid var(--color-border); border-bottom: none; border-radius: 5px 5px 0 0;
+  background: var(--color-surface-2); color: var(--color-muted); font: 700 15px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; transition: min-height 160ms cubic-bezier(.16,1,.3,1), color var(--dur); }
+:is(.stamp-mode, .saved-seg, .theme-seg) .chip[aria-pressed=true] { min-height: 46px; background: var(--paper), var(--color-surface); color: var(--color-text); border-color: var(--color-border); box-shadow: inset 0 3px 0 var(--color-accent); }
+@media (hover: hover) { :is(.stamp-mode, .saved-seg, .theme-seg) .chip:not([aria-pressed=true]):hover { color: var(--color-text); background: var(--color-surface-2); } }
+.touch :is(.stamp-mode, .saved-seg, .theme-seg) .chip[aria-pressed=true] { min-height: 54px; }
 /* the browse search: one field over Scenes and Genres, a drawn lens in it, its own clear button (the native one is too small to hit) */
 .find { position: relative; margin-bottom: var(--space-3); }
 .find input { padding-left: 38px; padding-right: 44px; }
@@ -721,7 +721,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .stamp-info { min-width: 0; }
 .stamp-info h2 { margin: 0 0 var(--space-1); font-size: var(--font-size-xl); line-height: 1.05; text-wrap: balance; }
 .stamp-blurb { margin: 0 0 var(--space-2); font-size: 15px; }
-.stamp-empty { margin: 0; max-width: 38ch; font: 600 22px/1.3 var(--font-display); color: var(--color-muted); text-wrap: pretty; }
+.stamp-empty { margin: 0; max-width: 46ch; font-size: 15px; color: var(--color-muted); text-wrap: pretty; }
 #stamp-songs .track { position: relative; flex-wrap: wrap; }
 #stamp-songs .track:has(.node-menu:not([hidden])) { z-index: 4; }
 #stamp-songs .artist { font-variant-numeric: tabular-nums; }
@@ -838,8 +838,13 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .kin-wait p { display: flex; gap: var(--space-2); align-items: center; justify-content: center; margin: 0; }
 .kin-disc { flex: none; width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle, var(--color-accent) 0 2px, transparent 2.5px), repeating-radial-gradient(circle, var(--color-muted) 0 1px, transparent 1px 3px); animation: spin 2.4s linear infinite; }
 .kin-wait .state-art[hidden], .kin-wait:not(.is-busy) .kin-disc { display: none; }
-.dig-more { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin: var(--space-5) 0 var(--space-6);
-  border: 1.5px dashed color-mix(in srgb, var(--color-accent) 55%, var(--color-border)); background: none; color: var(--color-accent); font-weight: 650; overflow-wrap: anywhere; }
+/* "+ 3 more": the front sleeve of a stack, two more sleeve edges peeking over its top */
+.dig-more { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin: calc(var(--space-5) + 12px) 0 var(--space-6); padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border); border-radius: 3px; background: var(--paper), var(--color-surface); color: var(--color-accent); font: 700 16px/1.2 var(--font-display); letter-spacing: .05em; text-transform: uppercase; overflow-wrap: anywhere;
+  box-shadow: 0 -6px 0 -4px var(--color-surface-2), 0 -6px 0 -3px var(--color-muted), 0 -12px 0 -9px var(--color-surface-2), 0 -12px 0 -8px var(--color-border), 0 4px 10px -6px rgb(0 0 0 / .5);
+  transition: translate var(--dur), background var(--dur); }
+@media (hover: hover) { .dig-more:hover:not(:disabled) { translate: 0 -2px; background: var(--paper), var(--color-surface); border-color: var(--color-accent); } }
+.dig-more:disabled { opacity: 1; color: var(--color-muted); box-shadow: 0 4px 10px -6px rgb(0 0 0 / .5); } /* full or digging: no stack behind it */
 
 @media (min-width: 820px) {
   .sleeves { gap: var(--space-5); }
@@ -874,26 +879,33 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .search { display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-3); }
 .search input, .search select { flex: 1; }
 select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-muted); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); accent-color: var(--color-accent); }
-/* Tune switches: name (and a hint under More ways) on the left, the switch on the right */
+/* Tune tick-boxes: name (and a hint under More ways) on the left, the box on the right */
 .genre-btn, .saved-seg, #saved-recent-wrap, .sheet, .menu-rate:empty { display: none; }
 .genre-btn { font: inherit; padding: 0 2px; border: none; border-bottom: 2px solid var(--color-accent); border-radius: 0; background: transparent; color: var(--color-accent); }
 .grow-edges { border: none; margin: 0; padding: 0; }
 .grow-edges legend { font-weight: 600; padding: 0 0 var(--space-2); }
 #grow-edges, #grow-edges-more { display: grid; }
 .grow-edge { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-3); align-items: center; min-height: 48px; padding: var(--space-1) 0; border-bottom: 1px solid var(--color-surface-2); cursor: pointer; }
-.grow-edge input { grid-column: 2; grid-row: 1 / 3; position: relative; width: 44px; height: 26px; margin: 0; appearance: none; border: 1px solid var(--color-border); border-radius: 13px; background: var(--color-surface-2); cursor: pointer; transition: background var(--dur); }
-.grow-edge input::before { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--color-muted); transition: translate var(--dur), background var(--dur); }
-.grow-edge input:checked { border-color: var(--color-accent); background: var(--color-accent); }
-.grow-edge input:checked::before { translate: 18px 0; background: var(--color-on-accent); }
-.grow-edge input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.grow-edge input { grid-column: 2; grid-row: 1 / 3; }
+/* On/off (Adventurous, Tune): a paper tick-box. Off: an empty inked square; on: a price sticker, slapped on askew, with a hand tick. */
+:is(.adventurous, .grow-edge) input[type=checkbox] { -webkit-appearance: none; appearance: none; position: relative; flex: none; display: grid; place-items: center; width: 24px; height: 24px; margin: 0;
+  border: 2px solid var(--color-muted); border-radius: 3px; background: var(--color-surface); cursor: pointer; transition: rotate 160ms cubic-bezier(.16,1,.3,1), background var(--dur), border-color var(--dur); }
+:is(.adventurous, .grow-edge) input[type=checkbox]::before { content: ""; width: 16px; height: 16px; background: var(--sticker-ink); scale: 0; transition: scale 160ms cubic-bezier(.16,1,.3,1);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.6 8.6c1.3.9 2.4 2.2 3.3 4C7.6 8.4 10.2 5 13.6 2.6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.6 8.6c1.3.9 2.4 2.2 3.3 4C7.6 8.4 10.2 5 13.6 2.6'/%3E%3C/svg%3E") center / contain no-repeat; }
+:is(.adventurous, .grow-edge) input[type=checkbox]:checked { border-color: color-mix(in srgb, var(--sticker-ink) 70%, var(--sticker)); background: var(--sticker); rotate: -4deg; box-shadow: 0 1px 2px rgb(0 0 0 / .35); }
+:is(.adventurous, .grow-edge) input[type=checkbox]:checked::before { scale: 1; }
+.touch :is(.adventurous, .grow-edge) input[type=checkbox] { width: 26px; height: 26px; }
 .grow-name { font-weight: 600; }
 .grow-hint { grid-column: 1; color: var(--color-muted); font-size: var(--font-size-sm); }
-.grow-filters { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); align-items: end; }
-.grow-filters label { display: grid; gap: var(--space-1); font-weight: 600; }
+/* Era, Place, Size, Fame: ruled rows like the switches above, the name in one column and its control in the next */
+.grow-filters { display: grid; }
+.grow-filters label { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); align-items: center; justify-items: start; column-gap: var(--space-3); min-height: 48px; padding: var(--space-1) 0; border-bottom: 1px solid var(--color-surface-2); font-weight: 600; }
+.grow-filters .grow-fame > :not(input) { grid-column: 2; }
 .grow-filters select { font-weight: 400; min-height: 0; padding: 0 2px; border: none; border-bottom: 2px solid var(--color-accent); border-radius: 0; background: transparent; color: var(--color-accent); cursor: pointer; }
 @media (hover: hover) { .grow-filters select:hover { background: var(--tint-wash); } }
-.grow-filters input[type=range] { width: 11rem; accent-color: var(--color-accent); }
-.grow-ends { display: flex; justify-content: space-between; font-weight: 400; font-size: var(--font-size-sm); color: var(--color-muted); }
+.grow-filters input[type=range] { width: 100%; max-width: 18rem; margin: 0; accent-color: var(--color-accent); }
+.grow-ends { display: flex; justify-content: space-between; width: 100%; max-width: 18rem; font-weight: 400; font-size: var(--font-size-sm); color: var(--color-muted); }
 .edge-icon { flex: none; width: 14px; height: 14px; fill: none; stroke: var(--edge); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .reason .edge-icon { vertical-align: -2px; margin-right: 5px; }
 
@@ -930,6 +942,12 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 .node-menu > button.more { color: var(--color-accent); }
 /* Saved: the row's ⋯ (About, Full song) hangs under it, right-aligned */
 #saved-list .track { position: relative; }
+.saved-loved:has(#saved-list > .empty) > h2 { display: none; } /* no "Loved tracks 0" over the empty crate */
+/* every row here is loved: no filled red heart repeated down the list, a quiet outline that fills on hover/focus (pressing it unloves) */
+#saved-list .love { min-width: 0; width: 40px; padding: 0; gap: 0; font-size: 0; border-color: transparent; background: none; border-radius: 50%; color: var(--color-muted); }
+#saved-list .love .icon { width: 20px; height: 20px; fill: none; }
+#saved-list .love:is(:hover, :focus-visible) { color: var(--color-love); }
+#saved-list .love:is(:hover, :focus-visible) .icon { fill: currentColor; }
 #saved-list .node-actions { margin: 0; }
 #saved-list .node-menu { top: calc(100% - 6px); left: auto; right: var(--space-2); width: min(340px, 100%); }
 #saved-list .track:has(.node-menu:not([hidden])) { z-index: 4; }
@@ -1075,11 +1093,19 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .crate .track { position: relative; flex-direction: column; align-items: stretch; gap: var(--space-2); padding: 0; }
 .crate .track + .track { border-top: none; }
 .crate .track:hover, .crate .track.is-playing { background: none; }
-.crate .track > :is(img, .cover-ph) { width: 100%; height: auto; aspect-ratio: 1; }
-.crate .play { position: absolute; top: var(--space-2); left: var(--space-2); background: color-mix(in srgb, var(--color-bg) 82%, transparent); }
+/* one play affordance: the whole sleeve is the button, a small ▶ disc in its corner; the heart sits by the title, and a card
+   that is already loved (its sticker says "Loved 26 Oct") shows it only on hover or focus, to unlove */
+.crate .track { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--space-1); }
+.crate .track > :is(img, .cover-ph) { grid-area: 1 / 1 / 2 / -1; width: 100%; height: auto; aspect-ratio: 1; }
+.crate .track > .play { grid-area: 1 / 1 / 2 / -1; align-self: stretch; width: auto; height: auto; min-height: 0; display: flex; align-items: flex-end; justify-content: flex-start;
+  padding: var(--space-2); border: none; border-radius: 3px; background: transparent; color: #fff; }
+.crate .track > .play .icon { box-sizing: content-box; width: 14px; height: 14px; padding: 10px 9px 10px 11px; border-radius: 50%; background: rgb(0 0 0 / .62); box-shadow: 0 2px 6px rgb(0 0 0 / .4); transition: scale var(--dur); }
+.crate .track.is-playing > .play .icon { background: var(--color-accent); color: var(--color-on-accent); }
+@media (hover: hover) { .crate .track > .play:hover:not(:disabled) { background: rgb(0 0 0 / .12); } .crate .track > .play:hover .icon { scale: 1.1; } }
+.crate .meta { grid-column: 1; }
 .crate .meta > :is(.title, .artist) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.crate .love { position: absolute; top: var(--space-2); right: var(--space-2); min-width: 0; width: 34px; height: 34px; min-height: 34px; padding: 0; gap: 0; font-size: 0; border-radius: 50%;
-  background: color-mix(in srgb, var(--color-bg) 82%, transparent); } /* icon only: the label stays in aria-label */
+.crate .love { grid-column: 2; min-width: 0; width: 36px; height: 36px; min-height: 36px; padding: 0; gap: 0; font-size: 0; border-color: transparent; background: none; border-radius: 50%; color: var(--color-muted); } /* icon only: the label stays in aria-label */
+.crate .track:not(:hover, :focus-within) .love[aria-pressed=true] { visibility: hidden; }
 .crate > .state { grid-column: 1 / -1; }
 
 /* ---------- liner-notes metadata: monospace only for measurements (times, years, counts, steps) ---------- */
@@ -1093,9 +1119,6 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .facts .sticker { border: none; color: var(--sticker-ink); }
 .rail li:nth-child(even) .reason, .crate li:nth-child(even) .reason { rotate: 1deg; }
 
-/* ---------- duotone: past items sit in walnut and amber; playing, hovered or focused ones get their colour back ---------- */
-:is(.rail, .crate, #saved-list) .track:not(.is-playing):not(:hover):not(:focus-within) > img { filter: var(--duotone); }
-
 @media (prefers-reduced-motion: reduce) {
   /* no movement: the disc stands still, the arm and sleeve are simply in place, presses and pulses are instant */
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -1103,11 +1126,11 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 }
 @media (forced-colors: active) {
   .chip[aria-pressed=true], .rate button[aria-pressed=true], .love[aria-pressed=true] { outline: 2px solid CanvasText; }
+  :is(.adventurous, .grow-edge) input[type=checkbox]::before { forced-color-adjust: none; background: CanvasText; }
   .bigplay { border: 2px solid ButtonText; }
   .tonearm * { fill: Canvas; stroke: CanvasText; }
   .bigplay::after { forced-color-adjust: none; background: CanvasText; }
   .sticker, .rail .track .reason, #stamp-songs .reason, .kin-sign { border: 1px solid CanvasText; }
-  :is(.rail, .crate, #saved-list) img { filter: none !important; }
   .edge-icon { stroke: CanvasText; }
 }
 
@@ -1123,7 +1146,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .sp-prefs code { user-select: all; font-size: var(--font-size-sm); color: var(--color-text); }
 
 /* ---------- phone and small tablet (docs/15): tabs at the bottom, Preferences behind a gear, the mini-player on the tabs ---------- */
-@media (max-width: 840px) {
+@media (max-width: 840px), (pointer: coarse) and (max-height: 500px) {
   :root { --tabbar-h: 64px; --safe-b: env(safe-area-inset-bottom, 0px); --font-size: 15px; --font-size-sm: 13px; --radius: 10px; }
   body { padding-bottom: calc(var(--nowbar-h) + var(--tabbar-h) + var(--safe-b) + var(--space-5)); }
   body:has(.nowbar.is-idle) { padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--space-5)); }
@@ -1135,13 +1158,13 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   /* bottom bar: Blind Test, Crate Dig, Tree, Saved. Home is the wordmark. The selected label is underlined in amber, no pill. */
   #tabs { position: fixed; z-index: 6; left: 0; right: 0; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0;
     padding: 0 env(safe-area-inset-right, 0px) var(--safe-b) env(safe-area-inset-left, 0px); background: var(--grain), var(--color-bg); border-top: 1px solid var(--color-border); }
-  /* each tab: a drawn icon over a short label; the selected one sits in an accent-washed pill, like a sleeve pulled from the rack */
-  #tabs [role=tab] { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-    min-height: var(--tabbar-h); padding: 0 2px; font: 700 12.5px/1 var(--font-display); letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+  /* each tab: a drawn icon over a short label; the selected one gets an amber marker stroke under its label, slightly askew */
+  #tabs [role=tab] { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    min-height: var(--tabbar-h); padding: 0 2px 6px; font: 700 12.5px/1 var(--font-display); letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
   #tabs [role=tab]::before { content: ""; width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--tab-icon) center / contain no-repeat; mask: var(--tab-icon) center / contain no-repeat;
     transition: scale 160ms cubic-bezier(.16,1,.3,1); }
-  #tabs [role=tab]::after { content: ""; position: absolute; z-index: -1; top: 7px; left: 50%; width: 60px; height: 32px; margin-left: -30px; border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent); opacity: 0; scale: .6 1; transition: opacity 180ms ease-out, scale 260ms cubic-bezier(.16,1,.3,1); }
+  #tabs [role=tab]::after { content: ""; position: absolute; bottom: 8px; left: 50%; width: 28px; height: 3px; margin-left: -14px; border-radius: 1px 2px 1px 2px;
+    background: var(--color-accent); rotate: -2deg; opacity: 0; scale: .3 1; transition: opacity 140ms ease-out, scale 220ms cubic-bezier(.16,1,.3,1); }
   #tabs [aria-selected=true] { box-shadow: none; color: var(--color-text); }
   #tabs [aria-selected=true]::before { color: var(--color-accent); }
   #tabs [aria-selected=true]::after { opacity: 1; scale: 1; }
@@ -1182,7 +1205,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .np-from::after { content: ""; position: absolute; inset: -12px -8px; } /* a 44px target for a one-line link */
   .np-meta { gap: 0; }
   /* the progress: a 3px line on the shelf's top edge, a 16px strip to drag */
-  .np-seek { position: absolute; left: 0; right: 0; top: -8px; height: 16px; }
+  .np-seek { position: absolute; left: 3px; right: 3px; top: -8px; height: 16px; } /* 3px in from the screen edges: the thumb at 0% and 100% stays whole */
   .np-seek::-webkit-slider-runnable-track { height: 3px; border-radius: 0; background-color: transparent; }
   .np-seek::-webkit-slider-thumb { opacity: 1; width: 11px; height: 11px; margin-top: -4px; background: var(--tint); }
   .np-seek:disabled::-webkit-slider-thumb { opacity: 0; }
@@ -1200,6 +1223,8 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .mystery-top { flex-direction: column; align-items: stretch; gap: var(--space-5); }
   /* the revealed deck (sleeve + record slid out + tonearm) is ~1.7 records wide: keep all of it, and the verdict stamp, inside the gutters */
   .deck { --rec: min(250px, calc((100vw - 2 * var(--space-4) - 16px) / 1.7)); align-self: center; margin-top: var(--space-5); }
+  /* a landscape phone: the record beside the rate buttons, sized to the short side */
+  @media (orientation: landscape) { .mystery-top { flex-direction: row; align-items: center; } .deck { --rec: min(220px, calc(100dvh - 190px)); margin-top: var(--space-2); } }
   .verdict { left: 6px; }
   :is(#mystery, #stamp-head) { scroll-margin-top: calc(56px + env(safe-area-inset-top, 0px) + var(--space-3)); }
   #stamps:not([data-mode=roll]) #stamp-head { scroll-margin-top: calc(56px + env(safe-area-inset-top, 0px) + 48px + 2 * var(--space-2) + var(--space-3)); } /* clear the pinned search too */
@@ -1209,8 +1234,6 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .reveal-artist { font-size: 32px; }
   .rail { position: static; }
   .adventure { padding: 0; }
-  .slider { flex-wrap: wrap; justify-content: space-between; }
-  .slider input { flex: 1 1 100%; order: -1; min-height: 40px; }
 
   /* Crate Dig: Roll is a thumb-wide bar; the genre search stays pinned while the list scrolls */
   .roll { max-width: none; }
@@ -1219,14 +1242,8 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .roll-row { flex-direction: column; align-items: stretch; gap: var(--space-2); }
   .roll-go { flex: 1; }
   .roll-btn { flex: 1; min-height: 56px; }
-  /* Adventurous: a phone switch, label left, track right, the whole row is the target */
+  /* Adventurous: label left, tick-box right, the whole row is the target */
   .adventurous { flex-direction: row-reverse; justify-content: space-between; min-height: 48px; font-size: 16px; color: var(--color-text); }
-  #roll-pane .adventurous input { -webkit-appearance: none; appearance: none; position: relative; flex: none; width: 52px; height: 32px; margin: 0; border: 2px solid transparent; border-radius: 16px;
-    background: color-mix(in srgb, var(--color-text) 20%, transparent); cursor: pointer; transition: background var(--dur); }
-  #roll-pane .adventurous input::before { content: ""; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%; background: var(--color-text);
-    box-shadow: 0 1px 3px rgb(0 0 0 / .4); transition: translate 220ms cubic-bezier(.16,1,.3,1), background var(--dur); }
-  #roll-pane .adventurous input:checked { background: var(--color-accent); }
-  #roll-pane .adventurous input:checked::before { translate: 20px 0; background: var(--color-on-accent); }
   /* Pick one's arrow: a round go-button at the end of the sentence, the size of a thumb */
   .builder { align-items: center; }
   .builder-row { flex-basis: auto; margin: 0 0 0 auto; }
@@ -1239,8 +1256,6 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .stamp-head { flex-wrap: wrap; }
   .stamp-main:has(.stamp-info) { min-height: calc(100dvh - 56px - var(--tabbar-h) - var(--safe-b)); } /* room to bring a fresh pick to the top while its songs load */
 
-  .grow-filters label { flex: 1 1 140px; }
-  .grow-filters input[type=range] { width: 100%; }
 
   /* Home on a phone: the record and the recent crate; the bottom bar replaces "Other ways in" */
   .ways-row { display: none; }
@@ -1306,17 +1321,19 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch :is(.more-toggle, button.ext, .cat-more, .sp-export button) { min-height: 44px; }
 .touch button.ext { display: inline-flex; align-items: center; }
 .touch .crate .love { width: 48px; height: 48px; }
+.touch .crate .track > .play { min-height: 0; width: auto; height: auto; } /* the sleeve is already far bigger than 48px */
 .touch .chip { padding-inline: var(--space-4); }
 .touch .about-more summary { padding-block: 12px; min-height: 44px; }
 .touch .brand { min-height: 48px; }
 .touch .theme-toggle { min-width: 48px; } /* landscape touch: the logo and the theme switch are targets too */
 .touch :is(.adventurous, .grow-edge) { min-height: 48px; }
-.touch :is(.adventurous input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
-/* touch at any width (a landscape phone gets the desktop layout, not the 840px phone rules): 48px controls, 16px fields */
+.touch :is(.scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
+/* touch at any width (a tablet gets the desktop layout; a landscape phone gets the phone rules): 48px controls, 16px fields */
 .touch :is(select, input[type=search], input[type=text]) { min-height: 48px; font-size: 16px; }
 .touch :is(.platter .row button, button.cat-more, .state button, .cat-empty button, .find-clear, #stamp-more button, .grow-done) { min-height: 48px; }
 .touch .grow-filters :is(select, input[type=range]) { min-height: 48px; }
 .touch :is(#sp-go, #prefs-done, .slider input) { min-height: 48px; } /* landscape touch: the controls the phone rules cover */
+.touch .slider .end { margin-top: -10px; } /* the 48px slider's track sits mid-box: keep its ends tight under it */
 @media (min-width: 841px) { .touch .roll-btn { min-height: 48px; } } /* phones keep their 56px */
 .touch #sp-setup summary { display: flex; align-items: center; min-height: 48px; }
 .touch :is(.np-toggle, .nowbar.is-idle .np-toggle) { width: 48px; height: 48px; min-height: 48px; }
@@ -1341,7 +1358,7 @@ html { -webkit-tap-highlight-color: transparent; }
 }
 
 /* ---------- phone: a phone app, not a page. Bigger type, fewer boxes, real rows and full-width actions ---------- */
-@media (max-width: 840px) {
+@media (max-width: 840px), (pointer: coarse) and (max-height: 500px) {
   .topbar { border-bottom-color: transparent; box-shadow: 0 1px 0 var(--page-line); }
   .brand { font-size: 22px; }
   /* large title: each tab opens on its name, set big in the display face */
@@ -1377,15 +1394,9 @@ html { -webkit-tap-highlight-color: transparent; }
   .reveal-actions { gap: var(--space-2); }
   .reveal-actions > button:not(.link) { min-height: 48px; }
 
-  /* segmented controls (Roll | Browse, Scenes | Genres, Loved | Recent): one track, the chosen side inked */
-  :is(.stamp-mode, .saved-seg, .theme-seg) { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; padding: 4px;
-    border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-text) 8%, transparent); }
-  :is(.stamp-mode, .saved-seg, .theme-seg) .chip { min-width: 108px; min-height: 44px; border-color: transparent; background: none; color: var(--color-muted); font-weight: 650; }
-  :is(.stamp-mode, .saved-seg, .theme-seg) .chip[aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 2px 6px -2px rgb(0 0 0 / .4); }
-  .saved-seg { display: inline-grid; }
-  /* Crate Dig: Roll | Scenes | Genres is one full-width switch */
-  .stamp-mode { display: grid; width: 100%; }
-  .stamp-mode .chip { min-width: 0; }
+  /* the index-card tabs: Roll | Scenes | Genres share the full width */
+  .stamp-mode { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; }
+  .stamp-mode .chip { padding-inline: var(--space-2); }
   #genre-total { display: none; }
 
   /* text links become touch controls: "Show all" is a full-width button, outbound links are pills, sources are rows */
