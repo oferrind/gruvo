@@ -324,3 +324,32 @@ test('tree variety: songs shown in recent trees are avoided', async () => {
   assert.ok(again.every(n => !shown.has(t.songKey(n.track)))); // a repeated artist gets a different track
   assert.ok(T2.nodes.slice(1).some(n => !T1.nodes.some(o => o.artist === n.artist))); // and fresh artists come in
 });
+
+test('tree: background grow returns once the root family is in; grandchildren follow, same tree, no duplicates', async () => {
+  const { get } = world();
+  const emitted = [];
+  const T = mk(get, ROOT, { emit: n => emitted.push(n) });
+  await t.growTree(T, { background: true });
+  assert.equal(T.nodes.filter(n => n.parent === 0).length, 3, 'the root family is complete at return');
+  await T.deep;
+  assert.ok(emitted.findIndex(n => n.depth === 2) > 2, 'the first two children come before any grandchild');
+  const full = mk(world().get, ROOT);
+  await t.growTree(full);
+  assert.deepEqual(T.nodes.map(n => n.artist).sort(), full.nodes.map(n => n.artist).sort());
+  const names = T.nodes.map(n => norm(n.artist));
+  assert.equal(new Set(names).size, names.length);
+});
+
+test('tree: a More on a child still being prefetched joins the prefetch instead of adding its own three', async () => {
+  const { get } = world();
+  const T = mk(get, ROOT);
+  await t.growTree(T, { background: true });
+  const kid = T.nodes.find(n => n.parent === 0 && n.prefP);
+  assert.ok(kid, 'a child is mid-prefetch right after the grow returns');
+  const r = await t.moreTree(T, kid.id);
+  assert.ok(r.added > 0 && r.added <= 3);
+  assert.ok(kid.kids <= 3, `joined, not doubled: ${kid.kids}`);
+  await T.deep;
+  const names = T.nodes.map(n => norm(n.artist));
+  assert.equal(new Set(names).size, names.length);
+});
