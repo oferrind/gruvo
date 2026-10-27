@@ -36,7 +36,7 @@ function create({ get, audio, open, store }) {
       tree = Tree.newTree(get, root, { recent, settings: Tree.validSettings(settings), heard: Array.isArray(heard) ? heard.map(String) : [], live,
         saved: Array.isArray(saved) ? saved.filter(s => s && typeof s.artist === 'string' && typeof s.title === 'string')
           .map(s => ({ source: String(s.source), id: s.id == null ? null : String(s.id), artist: s.artist, title: s.title })) : [], emit: n => live() && ctx.send('tree:node', run, n) });
-      await Tree.growTree(tree);
+      await Tree.growTree(tree, { background: true });
       return live();
     },
     treeMore: id => tree ? Tree.moreTree(tree, Number(id)) : { added: 0 },

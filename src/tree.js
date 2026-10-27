@@ -442,8 +442,10 @@ async function special(T, node) {
 
 // ---------- flows ----------
 
-// Root -> 3 children -> 3 grandchildren each, streamed. Scene children first (fast), the MB-heavy special slots after.
-async function growTree(T) {
+// Root + its 3 children first (what the Dig view shows), then, in the background, each child's own 3 (so a Dig is instant).
+// Children are prefetched one at a time: starting every lane at once would queue a listener's More behind ~10 MB calls.
+// `background`: don't wait for the grandchildren (the handler returns, and the renderer stops "growing", at the first family).
+async function growTree(T, { background = false } = {}) {
   const root = T.nodes[0];
   [root.mb, root.dzId] = await Promise.all([mbArtist(T.get, root.artist), root.dzId ?? dzArtist(T.get, root.artist, T.fans)]);
   root.mbid = root.mb && root.mb.id;
@@ -454,29 +456,30 @@ async function growTree(T) {
   candsOf(T, root);
   await ranked(T, root);
   await fill(T, root, T.S.width - 1);
-  if (!T.live()) return T;
-  // Then the kids' own scenes (level 2 shows sooner), then their special lookups.
-  const kids = kidsOf(T, root);
-  if (T.S.edges.includes('scene')) kids.forEach(c => sceneOf(T, c));
-  kids.forEach(c => candsOf(T, c));
-  for (const c of kids) { await ranked(T, c); await fill(T, c, T.S.width - 1); }
-  await special(T, root);
-  for (const c of kidsOf(T, root)) {
-    if (!T.live()) break;
-    if (T.S.edges.includes('scene')) sceneOf(T, c);
-    candsOf(T, c); // the special third child: start both lookups together
-    await ranked(T, c);
-    await fill(T, c, T.S.width - 1);
-    await special(T, c);
-  }
+  const spec = special(T, root), deep = T.deep = prefetchTree(T, spec); // the kids' scene families share the MB lane with the root's special lookups
+  await (background ? spec : deep);
   return T;
 }
 
-async function ranked(T, node) {
-  if (node.done.has('ranked')) return;
-  node.done.add('ranked');
-  node.pending.push(...await rank(T, node));
+// Sweep 1 gives every child its scene family (about one MB call each) while the root's special child is still being looked up;
+// sweep 2 adds each child's MB-heavy special third child.
+async function prefetchTree(T, rootSpecial = Promise.resolve()) {
+  const sweep = async step => {
+    for (const c of kidsOf(T, T.nodes[0])) {
+      if (!T.live()) return;
+      c.prefP = step(c).catch(() => {}).finally(() => { c.prefP = null; });
+      await c.prefP;
+    }
+  };
+  const scene = async c => { await ranked(T, c); await fill(T, c, T.S.width - 1); };
+  await sweep(scene);
+  await rootSpecial.catch(() => {});
+  await sweep(scene); // the root's special child, if it arrived meanwhile (a no-op for the others)
+  await sweep(c => special(T, c));
 }
+
+// One rank per node; the promise is kept so a More during the prefetch waits for it instead of seeing an empty queue.
+const ranked = (T, node) => node.rankP ??= rank(T, node).then(r => { node.pending.push(...r); });
 
 const kidsOf = (T, node) => T.nodes.filter(n => n.parent === node.id);
 
@@ -486,6 +489,11 @@ async function moreTree(T, id) {
   const node = T.nodes[id];
   if (!node || T.nodes.length >= CAP) return { added: 0, full: T.nodes.length >= CAP };
   T.mbLeft = Math.max(T.mbLeft, 12); // a More is the listener asking: it gets its own few MB calls
+  if (node.prefP) { // its family is still being fetched in the background: that is the answer to this More
+    const before = node.kids;
+    await node.prefP;
+    if (node.kids > before) return { added: node.kids - before, full: T.nodes.length >= CAP };
+  }
   if (!node.done.has('more')) {
     node.done.add('more');
     await ranked(T, node);
@@ -499,7 +507,7 @@ async function moreTree(T, id) {
   const start = T.nodes.length, f0 = T.fails;
   while (T.nodes.length - start < MORE && T.nodes.length < CAP && node.pending.length && T.live()) await tryAdd(T, node, node.pending.shift());
   const added = T.nodes.length - start;
-  if (!added && T.fails > f0) { node.done.delete('more'); node.done.delete('ranked'); return { added, error: true }; } // offline: the next More tries again
+  if (!added && T.fails > f0) { node.done.delete('more'); node.rankP = null; return { added, error: true }; } // offline: the next More tries again
   return { added, full: T.nodes.length >= CAP };
 }
 
@@ -532,4 +540,4 @@ function soundEdge(T, node) {
   })().catch(() => []);
 }
 
-module.exports = { validSettings, fameOk, eraQuery, placeQuery, bestSoundtrack, soundtrackTracks, EDGES, SETTINGS, topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, songKey, growTree, moreTree, CAP };
+module.exports = { validSettings, fameOk, eraQuery, placeQuery, bestSoundtrack, soundtrackTracks, EDGES, SETTINGS, topTags, sceneGuard, sceneQuery, parseMembers, otherBands, lookBack, firstPerformer, originalRecording, newTree, songKey, growTree, prefetchTree, moreTree, CAP };
