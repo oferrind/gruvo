@@ -1454,3 +1454,5 @@ html { -webkit-tap-highlight-color: transparent; }
 /* the playing cover keeps its true colours: only the ▶/❚❚ sits on an accent disc */
 :is(.dig-focus, .kin-rows, #saved-list, #tonight, #stamp-songs) .track.is-playing > .play .icon { box-sizing: content-box; padding: 7px; border-radius: 50%;
   background: var(--color-accent); color: var(--color-on-accent); filter: none; }
+.toast-undo { margin-left: var(--space-2); color: inherit; font-weight: 600; text-decoration: underline; min-height: 32px; }
+.touch .toast-undo { min-height: 44px; min-width: 44px; }
