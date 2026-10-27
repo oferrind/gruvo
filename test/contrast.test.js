@@ -15,7 +15,7 @@ const EDGES = ['scene', 'member', 'builton', 'roots', 'producer', 'label', 'rela
 const PAIRS = [
   ...['color-text', 'color-muted'].flatMap(f => ['color-bg', 'color-surface', 'color-surface-2'].map(b => [f, b])),
   ...['color-accent', 'color-love', 'color-error', ...EDGES].flatMap(f => ['color-bg', 'color-surface', 'color-surface-2'].map(b => [f, b])),
-  ['color-on-accent', 'color-accent'], ['color-error', 'color-error-bg'], ['sticker-ink', 'sticker'],
+  ['color-on-accent', 'color-accent'], ['color-on-accent', 'color-love'], ['color-error', 'color-error-bg'], ['sticker-ink', 'sticker'], // the Love button is on-accent text on love
 ];
 
 test('the eight colour schemes exist, each with a light and a dark variant', () => {
