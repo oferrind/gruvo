@@ -43,7 +43,7 @@ function pickDeezer(rows, artist, title, requireTitle = false) {
   return soleArtist(ok, artist, r => r.artist.name, r => r.artist.id).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0] || null;
 }
 
-const cleanTitle = t => t.replace(/\s*[([-][^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || t; // "Beautiful Ones (Remastered)", "Song - 2011 Remaster"; keeps (Live) / (feat. X)
+const cleanTitle = t => t.replace(/(?:\s+-\s+|\s*[([])[^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || t; // "Beautiful Ones (Remastered)", "Song - 2011 Remaster"; keeps (Live) / (feat. X)
 const fromDeezer = r => ({ source: 'dz', id: r.id, title: cleanTitle(r.title), artist: r.artist.name, artistDzId: r.artist.id,
   cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, isrc: r.isrc, previewUrl: r.preview });
 

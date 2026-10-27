@@ -1007,7 +1007,7 @@ body:has(.nowbar.is-idle) { padding-bottom: calc(var(--nowbar-idle) + var(--spac
 .np-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .np-title { min-width: 0; font: 700 18px/1.15 var(--font-display); letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-time { font: 12px/1 var(--font-mono); color: var(--color-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.toast { position: fixed; bottom: calc(var(--nowbar-h) + var(--space-3)); z-index: 6; left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-2) var(--space-4); border-radius: var(--radius); box-shadow: var(--shadow-art); }
+.toast { width: max-content; max-width: min(92vw, 560px); position: fixed; bottom: calc(var(--nowbar-h) + var(--space-3)); z-index: 6; left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-2) var(--space-4); border-radius: var(--radius); box-shadow: var(--shadow-art); }
 .toast:empty { display: none; }
 
 /* ---------- full-song links (after the reveal only) ---------- */
@@ -1467,7 +1467,7 @@ html { -webkit-tap-highlight-color: transparent; }
 /* the playing cover keeps its true colours: only the ▶/❚❚ sits on an accent disc */
 :is(.dig-focus, .kin-rows, #saved-list, #tonight, #stamp-songs) .track.is-playing > .play .icon { box-sizing: content-box; padding: 7px; border-radius: 50%;
   background: var(--color-accent); color: var(--color-on-accent); filter: none; }
-.toast-undo { margin-left: var(--space-2); color: inherit; font-weight: 600; text-decoration: underline; min-height: 32px; }
+.toast .toast-undo, .toast .toast-undo:hover:not(:disabled) { border: 0; background: none; padding: 0 var(--space-2); margin-left: var(--space-2); color: inherit; font-weight: 600; text-decoration: underline; min-height: 32px; }
 .touch .toast-undo { min-height: 44px; min-width: 44px; }
 
 /* ---------- landscape phone: the tabs become a rail down the left edge, the brand bar slims, the record fits the short side
