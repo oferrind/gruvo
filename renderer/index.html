@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self'; media-src https://*.dzcdn.net; img-src https://*.dzcdn.net https://*.mzstatic.com data:">
+    content="default-src 'self'; script-src 'self'; style-src 'self'; media-src https://*.dzcdn.net; img-src 'self' https://*.dzcdn.net https://*.mzstatic.com data:">
   <title>Gruvo</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="topbar">
-    <button id="brand" type="button" class="brand ghost" title="Home">Gruvo</button>
+    <button id="brand" type="button" class="brand ghost" title="Home"><img src="img/logo-96.png" alt="" width="30" height="30">Gruvo</button>
     <nav id="tabs" role="tablist" aria-label="Modes">
       <button role="tab" id="tab-home" data-tab="home" aria-controls="home" aria-selected="true">Home</button>
       <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="false" tabindex="-1">Blind Test</button>
@@ -31,7 +31,7 @@
       <ol class="tracklist">
         <li><button type="button" data-goto="blind"><span class="tl-no" aria-hidden="true">A1</span><span class="tl-name">Blind Test</span><span class="tl-say">No name, no cover. Rate it, then see who it was.</span></button></li>
         <li><button type="button" data-goto="stamps"><span class="tl-no" aria-hidden="true">A2</span><span class="tl-name">Crate Dig</span><span class="tl-say">Roll a genre, a place or a decade. Ten songs from it.</span></button></li>
-        <li><button type="button" data-goto="tree"><span class="tl-no" aria-hidden="true">A3</span><span class="tl-name">Family Tree</span><span class="tl-say">From a song you saved, step by step through its scene.</span></button></li>
+        <li><button type="button" data-goto="tree"><span class="tl-no" aria-hidden="true">A3</span><span class="tl-name">Family Tree</span><span class="tl-say">Start from any song and dig through its family, one record at a time.</span></button></li>
       </ol>
     </section>
 
@@ -182,38 +182,52 @@
     <!-- C. Family Tree -->
     <section id="tree" class="panel" role="tabpanel" aria-labelledby="tab-tree" hidden>
       <div class="panel-head">
-        <h1>Family Tree</h1>
-        <p class="muted">Start from a song you saved. Walk through its scene, step by step.</p>
+        <div class="title-row">
+          <h1>Family Tree</h1>
+          <button id="tree-new" type="button" class="ghost tree-new" hidden>New dig</button>
+          <button id="tree-tune-open" type="button" class="ghost tune-open" aria-label="Tune the tree" title="Tune the tree"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 5h8M15 5h2M3 10h2M9 10h8M3 15h10M17 15h0"/><circle cx="13" cy="5" r="2"/><circle cx="7" cy="10" r="2"/><circle cx="15" cy="15" r="2"/></svg></button>
+        </div>
+        <p class="muted">One record at a time. Dig into any of its family to keep going.</p>
         <div class="sp-export" hidden><button id="tree-export" type="button">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
       </div>
-      <div class="tree-picker">
-        <form id="tree-pick" class="search">
-          <label for="tree-root">From your Saved songs</label>
-          <select id="tree-root"></select>
-          <button class="primary">Grow tree</button>
-        </form>
+      <div id="tree-start" class="tree-start">
         <form id="tree-search" class="search" role="search">
-          <label for="tree-q">Or any song</label>
+          <label for="tree-q">Start from any song</label>
           <input id="tree-q" type="search" placeholder="Artist and song, e.g. Oasis Wonderwall" autocomplete="off">
-          <button>Search</button>
+          <button class="primary">Search</button>
         </form>
+        <ul id="tree-hits" class="tracks kin-rows"></ul>
+        <section id="tree-saved-box" class="tree-saved" aria-labelledby="tree-saved-h" hidden>
+          <h2 id="tree-saved-h" class="or-head">Or from your saved</h2>
+          <ul id="tree-saved" class="sleeves"></ul>
+        </section>
       </div>
-      <details id="grow-settings" class="grow-settings">
-        <summary><span class="grow-title">Grow settings</span><span id="grow-summary" class="grow-summary"></span></summary>
-        <div class="grow-body">
-          <fieldset class="grow-edges"><legend>Connect songs by</legend><div id="grow-edges"></div></fieldset>
+      <div id="tree-state" class="state" aria-live="polite"></div>
+      <div id="tree-dig" class="dig" hidden>
+        <nav class="dig-path" aria-label="Your dig, back to the first song"><ol id="tree-path"></ol></nav>
+        <div class="dig-main">
+          <div id="tree-focus" class="dig-focus"></div>
+          <h2 class="dig-head"><img src="img/sticker-dig.png" alt="" width="44" height="44"><span id="tree-family-h">The family</span></h2>
+          <div id="tree-family" class="dig-family"></div>
+          <button id="tree-more" type="button" class="dig-more"></button>
+        </div>
+      </div>
+      <dialog id="tree-tune" class="tune" aria-labelledby="tune-title">
+        <div class="tune-body">
+          <h2 id="tune-title">Tune the tree</h2>
+          <p class="hint">Changes apply when you close this.</p>
+          <fieldset class="grow-edges"><legend>Connect songs by</legend><div id="grow-edges"></div>
+            <details class="tune-more"><summary>More ways</summary><div id="grow-edges-more"></div></details>
+          </fieldset>
           <div class="grow-filters">
-            <label>Years <select id="grow-era"><option value="near">Same years (±5)</option><option value="decade">Same decade</option><option value="any">Any era</option></select></label>
+            <label>Era <select id="grow-era"><option value="near">Same years (±5)</option><option value="decade">Same decade</option><option value="any">Any era</option></select></label>
             <label>Place <select id="grow-place"><option value="same">Same country</option><option value="any">Anywhere</option></select></label>
-            <label>Branch size <select id="grow-width"><option value="3">3 songs per node</option><option value="5">5 songs per node</option></select></label>
+            <label>Size <select id="grow-width"><option value="3">3 songs per record</option><option value="5">5 songs per record</option></select></label>
             <label class="grow-fame">Fame <input id="grow-fame" type="range" min="0" max="100" step="10"><span class="grow-ends" aria-hidden="true"><span>Famous</span><span>Obscure</span></span></label>
           </div>
-          <div class="grow-actions"><button id="grow-regrow" type="button" class="primary" hidden>Regrow with these settings</button><button id="grow-done" type="button" class="grow-done">Done</button></div>
+          <button id="grow-done" type="button" class="primary grow-done">Done</button>
         </div>
-      </details>
-      <ul id="tree-hits" class="tracks"></ul>
-      <div id="tree-state" class="state" aria-live="polite"></div>
-      <div id="tree-canvas" class="tree-canvas" aria-label="Family tree, in listening order. Up and Down arrows move between songs."></div>
+      </dialog>
     </section>
 
     <!-- Saved -->
@@ -351,6 +365,7 @@
     <filter id="duo-acid-light" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".3 .59 .11 0 0 .3 .59 .11 0 0 .3 .59 .11 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues=".25 .97"/><feFuncG type="table" tableValues=".22 .94"/><feFuncB type="table" tableValues=".05 .7"/></feComponentTransfer></filter>
   </svg>
   <script src="tint.js"></script>
+  <script src="dig.js"></script>
   <script src="links.js"></script>
   <script src="genre-data.js"></script>
   <script src="stamp-data.js"></script>

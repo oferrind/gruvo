@@ -18,11 +18,12 @@ function toast(msg) {
 }
 const call = (name, ...args) => api.call(name, ...args).catch(e => { console.error(name, e); return null; });
 
-// One loading / empty / error / done line, with optional progress bar and next-action buttons.
-function setState(box, kind, msg, { actions = [], progress } = {}) {
+// One loading / empty / error / done line, with optional drawing, progress bar and next-action buttons.
+function setState(box, kind, msg, { actions = [], progress, art } = {}) {
   box.className = `state ${kind}`;
   box.setAttribute('aria-busy', kind === 'loading');
   box.replaceChildren(...[
+    art ? el('img', { className: 'state-art', src: `img/${art}.png`, alt: '' }) : null,
     msg ? el('p', {}, kind === 'loading' ? el('span', { className: 'spinner', ariaHidden: 'true' }) : null, msg) : null,
     progress ? el('progress', { max: progress[1], value: progress[0], ariaLabel: 'Progress' }) : null,
     actions.length ? el('div', { className: 'row' }, ...actions) : null].filter(Boolean));
@@ -273,7 +274,7 @@ function rateGroup(t, love) {
     sync();
     const k = kind();
     bs.forEach(b => b.setAttribute('aria-pressed', b.dataset.rate === k));
-    const card = group.closest('.node-card');
+    const card = group.closest('.dig-focus');
     if (card) card.classList.toggle('skipped', k === 'skip'); // dims in place: no layout change
   };
   love.sync();
@@ -292,15 +293,15 @@ function fullSong(t) {
     link('YouTube', Links.youtube(t)), link('Spotify', Links.spotify(t)), link('Deezer', dz));
 }
 
-// One track row: cover, title / artist, optional reason, play, love. onOpen makes the title a link.
-// from: where the bar's "came from" chip leads; by default the row's own tab (plus its Family Tree step).
+// One track row: cover, title / artist, optional reason, play, love.
+// from: where the bar's "came from" chip leads; by default the row's own tab (Family Tree rows pass "Tree, via <title>").
 const fromOf = row => {
-  const tab = row.closest('.panel')?.id, step = row.closest('.tree-node')?.dataset.step;
-  return tab ? { tab, label: tabName(tab) + (step && step !== '0' ? `, step ${step}` : '') } : null;
+  const tab = row.closest('.panel')?.id;
+  return tab ? { tab, label: tabName(tab) } : null;
 };
-function trackRow(t, { extra, reason, onOpen, full, tag = 'li', from } = {}) {
+function trackRow(t, { extra, reason, full, tag = 'li', from } = {}) {
   const name = `${t.artist} – ${t.title}`;
-  const title = onOpen ? el('button', { type: 'button', className: 'link', textContent: t.title, onclick: onOpen, title: 'Grow its family tree' }) : el('span', { className: 'title', textContent: t.title });
+  const title = el('span', { className: 'title', textContent: t.title });
   const playBtn = el('button', { type: 'button', className: 'play',
     onclick: () => current && likeKey(current) === likeKey(t) && audio.getAttribute('src') ? togglePlay() : play(t, { extra, from: from || fromOf(row) }) });
   playBtn.append(icon('play'));
@@ -333,7 +334,7 @@ function showTab(name, focus) {
   if (name === 'blind' && mystery && !rated && !current) playMystery(); // Home is the landing page: the first mystery waits until you come here
   if (name === 'saved') renderSaved();
   if (name === 'prefs') renderPrefs();
-  if (name === 'tree') renderTreePicker();
+  if (name === 'tree' && !trNodes.length) showStart(true);
 }
 $('#tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) showTab(t.dataset.tab); });
 $('#brand').onclick = () => showTab('home'); // phones have no Home tab: the brand is the way back
@@ -616,7 +617,7 @@ function rate(kind) {
   const said = VERDICT[kind];
   // Artist/title enter the DOM only now, after rating. The cover slides out over the record, the name types on.
   $('#deck').prepend(m.cover ? el('img', { className: 'sleeve', src: m.cover, alt: `Cover of ${m.title}` }) : el('span', { className: 'sleeve cover-ph', ariaHidden: 'true' }));
-  $('#deck').append(el('span', { className: 'verdict', textContent: `You said ${said}`, ariaHidden: 'true' }));
+  $('#deck').append(el('img', { className: 'verdict', src: `img/sticker-${kind}.png`, alt: '' })); // the shop's sticker; the sr-only line below says it
   $('#deck').dataset.verdict = kind;
   const [meta, about] = revealDetails(m);
   $('#mystery-title').textContent = m.title; // the song's name takes the "Mystery track" line; the artist leads the card below
@@ -850,7 +851,7 @@ function renderStamps() {
 }
 let stMenu = 0;
 const PHONE = matchMedia('(max-width: 840px)');
-PHONE.addEventListener('change', () => $$('#stamp-songs .track, #tree-canvas .node-card').forEach(r => r.fit?.()));
+PHONE.addEventListener('change', () => $('#stamp-songs .track').forEach(r => r.fit?.()));
 function songRow(t) {
   const row = trackRow(t, { extra: extraOf(t), full: true });
   if (t.year) row.querySelector('.artist').textContent = `${t.artist}, ${t.year}`;
@@ -899,7 +900,7 @@ async function openStamp(s, rerolls = 0) {
   stState('loading', 'Searching…');
   const res = await api.stamp(s.id, run).catch(() => ({ error: true }));
   if (run !== stRun || !res) return;
-  if (res.error) return stState('error', "Couldn't reach the record stacks. Check your connection and try again.", { actions: [btn('Try again', () => openStamp(s), 'primary')] });
+  if (res.error) return stState('error', "Couldn't reach the record stacks. Check your connection and try again.", { art: 'empty-unknown', actions: [btn('Try again', () => openStamp(s), 'primary')] });
   if (res.thin) {
     markShort(s.id);
     if (rerolls > 0) return land(SD.roll(rollState()), rerolls - 1);
@@ -915,7 +916,7 @@ async function openStamp(s, rerolls = 0) {
     return stState('empty', `Only ${res.count} song${res.count === 1 ? '' : 's'} from ${s.label} made it.${near.length ? ` Try ${near.map(x => x.label).join(' or ')}?` : ''}`,
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
-  if (!stSongs.length) return stState('empty', 'No songs came through for this one.', { actions: [btn('Try again', () => openStamp(s), 'primary')] }); // never a silent empty list
+  if (!stSongs.length) return stState('empty', 'No songs came through for this one.', { art: 'empty-unknown', actions: [btn('Try again', () => openStamp(s), 'primary')] }); // never a silent empty list
   const doneMsg = n => (s.atlas ? `${n} songs tagged ${SD.ATLAS.get(s.genre).name}${s.decade ? `, first released in the ${SD.decadeName(s.decade)}` : ''}${s.cc ? `, by artists from ${countryNames[s.cc]}` : ''}.`
     : `${n} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
   stState('done', doneMsg(res.count));
@@ -964,22 +965,39 @@ $('#stamp-export').onclick = e => stOpen && exportToSpotify(`Gruvo: ${stOpen.lab
 
 // ---------- C. Family Tree ----------
 // main builds the tree (src/tree.js) and streams nodes over 'tree:node'; a newer tree's run number drops the old one's.
-let trRun = 0, trSearch = 0, trBusy = 0, trNodes = [], trRoots = [], trEls = new Map();
+// The view is a dig: one record in focus, its family under it grouped by relation, and the way back up as a row of sleeves.
+let trRun = 0, trSearch = 0, trBusy = 0, trNodes = [], trFocus = 0, trFull = false;
+const trDigging = new Set(); // ids with a More in flight
 const trState = (kind, msg, opts) => setState($('#tree-state'), kind, msg, opts);
 const trWork = d => { trBusy += d; if (trBusy) trState('loading', 'Searching…'); };
+const kinOf = id => trNodes.filter(n => n && n.parentId === id);
+const treeFrom = n => ({ tab: 'tree', label: n.parentId == null ? tabName('tree') : `Tree, via ${trNodes[n.parentId].track.title}` });
+const TREE_MORE = 3; // songs one More adds (src/tree.js MORE)
 
-function renderTreePicker() {
-  const chosen = trRoots[$('#tree-root').value];
-  trRoots = profile.likes.slice().reverse(); // newest first
-  const keep = chosen ? trRoots.findIndex(t => likeKey(t) === likeKey(chosen)) : -1; // keep the chosen root if it is still saved
-  $('#tree-root').replaceChildren(...trRoots.map((t, i) => el('option', { value: i, textContent: `${t.title} – ${t.artist}` })));
-  if (keep > 0) $('#tree-root').value = keep;
-  $('#tree-pick').hidden = !trRoots.length;
-  renderGrowSettings();
-  if (!trRoots.length && !trNodes.length) trState('empty', 'Nothing saved yet. Search any song to grow its tree, or save songs in Blind Test or Crate Dig.',
-    { actions: [btn('Search a song', () => $('#tree-q').focus(), 'primary')] });
+// A 48px "Dig ›" / "Grow ›": the one way into a record.
+function digBtn(text, label, onclick) {
+  const b = el('button', { type: 'button', className: 'dig-go', onclick }, text, icon('chevron'));
+  b.setAttribute('aria-label', label);
+  return b;
 }
-$('#tree-pick').addEventListener('submit', e => { e.preventDefault(); const t = trRoots[$('#tree-root').value]; if (t) growTree(t); });
+
+// Start: search any song, or tap one of your saved sleeves. With a tree already grown, the way back to it.
+function showStart(on) {
+  $('#tree-start').hidden = !on;
+  $('#tree-dig').hidden = on || !trNodes.length;
+  $('#tree-new').hidden = on || !trNodes.length;
+  if (!on) return;
+  const saved = profile.likes.slice().reverse(); // newest first
+  $('#tree-saved-box').hidden = !saved.length;
+  $('#tree-saved').replaceChildren(...saved.map(t => el('li', {}, el('button', { type: 'button', className: 'sleeve-pick', onclick: () => growTree(t), ariaLabel: `Grow a tree from ${t.artist} – ${t.title}` },
+    t.cover ? el('img', { src: t.cover, alt: '', width: 96, height: 96 }) : el('span', { className: 'cover-ph' }),
+    el('span', { className: 'sleeve-title', textContent: t.title }), el('span', { className: 'sleeve-artist', textContent: t.artist })))));
+  const f = trNodes[trFocus];
+  if (f) trState('done', '', { actions: [btn(`Back to “${f.track.title}”`, () => { trState('done', ''); showStart(false); })] });
+  else if (!saved.length) trState('empty', 'Search any song to start digging. Songs you save in Blind Test or Crate Dig wait here too.', { art: 'empty-deck' });
+  else trState('done', '');
+}
+$('#tree-new').onclick = () => { showStart(true); $('#tree-q').focus(); };
 $('#tree-search').addEventListener('submit', async e => {
   e.preventDefault();
   const q = $('#tree-q').value.trim();
@@ -988,53 +1006,53 @@ $('#tree-search').addEventListener('submit', async e => {
   trState('loading', 'Searching…');
   const hits = await call('searchTracks', q);
   if (run !== trSearch) return;
-  if (!hits) return trState('error', "Couldn't search right now. Check your connection.", { actions: [btn('Try again', () => $('#tree-search').requestSubmit(), 'primary')] });
-  trState(hits.length ? 'done' : 'empty', hits.length ? 'Pick the song to grow its tree.' : `No songs found for "${q}". Try artist and title, e.g. "Oasis Wonderwall".`);
-  $('#tree-hits').replaceChildren(...hits.map(t => trackRow(t, { onOpen: () => { $('#tree-hits').replaceChildren(); growTree(t); } })));
+  if (!hits) return trState('error', "Couldn't search right now. Check your connection.", { art: 'empty-unknown', actions: [btn('Try again', () => $('#tree-search').requestSubmit(), 'primary')] });
+  trState(hits.length ? 'done' : 'empty', hits.length ? '' : `No songs found for "${q}". Try artist and title, e.g. "Oasis Wonderwall".`, { art: hits.length ? null : 'empty-unknown' });
+  $('#tree-hits').replaceChildren(...hits.map(t => {
+    const row = trackRow(t);
+    row.append(digBtn('Grow', `Grow a tree from ${t.artist} – ${t.title}`, () => growTree(t)));
+    return row;
+  }));
 });
 
-// Grow settings (profile.prefs.tree): saved on change, applied only when the tree is regrown.
+// Tune (profile.prefs.tree): five plain switches, the rest under "More ways", then the filters. Saved on change, applied on close.
 const GROW_EDGES = [ // [edge, hint], in the order they are listed
   ['scene', 'Same genre, years and country'], ['related', 'What fans of the artist also play'], ['era', 'Any genre, the same years'],
   ['place', 'Same city or country, any genre'], ['soundtrack', 'Songs from the same film'], ['producer', 'Records the same producer made'],
   ['label', 'Signed to the same label then'], ['member', 'Bands a member went on to or came from'],
   ['builton', 'Songs it samples or is based on'], ['roots', 'Artists it names as an influence']];
+const TUNE_MAIN = { scene: 'Same scene', member: 'Band members', builton: 'Samples and covers', roots: 'Influences', related: 'Fans also play' };
 let trRoot = null, trUsed = '';
 const growSet = () => profile.prefs.tree;
 function renderGrowSettings() {
-  const s = growSet();
-  $('#grow-edges').replaceChildren(...GROW_EDGES.map(([e, hint]) => {
-    const box = el('input', { type: 'checkbox', value: e, checked: s.edges.includes(e) });
-    return el('label', { className: 'grow-edge' }, box, el('span', { className: 'grow-name', textContent: EDGE_NAMES[e] }), el('span', { className: 'grow-hint', textContent: hint }));
-  }));
-  $$('#grow-edges .grow-edge').forEach((l, i) => l.dataset.edge = GROW_EDGES[i][0]);
-  Object.assign($('#grow-era'), { value: s.era }); $('#grow-place').value = s.place; $('#grow-width').value = String(s.width); $('#grow-fame').value = s.fame;
-  growSummary();
+  const s = growSet(), sw = ([e, hint]) => el('label', { className: 'grow-edge' },
+    el('span', { className: 'grow-name', textContent: TUNE_MAIN[e] || EDGE_NAMES[e] }), TUNE_MAIN[e] ? null : el('span', { className: 'grow-hint', textContent: hint }),
+    el('input', { type: 'checkbox', role: 'switch', value: e, checked: s.edges.includes(e) }));
+  $('#grow-edges').replaceChildren(...Object.keys(TUNE_MAIN).map(e => sw(GROW_EDGES.find(g => g[0] === e))));
+  $('#grow-edges-more').replaceChildren(...GROW_EDGES.filter(([e]) => !TUNE_MAIN[e]).map(sw));
+  $('#grow-era').value = s.era; $('#grow-place').value = s.place; $('#grow-width').value = String(s.width); $('#grow-fame').value = s.fame;
 }
-function growSummary() {
-  const s = growSet(), on = s.edges.map(e => EDGE_NAMES[e].replace(/^Same /, '').toLowerCase());
-  $('#grow-summary').textContent = `${on.length > 3 ? `${on.length} connections` : on.join(', ')} · ${{ near: 'same years', decade: 'same decade', any: 'any era' }[s.era]} · ${s.place === 'same' ? 'same country' : 'anywhere'}`
-    + (s.fame < 40 ? ' · famous' : s.fame > 60 ? ' · obscure' : '') + (s.width === 5 ? ' · 5 per node' : '');
-  $('#grow-regrow').hidden = !trRoot || JSON.stringify(s) === trUsed;
-}
-$('#grow-settings').addEventListener('change', e => {
-  const boxes = $$('#grow-edges input'), on = boxes.filter(b => b.checked).map(b => b.value);
+$('#tree-tune').addEventListener('change', e => {
+  const on = $$('#tree-tune input[type=checkbox]').filter(b => b.checked).map(b => b.value);
   if (!on.length) { e.target.checked = true; return toast('Keep at least one way to connect songs.'); } // the last one stays on
   profile.prefs.tree = { edges: on, era: $('#grow-era').value, place: $('#grow-place').value, fame: Number($('#grow-fame').value), width: Number($('#grow-width').value) };
-  save(); growSummary();
+  save();
 });
-// On a phone the open Grow settings are a bottom sheet (CSS); scrim tap, Done and Regrow close it.
-const closeGrow = () => { if (PHONE.matches) $('#grow-settings').open = false; };
-$('#grow-regrow').onclick = () => { closeGrow(); trRoot && growTree(trRoot); };
-$('#grow-done').onclick = closeGrow;
-$('.grow-body').addEventListener('click', e => { if (e.target === e.currentTarget) closeGrow(); });
+$('#tree-tune-open').onclick = () => { renderGrowSettings(); $('#tree-tune').showModal(); };
+$('#grow-done').onclick = () => $('#tree-tune').close();
+$('#tree-tune').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); }); // a tap on the backdrop
+$('#tree-tune').addEventListener('close', () => {
+  if (!trRoot || JSON.stringify(growSet()) === trUsed) return;
+  toast('Regrowing with your new settings.');
+  growTree(trRoot);
+});
 
 // Back (Android's button via api.onBack; Esc passes sheets only): an open sheet first, then the previous tab. False = nothing left, Android leaves the app.
 function goBack(leave = true) {
   const menus = $$('.node-menu:not([hidden])');
   if (menus.length) { menus.forEach(m => m.parentElement.close()); return true; }
   if (!gSheet.hidden) { gSheet.hidden = true; return true; }
-  if (PHONE.matches && $('#grow-settings').open) { closeGrow(); return true; }
+  if ($('#tree-tune').open) { $('#tree-tune').close(); return true; }
   if (!leave || !tabHist.length) return false;
   goingBack = true; showTab(tabHist.pop()); goingBack = false;
   return true;
@@ -1045,7 +1063,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(false
 {
   let drag = null;
   document.addEventListener('touchstart', e => {
-    const s = e.target.closest?.('#main :is(.node-menu, .sheet, .grow-body)');
+    const s = e.target.closest?.('#main :is(.node-menu, .sheet, .tune)');
     if (s && PHONE.matches && s.scrollTop <= 0 && getComputedStyle(s).position === 'fixed') drag = { s, y: e.touches[0].clientY, dy: 0 };
   }, { passive: true });
   document.addEventListener('touchmove', e => {
@@ -1067,44 +1085,86 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(false
 
 async function growTree(root) {
   const run = ++trRun;
-  trNodes = []; trBusy = 0; trEls = new Map(); $('#tree-export').parentElement.hidden = true;
-  trRoot = root; trUsed = JSON.stringify(growSet()); $('#grow-regrow').hidden = true;
-  $('#tree-canvas').replaceChildren();
+  trNodes = []; trBusy = 0; trFocus = 0; trFull = false; trDigging.clear(); $('#tree-export').parentElement.hidden = true;
+  trRoot = root; trUsed = JSON.stringify(growSet());
+  $('#tree-hits').replaceChildren(); $('#tree-start').hidden = true;
   trWork(1);
   const ok = await api.tree(plain(root), profile.heard, run, profile.likes.map(({ source, id, artist, title }) => ({ source, id, artist, title })), plain(growSet())).catch(e => { console.error('tree', e); return null; });
   if (run !== trRun) return;
   trBusy--;
-  if (ok === null) return trState('error', "Couldn't grow the tree right now. Check your connection.", { actions: [btn('Try again', () => growTree(root), 'primary')] });
+  if (ok === null) { if (!trNodes.length) showStart(true); return trState('error', "Couldn't grow the tree right now. Check your connection.", { art: 'empty-unknown', actions: [btn('Try again', () => growTree(root), 'primary')] }); }
   if (trBusy) return;
   const seen = new Set(trNodes.map(n => n && n.edgeType)), none = growSet().edges.filter(e => !seen.has(e)).map(e => EDGE_NAMES[e]);
   if (trNodes.length > 1) trState('done', none.length ? `Nothing found for: ${none.join(', ')}.` : '');
-  else trState('empty', `No family found${none.length ? ` for: ${none.join(', ')}` : ' yet'}. Try another connection, or More.`, { actions: [btn('Try More', () => trNodes[0] && moreTree(trNodes[0]))] });
+  else trState('empty', `No family found${none.length ? ` for: ${none.join(', ')}` : ' yet'}. Try More, or Tune for other ways to connect.`, { art: 'empty-unknown' });
+  if (trFocus && !kinOf(trFocus).length) moreTree(trNodes[trFocus]); // dug into a song the build left bare
+  kinNote();
 }
 api.onTreeNode((run, n) => {
   if (run !== trRun) return;
-  trNodes[n.id] = n; renderTree({ nodes: trNodes }); $('#tree-export').parentElement.hidden = false;
+  trNodes[n.id] = n;
+  if (n.parentId == null) renderDig(); else if (n.parentId === trFocus) addKin(n, true);
+  $('#tree-export').parentElement.hidden = false;
   const k = trNodes.filter(Boolean).length - 1; // a live count instead of a "Searching…" that sits over a tree already growing; cleared when the grow ends
   if (trBusy && k > 0) trState('loading', `Growing… ${k} song${k > 1 ? 's' : ''} so far`);
 });
 
-// Render hook for the Family Tree. model.nodes: {id, parentId, depth, edgeType, label, track}; this adds `step` (a stable label: 1, 1.2, 1.2.1) and `spine`.
-// Each node is built once (open About panels survive re-renders). Children sit in one .branch per edgeType under their
-// parent, so each category can be drawn as its own branch off the path. The spine is the root plus its children, in
-// step order. Fires 'tree:updated' on #tree-canvas after every change (stream or More) so connectors can be redrawn.
+// The dig: path (root .. focus) as sleeves, the focus as a full card, its family grouped under one sign per relation.
+// model nodes: {id, parentId, depth, edgeType, label, track}. The first grow brings root, children and grandchildren,
+// so the first Dig is instant; a record with no family yet gets a More.
 const EDGE_NAMES = { era: 'Same era', place: 'Same place', soundtrack: 'Same soundtrack', scene: 'Same scene', member: 'Member moved', builton: 'Built on', roots: 'Roots', producer: 'Same producer', label: 'Same label', related: 'Fans also play' };
-function renderTree(model) {
-  const canvas = $('#tree-canvas');
-  for (const n of model.nodes) if (n && !trEls.has(n.id)) placeNode(n, canvas);
-  // Guided path: document order is depth-first pre-order, so numbering the nodes in order reads like a walk.
-  let stop = 0;
-  $$('#tree-canvas .tree-node').forEach(e => {
-    const n = model.nodes[e.dataset.nodeId];
-    n.step = e.dataset.step; n.spine = n.depth <= 1;
-    e.dataset.spine = n.spine;
-    e.classList.toggle('alt', n.spine && stop++ % 2 === 1); // spine stops swap sides, so the path winds
-  });
-  canvas.dispatchEvent(new CustomEvent('tree:updated', { detail: model }));
+function renderDig() {
+  const f = trNodes[trFocus], parent = trNodes[f.parentId];
+  $('#tree-start').hidden = true; $('#tree-dig').hidden = false; $('#tree-new').hidden = false;
+  $('#tree-path').replaceChildren(...Dig.path(trNodes, trFocus).map(n => {
+    const b = el('button', { type: 'button', className: 'crumb', onclick: () => n !== f && dig(n.id) },
+      n.track.cover ? el('img', { src: n.track.cover, alt: '', width: 40, height: 40 }) : el('span', { className: 'cover-ph' }),
+      el('span', { className: 'crumb-title', textContent: n.track.title }));
+    b.setAttribute('aria-label', n === f ? `${n.track.title}, in focus` : `Back to ${n.track.artist} – ${n.track.title}`);
+    if (n === f) b.setAttribute('aria-current', 'step');
+    return el('li', {}, b);
+  }));
+  const row = trackRow(f.track, { tag: 'div', full: true, reason: Dig.reason(f, parent) || 'Where this dig started.', from: treeFrom(f) });
+  const love = row.querySelector('.love');
+  if (parent) row.append(rateGroup(f.track, love));
+  $('#tree-focus').replaceChildren(row);
+  $('#tree-family-h').textContent = `The family of “${f.track.title}”`;
+  $('#tree-family').replaceChildren();
+  kinOf(trFocus).forEach(n => addKin(n, false));
+  kinNote();
 }
+function dig(id) {
+  trFocus = id;
+  renderDig();
+  if ($('#tree-dig').getBoundingClientRect().top < 0) $('#tree-dig').scrollIntoView({ block: 'start' }); // from deep in the list: back up to the new focus
+  $('#tree-focus .play')?.focus({ preventScroll: true });
+  if (!kinOf(id).length && !trBusy) moreTree(trNodes[id]);
+}
+function addKin(n, fresh) {
+  const fam = $('#tree-family');
+  let group = [...fam.children].find(g => g.dataset.edge === n.edgeType);
+  if (!group) {
+    fam.append(group = el('section', { className: 'kin' }, el('h3', { className: 'kin-sign' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol', { className: 'tracks kin-rows' })));
+    group.dataset.edge = n.edgeType;
+  }
+  const row = trackRow(n.track, { reason: Dig.reason(n, trNodes[n.parentId]), from: treeFrom(n) });
+  row.append(digBtn('Dig', `Dig into ${n.track.artist} – ${n.track.title}`, () => dig(n.id)));
+  if (fresh) { row.classList.add('grow'); row.addEventListener('animationend', () => row.classList.remove('grow'), { once: true }); }
+  group.lastElementChild.append(row);
+  kinNote();
+}
+// The family's last line: "+ 3 more like …", or what is happening while it is still empty.
+function kinNote() {
+  const f = trNodes[trFocus], b = $('#tree-more'), busy = trDigging.has(trFocus), none = !kinOf(trFocus).length;
+  if (!f) return;
+  b.textContent = trFull ? 'This tree is full' : busy ? 'Digging…' : `+ ${TREE_MORE} more like “${f.track.title}”`;
+  b.disabled = trFull || busy;
+  let p = $('#tree-family .kin-wait');
+  if (!none) return p?.remove();
+  if (!p) $('#tree-family').append(p = el('p', { className: 'kin-wait' }));
+  p.textContent = busy || trBusy ? 'Digging for its family…' : 'No family found for this one yet. Try More, or Tune for other ways to connect.';
+}
+$('#tree-more').onclick = () => trNodes[trFocus] && moreTree(trNodes[trFocus]);
 
 // Category icons: 16px stroke glyphs, so a branch reads by shape and label as well as colour.
 const EDGE_ICONS = {
@@ -1120,7 +1180,7 @@ const EDGE_ICONS = {
   soundtrack: 'M3 2.5h10v11H3zM6 2.5v11M10 2.5v11M3 6h3M10 6h3M3 10h3M10 10h3',
 };
 // Drawn UI icons (play, pause, heart, close) in the tree icons' 16px, 1.6 stroke.
-const ICONS = { play: 'M5 3.2v9.6L12.8 8z', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
+const ICONS = { play: 'M5 3.2v9.6L12.8 8z', chevron: 'M6 3.5 10.5 8 6 12.5', more: 'M3.5 8h.01M8 8h.01M12.5 8h.01', pause: 'M5.5 3.5v9M10.5 3.5v9', close: 'M4.5 4.5l7 7M11.5 4.5l-7 7',
   heart: 'M8 13.4S2.3 10 2.3 6a2.9 2.9 0 0 1 5.7-1.2A2.9 2.9 0 0 1 13.7 6c0 4-5.7 7.4-5.7 7.4z' };
 function icon(name, filled) {
   const s = svgEl('svg', { viewBox: '0 0 16 16', class: `icon i-${name}${filled ? ' filled' : ''}`, 'aria-hidden': 'true', focusable: 'false' });
@@ -1175,123 +1235,16 @@ function fitPhone(owner, group, wrap, ...extra) {
 }
 document.addEventListener('pointerdown', e => $$('.node-menu:not([hidden])').forEach(m => { if (!m.parentElement.contains(e.target)) m.parentElement.close(); }));
 
-function placeNode(n, canvas) {
-  // The branch heading already names the relation ("Same scene"): the card keeps only what follows it.
-  const lead = `${EDGE_NAMES[n.edgeType]}: `, label = n.label && n.label.startsWith(lead) ? n.label.slice(lead.length) : n.label;
-  const row = trackRow(n.track, { reason: label || 'Your song', full: true, tag: 'div' });
-  if (EDGE_ICONS[n.edgeType]) row.querySelector('.reason').prepend(edgeIcon(n.edgeType));
-  const more = btn('+ More', () => moreTree(n), 'more');
-  more.setAttribute('aria-label', `More from this branch: ${n.track.artist} – ${n.track.title}`);
-  more.dataset.long = '+ More from this branch';
-  // Secondary actions sit in one quiet row under the song: Skip / OK / Love (Love alone on your song), ⋯ (About, Full song), More.
-  const love = row.querySelector('.love'), group = n.parentId == null ? null : rateGroup(n.track, love);
-  const menu = moreMenu(row, `node-menu-${n.id}`, `${n.track.artist} – ${n.track.title}`);
-  const actions = el('div', { className: 'node-actions' }, group || love, menu);
-  const card = el('div', { className: 'node-card' }, el('span', { className: 'step' }), row, actions);
-  fitPhone(card, group, menu, more);
-  love.sync();
-  const node = el(n.parentId == null ? 'div' : 'li', { className: 'tree-node grow' }, card, el('div', { className: 'branches' }));
-  Object.assign(node.dataset, { nodeId: n.id, parentId: n.parentId ?? '', edge: n.edgeType, depth: n.depth });
-  trEls.set(n.id, node);
-  trResize.observe(card);
-  node.addEventListener('animationend', e => { if (e.target === card) node.classList.remove('grow'); });
-  if (n.parentId == null) { node.dataset.step = '0'; return canvas.append(node); }
-  // Stable guided steps: a parent's k-th child is k (spine) or <parent step>.k, in arrival order; More never renumbers.
-  const parent = trEls.get(n.parentId), branches = parent.querySelector(':scope > .branches');
-  const k = parent.dataset.kids = Number(parent.dataset.kids || 0) + 1;
-  node.dataset.step = n.step = n.depth === 1 ? `${k}` : `${parent.dataset.step}.${k}`;
-  card.querySelector('.step').textContent = n.step;
-  // The spine keeps arrival order: a stop joins the last sign only if it is the same category, else opens a new one.
-  let branch = n.depth === 1 ? branches.lastElementChild : branches.querySelector(`:scope > .branch[data-edge="${n.edgeType}"]`);
-  if (branch && branch.dataset.edge !== n.edgeType) branch = null;
-  if (!branch) branches.append(branch = el('section', { className: 'branch' },
-    el('h3', { className: 'branch-name' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol')));
-  branch.dataset.edge = n.edgeType;
-  branch.querySelector('ol').append(node);
-  if (branch.dataset.reason === label) row.querySelector('.reason').classList.add('same'); // the same relation as the song above: say it once
-  else branch.dataset.reason = label;
-}
-
-// Connectors: one SVG under the nodes (decorative, aria-hidden). The spine is a winding trail through the stops;
-// each stop's categories leave it on parallel rails; songs hang off a category by elbows. Paths are kept by key
-// so a line that is still drawing in is not restarted by the next streamed node.
-let trFrame = 0, trPaths = new Map();
-const trResize = new ResizeObserver(() => drawTree());
-trResize.observe($('#tree-canvas'));
-$('#tree-canvas').addEventListener('tree:updated', () => drawTree());
-function drawTree() { cancelAnimationFrame(trFrame); trFrame = requestAnimationFrame(drawLines); }
-function drawLines() {
-  const canvas = $('#tree-canvas');
-  let svg = canvas.querySelector(':scope > .tree-lines');
-  if (!svg) {
-    canvas.prepend(svg = svgEl('svg', { class: 'tree-lines', 'aria-hidden': 'true', focusable: 'false' }));
-    svg.addEventListener('animationend', e => e.target.classList.remove('grow')); // grow once, not on every tab switch
-    trPaths = new Map();
-  }
-  const o = canvas.getBoundingClientRect(), z = o.width / canvas.offsetWidth || 1; // client rects are zoomed, SVG units are not
-  const R = e => { const r = e.getBoundingClientRect(), l = (r.left - o.left) / z, t = (r.top - o.top) / z, w = r.width / z, h = r.height / z;
-    return { l, r: l + w, t, b: t + h, x: l + w / 2, y: t + h / 2 }; };
-  const card = n => n.querySelector(':scope > .node-card');
-  const seen = new Set();
-  const line = (key, d, cls, edge) => {
-    let p = trPaths.get(key);
-    if (!p) { trPaths.set(key, p = svgEl('path', { class: `${cls} grow`, pathLength: 1 })); if (edge) p.dataset.edge = edge; svg.append(p); }
-    p.setAttribute('d', d); seen.add(key);
-  };
-  // Spine: down from a stop's marker, across between rows (through the category sign, if one starts there), down to the next.
-  const stops = $$('#tree-canvas .tree-node[data-spine="true"]');
-  for (let i = 1; i < stops.length; i++) {
-    const a = R(stops[i - 1].querySelector('.step')), bNode = stops[i], b = R(bNode.querySelector('.step'));
-    const end = i === 1 ? R(card(stops[0])).b : R(stops[i - 1]).b, ol = bNode.parentElement;
-    const ym = ol.firstElementChild === bNode ? R(ol.previousElementSibling).y : (end + R(bNode).t) / 2;
-    const dx = b.x - a.x, s = Math.sign(dx), r = Math.max(0, Math.min(36, Math.abs(dx) / 2, ym - a.y, b.y - ym));
-    line(`s${bNode.dataset.nodeId}`, Math.abs(dx) < 1 ? `M${a.x} ${a.y}V${b.y}`
-      : `M${a.x} ${a.y}V${ym - r}Q${a.x} ${ym} ${a.x + s * r} ${ym}H${b.x - s * r}Q${b.x} ${ym} ${b.x} ${ym + r}V${b.y}`, 'trail');
-  }
-  // Branches off every node except the root (the root's branches are the spine itself).
-  for (const owner of $$('#tree-canvas .tree-node:not([data-depth="0"])')) {
-    const brs = [...owner.querySelectorAll(':scope > .branches > .branch')];
-    const c = R(card(owner));
-    brs.forEach((br, i) => {
-      const h = R(br.querySelector(':scope > .branch-name')), edge = br.dataset.edge, far = brs.length - 1 - i;
-      let d, hx;
-      if (h.t >= c.b - 2) { // stacked under the song: a trunk down its left side, elbow into the sign
-        const x = c.l + 18 + far * 6, r = Math.max(0, Math.min(10, h.l - x));
-        d = `M${x} ${c.b}V${h.y - r}Q${x} ${h.y} ${x + r} ${h.y}H${h.l}`; hx = h.l + 12;
-      } else { // beside the song: a rail out of its side, dropping onto the sign (farther signs ride higher rails)
-        const right = h.x > c.x, x0 = right ? c.r : c.l, y0 = c.t + 22 + far * 6, s = right ? 1 : -1, r = Math.max(0, Math.min(12, h.t - y0));
-        d = `M${x0} ${y0}H${h.x - s * r}Q${h.x} ${y0} ${h.x} ${y0 + r}V${h.t}`; hx = right ? h.l + 12 : h.r - 12;
-      }
-      line(`b${owner.dataset.nodeId}-${edge}`, d, 'rail', edge);
-      for (const kid of br.querySelectorAll(':scope > ol > .tree-node')) {
-        const k = R(card(kid)), y = k.t + 26, toL = k.l >= hx, xe = toL ? k.l : k.r, r = Math.min(10, Math.abs(xe - hx));
-        line(`k${kid.dataset.nodeId}`, `M${hx} ${h.b}V${y - r}Q${hx} ${y} ${hx + (toL ? r : -r)} ${y}H${xe}`, 'twig', edge);
-      }
-    });
-  }
-  for (const [k, p] of trPaths) if (!seen.has(k)) { p.remove(); trPaths.delete(k); }
-}
-// Up / Down (Home / End) move between songs; Tab still walks every control in reading order.
-$('#tree-canvas').addEventListener('keydown', e => {
-  const cur = e.target.closest('.node-card');
-  if (!cur || e.altKey || e.ctrlKey || e.metaKey || e.target.closest('.about')) return;
-  const plays = $$('#tree-canvas .node-card .play'), i = plays.indexOf(cur.querySelector('.play'));
-  const to = plays[{ ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: plays.length - 1 }[e.key]];
-  if (!to) return;
-  e.preventDefault();
-  to.focus();
-});
-
 async function moreTree(n) {
-  const run = trRun, more = trEls.get(n.id).querySelector(':scope > .node-card .more');
-  more.disabled = true;
-  trWork(1);
+  const run = trRun;
+  trDigging.add(n.id); kinNote();
   const r = await api.treeMore(n.id).catch(() => null);
   if (run !== trRun) return;
-  trBusy--;
-  more.disabled = !!(r && r.full);
-  if (trBusy) return;
-  trState(r && !r.error ? 'done' : 'error', !r || r.error ? "Couldn't reach the music services. Try again." : r.full ? 'This tree is full. Start a new one from any song.' : r.added ? '' : 'No more family found.');
+  trDigging.delete(n.id);
+  if (r && r.full) trFull = true;
+  kinNote();
+  toast(!r || r.error ? "Couldn't reach the music services. Try again." : r.added ? `${r.added} more in the family of “${n.track.title}”.`
+    : r.full ? 'This tree is full. Start a new one from any song.' : `No more family found for “${n.track.title}”.`);
 }
 
 // ---------- Saved ----------
@@ -1315,7 +1268,7 @@ function renderSaved() {
     row.append(el('div', { className: 'node-actions' }, moreMenu(row, `saved-menu-${i}`, `${t.artist} – ${t.title}`))); // About and Full song behind ⋯, as on the Tree
     return row;
   }));
-  if (!profile.likes.length) list.append(el('li', { className: 'state empty' },
+  if (!profile.likes.length) list.append(el('li', { className: 'state empty' }, el('img', { className: 'state-art', src: 'img/empty-crate.png', alt: '' }),
     el('p', { textContent: 'Nothing saved yet. Press Love on any track to keep it here.' }),
     el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Crate Dig', () => showTab('stamps')))));
 }
@@ -1574,7 +1527,7 @@ async function exportToSpotify(name, tracks, out, b) {
 }
 $('#saved-export').onclick = e => exportToSpotify('Gruvo: Loved', profile.likes.slice().reverse(), $('#saved-export-status'), e.currentTarget);
 $('#tree-export').onclick = e => {
-  const steps = $$('#tree-canvas .tree-node').map(n => trNodes[n.dataset.nodeId]?.track).filter(Boolean); // guided-step (document) order
+  const steps = trNodes.filter(Boolean).map(n => n.track); // arrival order: the root, its family, theirs
   exportToSpotify(steps.length ? `Gruvo: ${steps[0].title} family tree` : 'Gruvo', steps, $('#tree-export-status'), e.currentTarget);
 };
 
