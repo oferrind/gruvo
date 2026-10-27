@@ -29,7 +29,7 @@ function setZoom(z) {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1100, height: 800,
+    width: 1100, height: 800, icon: path.join(__dirname, 'renderer', 'img', 'logo-512.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
