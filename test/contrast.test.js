@@ -14,7 +14,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
 const EDGES = ['scene', 'member', 'builton', 'roots', 'producer', 'label', 'related', 'era', 'place', 'soundtrack'].map(e => `edge-${e}`);
 const PAIRS = [
   ...['color-text', 'color-muted'].flatMap(f => ['color-bg', 'color-surface', 'color-surface-2'].map(b => [f, b])),
-  ...['color-accent', 'color-love', 'color-error', ...EDGES].flatMap(f => ['color-bg', 'color-surface'].map(b => [f, b])),
+  ...['color-accent', 'color-love', 'color-error', ...EDGES].flatMap(f => ['color-bg', 'color-surface', 'color-surface-2'].map(b => [f, b])),
   ['color-on-accent', 'color-accent'], ['color-error', 'color-error-bg'], ['sticker-ink', 'sticker'],
 ];
 

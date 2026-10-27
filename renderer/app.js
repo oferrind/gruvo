@@ -94,6 +94,7 @@ function syncPlayState() {
   if (on && !deck.classList.contains('is-playing')) deck.classList.add('needle-drop'); // the arm swings in and the rim ripples once
   deck.classList.toggle('is-playing', on);
   $('.nowbar').classList.toggle('is-idle', !current);
+  $('.nowbar').classList.toggle('is-deck', !!current && current === mystery); // phone: the deck is the player only for the mystery, any other song keeps the mini-player
   $$('.track.is-playing').forEach(r => r.classList.remove('is-playing'));
   $$('.track .play').forEach(b => { b.replaceChildren(icon('play')); b.setAttribute('aria-label', b.dataset.label); });
   if (current) $$(`.track[data-key="${CSS.escape(likeKey(current))}"]`).forEach(r => {
@@ -327,6 +328,7 @@ function showTab(name, focus) {
   if (prev && prev !== name && !goingBack) { const i = tabHist.lastIndexOf(name); if (i >= 0) tabHist.length = i; tabHist.push(prev); } // revisiting a tab drops the loop, so Back never replays ping-pong
   tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
+  if (prev !== name && !goingBack) scrollTo(0, 0); // a new tab opens at its top
   if (name === 'home') renderHome();
   if (name === 'blind' && mystery && !rated && !current) playMystery(); // Home is the landing page: the first mystery waits until you come here
   if (name === 'saved') renderSaved();
@@ -967,8 +969,11 @@ const trState = (kind, msg, opts) => setState($('#tree-state'), kind, msg, opts)
 const trWork = d => { trBusy += d; if (trBusy) trState('loading', 'Searching…'); };
 
 function renderTreePicker() {
+  const chosen = trRoots[$('#tree-root').value];
   trRoots = profile.likes.slice().reverse(); // newest first
+  const keep = chosen ? trRoots.findIndex(t => likeKey(t) === likeKey(chosen)) : -1; // keep the chosen root if it is still saved
   $('#tree-root').replaceChildren(...trRoots.map((t, i) => el('option', { value: i, textContent: `${t.title} – ${t.artist}` })));
+  if (keep > 0) $('#tree-root').value = keep;
   $('#tree-pick').hidden = !trRoots.length;
   renderGrowSettings();
   if (!trRoots.length && !trNodes.length) trState('empty', 'Nothing saved yet. Search any song to grow its tree, or save songs in Blind Test or Crate Dig.',
@@ -1062,7 +1067,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(false
 
 async function growTree(root) {
   const run = ++trRun;
-  trNodes = []; trBusy = 0; trEls = new Map();
+  trNodes = []; trBusy = 0; trEls = new Map(); $('#tree-export').parentElement.hidden = true;
   trRoot = root; trUsed = JSON.stringify(growSet()); $('#grow-regrow').hidden = true;
   $('#tree-canvas').replaceChildren();
   trWork(1);
@@ -1077,7 +1082,7 @@ async function growTree(root) {
 }
 api.onTreeNode((run, n) => {
   if (run !== trRun) return;
-  trNodes[n.id] = n; renderTree({ nodes: trNodes });
+  trNodes[n.id] = n; renderTree({ nodes: trNodes }); $('#tree-export').parentElement.hidden = false;
   const k = trNodes.filter(Boolean).length - 1; // a live count instead of a "Searching…" that sits over a tree already growing; cleared when the grow ends
   if (trBusy && k > 0) trState('loading', `Growing… ${k} song${k > 1 ? 's' : ''} so far`);
 });
@@ -1302,6 +1307,7 @@ function renderSaved() {
   setSeg(ls('savedSeg') === 'recent' ? 'recent' : 'loved');
   fillCrate($('#saved-recent'), $('#saved-recent-count'));
   $('#saved-like-count').textContent = profile.likes.length;
+  $('#saved-export').parentElement.hidden = !profile.likes.length;
   const list = $('#saved-list');
   list.replaceChildren(...profile.likes.slice().reverse().map((t, i) => {
     const row = trackRow(t, { extra: extraOf(t), full: true, // re-loving keeps the stamp

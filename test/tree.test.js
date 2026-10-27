@@ -92,6 +92,7 @@ test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', as
   const { get } = world();
   const T = mk(get, ROOT);
   await t.growTree(T);
+  T.S.edges.push('label'); // Label is not a default connection: More only brings it once it is ticked
   const r = await t.moreTree(T, 0);
   assert.equal(r.added, 3);
   const added = T.nodes.slice(13).map(n => n.label);
@@ -105,6 +106,15 @@ test('tree: More adds 3 (label + roots + scene), roots capped at 2 per tree', as
   T2.roots = 2; // the tree already used its 2 Roots nodes
   await t.moreTree(T2, 0);
   assert.ok(!T2.nodes.some(n => n.artist === 'The Kinks'));
+});
+
+test('tree: More leaves out Label / Producer / Built on when they are unchecked', async () => {
+  const { get } = world();
+  const T = mk(get, ROOT, { settings: { edges: ['scene', 'roots'] } });
+  await t.growTree(T);
+  await t.moreTree(T, 0);
+  assert.ok(!T.nodes.some(n => n.kind && ['label', 'producer', 'builton'].includes(n.kind)));
+  assert.ok(!T.nodes.some(n => /^Also on /.test(n.label)));
 });
 
 test('tree: saved songs are skipped (by id, or artist + base title) and the next candidate fills the gap', async () => {
@@ -282,6 +292,7 @@ test('tree: More while offline reports an error and works again once the network
   let offline = false;
   const T = mk(url => offline ? Promise.resolve({ error: { message: 'Unable to resolve host' } }) : get(url), ROOT);
   await t.growTree(T);
+  T.S.edges.push('label');
   offline = true;
   const r = await t.moreTree(T, 0);
   assert.deepEqual([r.added, r.error], [0, true]);

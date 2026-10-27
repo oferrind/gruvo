@@ -96,19 +96,19 @@
   --color-muted: light-dark(#614e3b, #bba88f);
   --color-accent: light-dark(#8c4a0c, #f0a63a);
   --color-on-accent: light-dark(#fff7ea, #1e140a);
-  --color-love: light-dark(#b0372a, #e8685a);
+  --color-love: light-dark(#a23327, #e8685a);
   --color-focus: light-dark(#8c4a0c, #f6c36a);
   --color-error: light-dark(#9b1c10, #ff9c8f);
   --color-error-bg: light-dark(#f8d9d2, #3a1e1a);
-  --edge-scene: light-dark(#2c6b3b, #86c793);
-  --edge-member: light-dark(#ad3524, #ee7b68);
+  --edge-scene: light-dark(#2a6638, #86c793);
+  --edge-member: light-dark(#a43222, #ee7b68);
   --edge-builton: light-dark(#22579a, #7db3e6);
   --edge-roots: light-dark(#6e5710, #d6b65c);
   --edge-producer: light-dark(#6a3e9e, #c3a2ec);
   --edge-label: light-dark(#0f6359, #5cc2b4);
   --edge-related: light-dark(#94305e, #e692b8);
   --edge-era: light-dark(#8a4710, #e8914a);
-  --edge-place: light-dark(#566a12, #aebf4f);
+  --edge-place: light-dark(#4e6010, #aebf4f);
   --edge-soundtrack: light-dark(#0e5f73, #7fd3e6);
   /* price stickers: paper and dark ink in both themes */
   --sticker: light-dark(#fffaee, #efe2c4);
@@ -129,7 +129,7 @@
   --color-muted: light-dark(#46536a, #9aa8bd);
   --color-accent: light-dark(#1747a6, #4f9dff);
   --color-on-accent: light-dark(#f4f7ff, #06101f);
-  --color-love: light-dark(#b3302a, #ff7a70);
+  --color-love: light-dark(#ac2e28, #ff7a70);
   --color-focus: light-dark(#1747a6, #8cc2ff);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f6dad6, #33191c);
@@ -141,7 +141,7 @@
   --edge-label: light-dark(#0b6470, #4fc6d0);
   --edge-related: light-dark(#93306a, #e59ac4);
   --edge-era: light-dark(#8c4a12, #f0a060);
-  --edge-place: light-dark(#4f6b1a, #a9c46a);
+  --edge-place: light-dark(#4a6518, #a9c46a);
   --edge-soundtrack: light-dark(#0a5e80, #8fd8f0);
   --sticker: light-dark(#ffffff, #eef2f6);
   --sticker-ink: light-dark(#121a26, #121a26);
@@ -161,21 +161,21 @@
   --color-border: light-dark(#c4b597, #4a3f40);
   --color-text: light-dark(#1d2233, #f3ece0);
   --color-muted: light-dark(#4e5266, #b7aba0);
-  --color-accent: light-dark(#c21d5b, #ff5f8f);
+  --color-accent: light-dark(#b21b54, #ff5f8f);
   --color-on-accent: light-dark(#fff4f7, #1d0a10);
-  --color-love: light-dark(#b8321f, #ff7a59);
+  --color-love: light-dark(#ad2f1d, #ff7a59);
   --color-focus: light-dark(#c21d5b, #ff9ab8);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f8d9d2, #3a1a1f);
   --edge-scene: light-dark(#156b50, #4fd1a8);
-  --edge-member: light-dark(#b23a22, #ff8066);
+  --edge-member: light-dark(#a73720, #ff8066);
   --edge-builton: light-dark(#2050a8, #6ea8ff);
-  --edge-roots: light-dark(#75600a, #ffd45c);
+  --edge-roots: light-dark(#705c0a, #ffd45c);
   --edge-producer: light-dark(#6a3aa8, #c79bff);
   --edge-label: light-dark(#0b6470, #3fc7d6);
-  --edge-related: light-dark(#b0246a, #ff7fb5);
+  --edge-related: light-dark(#ac2368, #ff7fb5);
   --edge-era: light-dark(#95480b, #ffa24c);
-  --edge-place: light-dark(#4f6b12, #b7d957);
+  --edge-place: light-dark(#4b6611, #b7d957);
   --edge-soundtrack: light-dark(#0b5f7d, #7fd6ff);
   --sticker: light-dark(#ffe14d, #ffe14d);
   --sticker-ink: light-dark(#1d2233, #1d2233);
@@ -197,7 +197,7 @@
   --color-muted: light-dark(#43564b, #93ad9e);
   --color-accent: light-dark(#0a6a44, #58e6a0);
   --color-on-accent: light-dark(#effff6, #04140b);
-  --color-love: light-dark(#b0302e, #ff7a7a);
+  --color-love: light-dark(#a92e2c, #ff7a7a);
   --color-focus: light-dark(#0a6a44, #9bf5c6);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f6dad6, #2e1517);
@@ -209,7 +209,7 @@
   --edge-label: light-dark(#06655f, #4fd8d0);
   --edge-related: light-dark(#9a2c69, #ff92cf);
   --edge-era: light-dark(#8e4a10, #ffa65c);
-  --edge-place: light-dark(#4c6a10, #c2e05a);
+  --edge-place: light-dark(#48650f, #c2e05a);
   --edge-soundtrack: light-dark(#0a5f7c, #86e0ff);
   --sticker: light-dark(#fbfffb, #e8f3ea);
   --sticker-ink: light-dark(#0f1d16, #0f1d16);
@@ -243,7 +243,7 @@
   --edge-label: light-dark(#0f6359, #5cc2b4);
   --edge-related: light-dark(#94305e, #e692b8);
   --edge-era: light-dark(#8a4710, #e8914a);
-  --edge-place: light-dark(#566a12, #aebf4f);
+  --edge-place: light-dark(#546812, #aebf4f);
   --edge-soundtrack: light-dark(#0e5f73, #7fd3e6);
   --sticker: light-dark(#fffaf0, #f3e6d0);
   --sticker-ink: light-dark(#2a1414, #2a1414);
@@ -265,19 +265,19 @@
   --color-muted: light-dark(#4c4c55, #a2a2ab);
   --color-accent: light-dark(#5b2fc9, #ae94ff);
   --color-on-accent: light-dark(#f7f4ff, #120a26);
-  --color-love: light-dark(#b0302e, #ff7a7a);
+  --color-love: light-dark(#a72e2c, #ff7a7a);
   --color-focus: light-dark(#5b2fc9, #cdbcff);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f6dad6, #321a1a);
-  --edge-scene: light-dark(#1f6b4c, #7fc8a9);
-  --edge-member: light-dark(#a63a2b, #f08a7a);
+  --edge-scene: light-dark(#1d6648, #7fc8a9);
+  --edge-member: light-dark(#9f3829, #f08a7a);
   --edge-builton: light-dark(#1d55b0, #6fb0ff);
   --edge-roots: light-dark(#6b5a12, #d9c070);
   --edge-producer: light-dark(#5b45a8, #b8a4f0);
   --edge-label: light-dark(#0b6470, #4fc6d0);
   --edge-related: light-dark(#93306a, #e59ac4);
   --edge-era: light-dark(#8c4a12, #f0a060);
-  --edge-place: light-dark(#4f6b1a, #a9c46a);
+  --edge-place: light-dark(#496218, #a9c46a);
   --edge-soundtrack: light-dark(#0a5e80, #8fd8f0);
   --sticker: light-dark(#ffffff, #e6e6ea);
   --sticker-ink: light-dark(#151518, #151518);
@@ -297,21 +297,21 @@
   --color-border: light-dark(#cdb0a6, #3f4046);
   --color-text: light-dark(#1b1a22, #f0eeea);
   --color-muted: light-dark(#5a4c55, #aaa6a8);
-  --color-accent: light-dark(#00707a, #3fd6d0);
+  --color-accent: light-dark(#006973, #3fd6d0);
   --color-on-accent: light-dark(#effffe, #04181a);
-  --color-love: light-dark(#b8322a, #ff8a70);
+  --color-love: light-dark(#af3028, #ff8a70);
   --color-focus: light-dark(#00707a, #8ff0ea);
   --color-error: light-dark(#a01d14, #ff9c8f);
   --color-error-bg: light-dark(#f8d8d2, #331a1b);
   --edge-scene: light-dark(#156b50, #4fd1a8);
-  --edge-member: light-dark(#b23a22, #ff8066);
+  --edge-member: light-dark(#a93720, #ff8066);
   --edge-builton: light-dark(#2050a8, #6ea8ff);
-  --edge-roots: light-dark(#75600a, #ffd45c);
+  --edge-roots: light-dark(#715d0a, #ffd45c);
   --edge-producer: light-dark(#6a3aa8, #c79bff);
   --edge-label: light-dark(#0b6470, #3fc7d6);
   --edge-related: light-dark(#b0246a, #ff7fb5);
   --edge-era: light-dark(#95480b, #ffa24c);
-  --edge-place: light-dark(#4f6b12, #b7d957);
+  --edge-place: light-dark(#4c6711, #b7d957);
   --edge-soundtrack: light-dark(#0b5f7d, #7fd6ff);
   --sticker: light-dark(#ffd23f, #ffd23f);
   --sticker-ink: light-dark(#1b1a22, #1b1a22);
@@ -516,14 +516,14 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 /* Reveal: the cover slides out over the record, the record slides out of it, and the verdict is stamped on the sleeve. */
 .sleeve { position: absolute; z-index: 2; top: 0; left: 0; width: var(--rec); height: var(--rec); border-radius: 3px; object-fit: cover;
   box-shadow: 10px 14px 26px -10px rgb(0 0 0 / .7); animation: sleeve 520ms cubic-bezier(.16,1,.3,1) backwards; }
-.sleeve.cover-ph { display: block; }
+.sleeve.cover-ph { display: block; width: var(--rec); height: var(--rec); } /* beats .cover-ph's 44px */
 @keyframes sleeve { from { translate: calc(var(--rec) * .12) 0; clip-path: inset(0 0 0 100%); } }
 .is-revealed .bigplay { translate: calc(var(--rec) * .31) 0; }
 .is-revealed .tonearm { translate: calc(var(--rec) * .31) 0; } /* follows the record out of the sleeve */
 .verdict { --ink: var(--color-muted); position: absolute; z-index: 4; left: -10px; bottom: 12px; padding: 4px 10px 3px; border: 3px double var(--ink); border-radius: var(--radius);
   background: color-mix(in srgb, var(--color-bg) 88%, transparent); color: var(--ink); rotate: -7deg;
   font: 800 15px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
-  -webkit-mask-image: var(--ink-grain); mask-image: var(--ink-grain); animation: stamp 160ms ease-out 400ms backwards; }
+  animation: stamp 160ms ease-out 400ms backwards; }
 [data-verdict=love] .verdict { --ink: var(--color-love); }
 [data-verdict=ok] .verdict { --ink: var(--ink-2); }
 
@@ -761,7 +761,8 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 @media (hover: hover) { .grow-filters select:hover { background: var(--tint-wash); } }
 .grow-filters input[type=range] { width: 11rem; accent-color: var(--color-accent); }
 .grow-ends { display: flex; justify-content: space-between; font-weight: 400; font-size: var(--font-size-sm); color: var(--color-muted); }
-.grow-actions:empty, .grow-actions:has(> [hidden]) { display: none; }
+.grow-actions:empty { display: none; }
+@media (min-width: 841px) { .grow-actions:has(> [hidden]) { display: none; } } /* desktop hides Done itself; the phone sheet always keeps it */
 
 .tree-canvas { --gutter: 44px; position: relative; container-type: inline-size; margin-top: var(--space-6); }
 .tree-canvas:empty { display: none; }
@@ -869,7 +870,7 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
   font: 700 14px/1.2 var(--font-display); letter-spacing: .07em; text-transform: uppercase; }
 
 /* narrow (default): one trail down the gutter, branches stacked under each song */
-.tree-node[data-spine=true] > .node-card { margin-left: var(--gutter); }
+.tree-node[data-spine=true] > .node-card { margin-left: var(--gutter); width: min(calc(100% - var(--gutter)), 320px); }
 .tree-node[data-depth="0"] > .branches > .branch { margin-top: var(--space-5); }
 .tree-node[data-depth="0"] > .branches > .branch > .branch-name { margin-bottom: var(--space-5); }
 .tree-node[data-depth="0"] > .branches > .branch > ol { display: grid; row-gap: var(--space-6); }
@@ -880,7 +881,7 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 
 /* wide: the trail winds; each stop's branches spread beside it, on the side away from the stop */
 @container (min-width: 820px) {
-  .tree-canvas { --gutter: 0px; }
+  .tree-node { --gutter: 0px; }
   .tree-node[data-spine=true] > .node-card .step { top: -14px; left: 50%; translate: -50% 0; }
   .tree-node[data-spine=true] > .node-card { padding-top: var(--space-4); }
   .tree-node[data-depth="0"] > .node-card { width: 320px; }
@@ -904,10 +905,11 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 @keyframes grow-l { from { clip-path: inset(-24px -24px -24px 100% round var(--radius-lg)); opacity: .4; } to { clip-path: inset(-24px -24px -24px -24px round var(--radius-lg)); } }
 
 /* ---------- now-playing bar ---------- */
-.nowbar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nowbar-h); display: flex; align-items: center; gap: var(--space-4); padding: 0 var(--space-5);
+.nowbar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--nowbar-h) + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: var(--space-4);
+  padding: 0 max(var(--space-5), env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(var(--space-5), env(safe-area-inset-left, 0px));
   background: linear-gradient(90deg, var(--tint-wash), transparent 55%), var(--color-surface); border-top: 1px solid color-mix(in srgb, var(--tint) 25%, var(--color-border));
   box-shadow: var(--shadow-bar); z-index: 5; transition: height 160ms cubic-bezier(.16,1,.3,1); }
-.nowbar.is-idle { height: var(--nowbar-idle); background: var(--color-surface); border-top-color: var(--color-border); }
+.nowbar.is-idle { height: calc(var(--nowbar-idle) + env(safe-area-inset-bottom, 0px)); background: var(--color-surface); border-top-color: var(--color-border); }
 body:has(.nowbar.is-idle) { padding-bottom: calc(var(--nowbar-idle) + var(--space-4)); }
 .nowbar.is-idle :is(.np-cover, .np-seek, .np-time, #np-like) { display: none; }
 .nowbar.is-idle .np-toggle { width: 30px; height: 30px; min-height: 30px; }
@@ -1128,12 +1130,12 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   /* now playing: the 64px mini-player sits on the tab bar */
   /* a floating card over the tab bar, gone entirely while nothing is playing */
   .nowbar { left: calc(var(--space-2) + env(safe-area-inset-left, 0px)); right: calc(var(--space-2) + env(safe-area-inset-right, 0px)); bottom: calc(var(--tabbar-h) + var(--safe-b) + 6px);
-    gap: var(--space-2); padding: 0 var(--space-2); border: 1px solid color-mix(in srgb, var(--tint) 22%, var(--color-border)); border-radius: 14px;
+    height: var(--nowbar-h); gap: var(--space-2); padding: 0 var(--space-2); border: 1px solid color-mix(in srgb, var(--tint) 22%, var(--color-border)); border-radius: 14px;
     background: linear-gradient(90deg, var(--tint-wash), transparent 70%), var(--color-surface); box-shadow: 0 12px 30px -12px rgb(0 0 0 / .65); }
-  /* idle, or on the Blind Test (the deck is the player there): no mini-player, only its toast */
-  :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar) { height: 0; padding: 0; border: none; background: none; box-shadow: none; }
-  :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar) > :not(.toast) { display: none; }
-  body:has(#blind:not([hidden])) { padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--space-5)); }
+  /* idle, or the mystery playing on the Blind Test (the deck is the player there): no mini-player, only its toast. Any other song keeps its bar. */
+  :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar.is-deck) { height: 0; padding: 0; border: none; background: none; box-shadow: none; }
+  :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar.is-deck) > :not(.toast) { display: none; }
+  body:has(#blind:not([hidden])):has(.nowbar.is-deck) { padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--space-5)); }
   .theme-toggle { display: none; } /* Light | Dark lives in Preferences on a phone */
   .np-line { flex-direction: column; align-items: flex-start; gap: 0; }
   .np-title { max-width: 100%; font-size: 14.5px; }
@@ -1198,7 +1200,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .tree-node[data-depth="1"] > .branches { padding-left: calc(var(--gutter) + 20px); }
   .tree-node:not([data-depth="0"]) > .branches > .branch > ol { padding-left: 16px; }
   /* the branch's sticker names the relation; on the card the detail is a quiet line, not another sticker */
-  .tree-canvas .node-card .reason { display: block; padding: 0; background: none; box-shadow: none; rotate: none; color: var(--color-muted); font: 500 13px/1.35 var(--font-body); }
+  .tree-canvas .node-card .reason { display: block; padding: 0; background: none; box-shadow: none; rotate: none; color: color-mix(in srgb, var(--color-text) 80%, transparent); font: 500 14px/1.35 var(--font-body); }
   .tree-canvas .node-card .reason .edge-icon { display: none; }
   .grow-filters label { flex: 1 1 140px; }
   .grow-filters input[type=range] { width: 100%; }
@@ -1257,6 +1259,14 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch .about-more summary { padding-block: 12px; }
 .touch :is(.adventurous, .grow-edge) { min-height: 48px; }
 .touch :is(.adventurous input, .grow-edge input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
+/* touch at any width (a landscape phone gets the desktop layout, not the 840px phone rules): 48px controls, 16px fields */
+.touch :is(select, input[type=search], input[type=text]) { min-height: 48px; font-size: 16px; }
+.touch :is(#tabs [role=tab], .platter .row button, .tree-picker button, button.cat-more, .state button, #stamp-more button, .grow-done, #grow-regrow) { min-height: 48px; }
+.touch .grow-filters :is(select, input[type=range]) { min-height: 48px; }
+.touch .track .meta button.link { display: inline-flex; align-items: center; min-height: 44px; }
+.touch :is(.genre-btn, .np-from) { position: relative; }
+.touch :is(.genre-btn, .np-from)::after { content: ""; position: absolute; inset: -12px -8px; } /* a 44px target for a one-line link */
+.touch .np-seek { height: 32px; }
 /* Phone: grid tracks may shrink and deep branches indent a little, so a tree of any depth stays inside the screen (device test, M4) */
 .tree-canvas .branch > ol { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 640px) {
@@ -1282,9 +1292,17 @@ html { -webkit-tap-highlight-color: transparent; }
   .topbar { border-bottom-color: transparent; box-shadow: 0 1px 0 var(--page-line); }
   .brand { font-size: 22px; }
   /* large title: each tab opens on its name, set big in the display face */
-  .panel-head h1, #prefs-title { font-size: 40px; line-height: .95; letter-spacing: .005em; }
-  .panel-head .muted { font-size: 15px; margin-top: var(--space-2); }
+  #prefs-title { font-size: 40px; line-height: .95; letter-spacing: .005em; }
+  .panel-head h1 { font-size: 28px; line-height: 1; letter-spacing: .005em; }
+  .panel-head .muted:not(#prefs-lede) { display: none; } /* the tab bar already says where you are; empty states carry the how-to */
+  #prefs-lede { font-size: 15px; margin-top: var(--space-2); }
   .panel-head { margin-bottom: var(--space-4); }
+  .panel-head:has(.sp-export) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-3); }
+  .panel-head .sp-export { margin: 0; justify-content: flex-end; }
+  .panel-head .sp-export .hint { flex-basis: 100%; text-align: right; }
+  .panel-head .sp-export button { min-height: 44px; padding-inline: var(--space-4); }
+  .reason, .hint, .grow-hint, .count { font-size: 14px; }
+  .reason { color: color-mix(in srgb, var(--color-text) 80%, transparent); }
   h2 { font-size: 21px; }
   .touch .panel:not([hidden]) { animation: panel-in 240ms cubic-bezier(.16,1,.3,1); }
 
@@ -1300,7 +1318,7 @@ html { -webkit-tap-highlight-color: transparent; }
 
   /* Blind Test: tonal Skip and OK, Love in ink; the slider gets a thumb you can find */
   .rate button:not([data-rate=love]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
-  .rate button[aria-pressed=true]:not([data-rate=love]) { border-color: var(--color-accent); }
+  .rate button[aria-pressed=true]:not([data-rate=love]) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 26%, var(--color-surface)); box-shadow: inset 0 0 0 1px var(--color-accent); }
   .rate button { border-radius: 14px; }
   .slider input { min-height: 48px; }
   .reveal-card { border-top-color: var(--page-line); }
@@ -1347,10 +1365,25 @@ html { -webkit-tap-highlight-color: transparent; }
   :is(#saved-list, #tree-hits, #tonight) > .track > .meta { grid-area: 1 / 2; }
   :is(#saved-list, #tree-hits, #tonight) > .track > .love { grid-area: 1 / 3; width: 48px; height: 48px; min-width: 0; padding: 0; gap: 0; font-size: 0; border-radius: 50%; border-color: transparent; background: none; }
   :is(#saved-list, #tree-hits, #tonight) > .track > .love .icon { width: 22px; height: 22px; }
+  /* Crate Dig songs: the same row, the ♥ and ⋯ (already one group) at the end */
+  #stamp-songs > .track:not(.nopreview) { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; column-gap: var(--space-2); align-items: center; padding-block: var(--space-2); }
+  #stamp-songs > .track > :is(img, .cover-ph) { grid-area: 1 / 1; width: 56px; height: 56px; border-radius: 4px; }
+  #stamp-songs > .track > .play, .node-card > .track > .play { grid-area: 1 / 1; width: 56px; height: 56px; min-height: 56px; margin: 0; border: none; border-radius: 4px; background: rgb(0 0 0 / .3); color: #fff; }
+  #stamp-songs > .track.is-playing > .play, .node-card > .track.is-playing > .play { background: color-mix(in srgb, var(--color-accent) 78%, transparent); color: var(--color-on-accent); }
+  #stamp-songs > .track > .play .icon, .node-card > .track > .play .icon { width: 20px; height: 20px; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .5)); }
+  #stamp-songs > .track > .meta { grid-area: 1 / 2; }
+  #stamp-songs > .track > .node-actions { grid-area: 1 / 3; margin: 0; flex-wrap: nowrap; }
+  :is(#stamp-songs, .node-card) .node-actions .love { width: 48px; height: 48px; min-width: 0; padding: 0; gap: 0; font-size: 0; border-radius: 50%; border-color: transparent; background: none; }
+  :is(#stamp-songs, .node-card) .node-actions .love .icon { width: 22px; height: 22px; }
+  /* Tree cards: the cover is the play button too; ♥ and ⋯ stay in the row under it (the card is too narrow to share a line) */
+  .node-card > .track:not(.nopreview) { display: grid; grid-template-columns: 56px minmax(0, 1fr); column-gap: var(--space-3); align-items: start; }
+  .node-card > .track > :is(img, .cover-ph) { grid-area: 1 / 1; width: 56px; height: 56px; border-radius: 4px; }
+  .node-card > .track > .meta { grid-area: 1 / 2; }
+  .node-card > .node-actions { justify-content: flex-end; }
   /* Saved: compact rows, ▶ on the cover, then ♥ and ⋯ (About and Full song live in the ⋯ sheet) */
   #saved-list > .track:not(.nopreview) { grid-template-columns: 56px minmax(0, 1fr) 48px 48px; column-gap: var(--space-2); align-items: center; padding-block: var(--space-2); }
   #saved-list > .track > .node-actions { grid-area: 1 / 4; margin: 0; }
-  #saved-list .reason { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #saved-list .reason { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
   .track .full-song { margin-top: var(--space-2); }
   /* chips: tonal pills, the chosen ones inked */
   :not(.stamp-mode, .saved-seg, .theme-seg) > .chip:not([aria-pressed=true]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
