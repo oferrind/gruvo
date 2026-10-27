@@ -687,9 +687,21 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 
 /* Scenes | Genres switch, the genre search, and the "Nearby" chips (docs/12) */
 .stamp-mode { margin-top: var(--space-3); }
-.genre-q { margin-bottom: var(--space-2); }
+/* the browse search: one field over Scenes and Genres, a drawn lens in it, its own clear button (the native one is too small to hit) */
+.find { position: relative; margin-bottom: var(--space-3); }
+.find input { padding-left: 38px; padding-right: 44px; }
+.find input::-webkit-search-cancel-button { display: none; }
+.find::before { content: ""; position: absolute; left: 12px; top: 50%; width: 17px; height: 17px; margin-top: -8.5px; background: var(--color-muted); pointer-events: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='4.6'/%3E%3Cpath d='m10.3 10.3 3.7 3.7'/%3E%3C/svg%3E") center / contain no-repeat; }
+.find:focus-within::before { background: var(--color-accent); }
+.find-clear { position: absolute; top: 0; right: 0; bottom: 0; width: 44px; min-height: 0; padding: 0; display: grid; place-items: center; border: none; background: none; color: var(--color-muted); }
+.find-clear[hidden] { display: none; }
+@media (hover: hover) { .find-clear:hover:not(:disabled) { background: none; color: var(--color-text); } }
+.find-clear .icon { width: 16px; height: 16px; stroke-width: 2; }
 .genre-dig { margin: var(--space-2) 0 0; }
-.cat-empty { padding: var(--space-3) var(--space-2); }
+.cat-empty { padding: var(--space-5) var(--space-2); text-align: center; color: var(--color-muted); }
+.cat-empty .state-art { width: 96px; }
+.cat-empty p { margin: 0 0 var(--space-3); overflow-wrap: anywhere; }
 .nearby { align-items: center; margin-top: var(--space-2); }
 .nearby-lead { color: var(--color-muted); font-size: var(--font-size-sm); }
 
@@ -925,22 +937,27 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
 .node-menu[hidden] { display: none; }
 
 /* ---------- now-playing bar ---------- */
+/* Nothing playing: the cover hue goes grey everywhere it is used, so colour only ever marks the song that plays */
+:root:has(.nowbar.is-idle) { --tint-s: 0%; }
 .nowbar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--nowbar-h) + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: var(--space-4);
   padding: 0 max(var(--space-5), env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(var(--space-5), env(safe-area-inset-left, 0px));
-  background: linear-gradient(90deg, var(--tint-wash), transparent 55%), var(--color-surface); border-top: 1px solid color-mix(in srgb, var(--tint) 25%, var(--color-border));
+  background: var(--grain), var(--color-surface); border-top: 1px solid var(--color-border);
   box-shadow: var(--shadow-bar); z-index: 5; transition: height 160ms cubic-bezier(.16,1,.3,1); }
-.nowbar.is-idle { height: calc(var(--nowbar-idle) + env(safe-area-inset-bottom, 0px)); background: var(--color-surface); border-top-color: var(--color-border); }
+.nowbar.is-idle { height: calc(var(--nowbar-idle) + env(safe-area-inset-bottom, 0px)); }
 body:has(.nowbar.is-idle) { padding-bottom: calc(var(--nowbar-idle) + var(--space-4)); }
 .nowbar.is-idle :is(.np-cover, .np-seek, .np-time, #np-like) { display: none; }
-.nowbar.is-idle .np-toggle { width: 30px; height: 30px; min-height: 30px; }
-.nowbar.is-idle .np-title { color: var(--color-muted); font-weight: 400; }
+.nowbar.is-idle .np-toggle { width: 30px; height: 30px; min-height: 30px; background: var(--color-surface-2); color: var(--color-muted); }
+.nowbar.is-idle .np-title { color: var(--color-muted); font: 600 15px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
 .np-cover { width: 44px; height: 44px; flex: none; border-radius: 3px; overflow: hidden; background: var(--color-surface-2); box-shadow: 0 3px 8px -2px rgb(0 0 0 / .5); }
 .np-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .np-cover:empty { display: none; }
-.np-cover.is-mystery { display: grid; place-items: center; color: var(--color-text); font: 800 24px/1 var(--font-display);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 55%, var(--color-surface-2)), color-mix(in srgb, var(--ink-2) 45%, var(--color-surface-2))); }
-.np-cover.is-mystery span { text-shadow: 0 0 10px var(--color-bg); }
-.np-line { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+/* a mystery: a plain sleeve with a "?" on it, nothing that hints at the record */
+.np-cover.is-mystery { display: grid; place-items: center; color: var(--color-muted); font: 800 26px/1 var(--font-display);
+  background: var(--paper), var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-border); }
+.np-line { display: flex; align-items: baseline; gap: var(--space-3); min-width: 0; }
+.np-sub { flex: none; max-width: 50%; display: flex; align-items: baseline; gap: var(--space-3); min-width: 0; } /* the title gives way first, then the artist */
+.np-artist { min-width: 0; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-artist:empty { display: none; }
 /* where it came from: a quiet text link, not a pill */
 .np-from { flex: none; min-height: 22px; padding: 0; border: none; background: none; color: var(--color-muted); font: 500 var(--font-size-sm)/1 var(--font-body);
   text-decoration: underline 1px transparent; text-underline-offset: 3px; }
@@ -954,7 +971,7 @@ body:has(.nowbar.is-idle) { padding-bottom: calc(var(--nowbar-idle) + var(--spac
 .np-toggle { width: 38px; height: 38px; border-radius: 50%; padding: 0; background: var(--color-accent); color: var(--color-on-accent); border: none; flex: none; }
 @media (hover: hover) { .np-toggle:hover:not(:disabled) { background: var(--color-accent); filter: brightness(1.1); } }
 .np-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.np-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-title { min-width: 0; font: 700 18px/1.15 var(--font-display); letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-time { font: 12px/1 var(--font-mono); color: var(--color-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .toast { position: fixed; bottom: calc(var(--nowbar-h) + var(--space-3)); z-index: 6; left: 50%; transform: translateX(-50%); background: var(--color-text); color: var(--color-bg); padding: var(--space-2) var(--space-4); border-radius: var(--radius); box-shadow: var(--shadow-art); }
 .toast:empty { display: none; }
@@ -1138,26 +1155,37 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   #tabs #tab-prefs::after { display: none; }
   #tabs #tab-prefs[aria-selected=true]::before { color: var(--color-accent); }
 
-  /* now playing: the 64px mini-player sits on the tab bar */
-  /* a floating card over the tab bar, gone entirely while nothing is playing */
-  .nowbar { left: calc(var(--space-2) + env(safe-area-inset-left, 0px)); right: calc(var(--space-2) + env(safe-area-inset-right, 0px)); bottom: calc(var(--tabbar-h) + var(--safe-b) + 6px);
-    height: var(--nowbar-h); gap: var(--space-2); padding: 0 var(--space-2); border: 1px solid color-mix(in srgb, var(--tint) 22%, var(--color-border)); border-radius: 14px;
-    background: linear-gradient(90deg, var(--tint-wash), transparent 70%), var(--color-surface); box-shadow: 0 12px 30px -12px rgb(0 0 0 / .65); }
+  /* now playing: a 64px shelf docked on the tab bar, gone entirely while nothing is playing. Sleeve, title over artist, heart, play;
+     the progress runs along its top edge in the cover's hue, the one colour on it besides the play button */
+  .nowbar { left: 0; right: 0; bottom: calc(var(--tabbar-h) + var(--safe-b)); height: var(--nowbar-h); gap: var(--space-2);
+    padding: 0 calc(var(--space-2) + env(safe-area-inset-right, 0px)) 0 calc(var(--space-3) + env(safe-area-inset-left, 0px));
+    box-shadow: 0 -10px 24px -18px rgb(0 0 0 / .55); }
+  .np-cover { order: 0; width: 46px; height: 46px; }
+  .np-meta { order: 1; }
+  #np-like { order: 2; }
+  .np-toggle { order: 3; }
   /* idle, or the mystery playing on the Blind Test (the deck is the player there): no mini-player, only its toast. Any other song keeps its bar. */
   :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar.is-deck) { height: 0; padding: 0; border: none; background: none; box-shadow: none; }
   :is(.nowbar.is-idle, body:has(#blind:not([hidden])) .nowbar.is-deck) > :not(.toast) { display: none; }
   body:has(#blind:not([hidden])):has(.nowbar.is-deck) { padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--space-5)); }
   .theme-toggle { display: none; } /* Light | Dark lives in Preferences on a phone */
-  .np-line { flex-direction: column; align-items: flex-start; gap: 0; }
-  .np-title { max-width: 100%; font-size: 14.5px; }
-  .np-from { position: relative; font-size: 12.5px; color: var(--color-muted); }
+  .np-line { flex-direction: column; align-items: stretch; gap: 0; } /* title over "artist · from"; the artist gives way first */
+  .np-sub { max-width: none; gap: 0; }
+  .np-artist, .np-from { font-size: 13px; line-height: 1.5; }
+  .np-artist:not(:empty) + .np-from::before { content: "\00a0\00b7\00a0"; } /* "Oasis · From Saved" */
+  .np-from { position: relative; color: var(--color-muted); }
   .np-from::after { content: ""; position: absolute; inset: -12px -8px; } /* a 44px target for a one-line link */
   .np-meta { gap: 0; }
-  .np-seek { height: 22px; }
-  .np-seek::-webkit-slider-thumb { opacity: 1; width: 14px; height: 14px; margin-top: -5px; background: var(--tint); }
+  /* the progress: a 3px line on the shelf's top edge, a 16px strip to drag */
+  .np-seek { position: absolute; left: 0; right: 0; top: -8px; height: 16px; }
+  .np-seek::-webkit-slider-runnable-track { height: 3px; border-radius: 0; background-color: transparent; }
+  .np-seek::-webkit-slider-thumb { opacity: 1; width: 11px; height: 11px; margin-top: -4px; background: var(--tint); }
+  .np-seek:disabled::-webkit-slider-thumb { opacity: 0; }
   .np-toggle, .nowbar.is-idle .np-toggle { width: 48px; height: 48px; min-height: 48px; }
-  .nowbar .love { min-width: 0; width: 48px; height: 48px; min-height: 48px; padding: 0; gap: 0; font-size: 0; border-radius: 50%; } /* icon only: the label stays in aria-label */
-  .nowbar .love .icon { width: 20px; height: 20px; }
+  .np-toggle .icon { width: 20px; height: 20px; }
+  .nowbar .love { min-width: 0; width: 48px; height: 48px; min-height: 48px; padding: 0; gap: 0; font-size: 0; border-color: transparent; background: none; border-radius: 50%; } /* icon only: the label stays in aria-label */
+  .nowbar .love:not([aria-pressed=true]) { color: var(--color-muted); }
+  .nowbar .love .icon { width: 22px; height: 22px; }
   .nowbar .full-song, .np-time { display: none; }
   .toast { bottom: calc(var(--nowbar-h) + var(--tabbar-h) + var(--safe-b) + var(--space-3)); max-width: calc(100vw - 32px); }
 
@@ -1199,7 +1227,9 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .builder-go { display: grid; place-items: center; width: 56px; height: 56px; min-height: 56px; padding: 0; border-radius: 50%;
     border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); box-shadow: 0 8px 18px -10px rgb(0 0 0 / .7); }
   .builder-go .icon { width: 26px; height: 26px; stroke-width: 2.2; }
-  .genre-q { position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 2; box-shadow: 0 6px 10px -8px rgb(0 0 0 / .5); }
+  /* the browse search stays under the top bar over the whole Crate Dig, songs included (app.js brings the list up as you type) */
+  .find { position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); z-index: 3; order: 0; margin: 0; padding: var(--space-2) 0; background: var(--grain), var(--color-bg); }
+  .catalogue { min-height: calc(100dvh - 56px - 64px - var(--tabbar-h) - var(--safe-b)); } /* room to bring the list up under the search */
   .stamp-head { flex-wrap: wrap; }
   .stamp-main:has(.stamp-info) { min-height: calc(100dvh - 56px - var(--tabbar-h) - var(--safe-b)); } /* room to bring a fresh pick to the top while its songs load */
 
@@ -1277,7 +1307,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch :is(.adventurous input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
 /* touch at any width (a landscape phone gets the desktop layout, not the 840px phone rules): 48px controls, 16px fields */
 .touch :is(select, input[type=search], input[type=text]) { min-height: 48px; font-size: 16px; }
-.touch :is(#tabs [role=tab], .platter .row button, button.cat-more, .state button, #stamp-more button, .grow-done) { min-height: 48px; }
+.touch :is(#tabs [role=tab], .platter .row button, button.cat-more, .state button, .cat-empty button, .find-clear, #stamp-more button, .grow-done) { min-height: 48px; }
 .touch .grow-filters :is(select, input[type=range]) { min-height: 48px; }
 .touch :is(#sp-go, #prefs-done, .slider input) { min-height: 48px; } /* landscape touch: the controls the phone rules cover */
 @media (min-width: 841px) { .touch .roll-btn { min-height: 48px; } } /* phones keep their 56px */
