@@ -1085,6 +1085,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') goBack(false
 
 async function growTree(root) {
   const run = ++trRun;
+  trSearch++; // a search still out must not paint its hits over this tree
   trNodes = []; trBusy = 0; trFocus = 0; trFull = false; trDigging.clear(); $('#tree-export').parentElement.hidden = true;
   trRoot = root; trUsed = JSON.stringify(growSet());
   $('#tree-hits').replaceChildren(); $('#tree-start').hidden = true;
@@ -1124,6 +1125,7 @@ function renderDig() {
     if (n === f) b.setAttribute('aria-current', 'step');
     return el('li', {}, b);
   }));
+  $('#tree-path').scrollLeft = 1e5; // phone: a long path scrolls sideways; keep the record in focus (the last sleeve) in view
   const row = trackRow(f.track, { tag: 'div', full: true, reason: Dig.reason(f, parent) || 'Where this dig started.', from: treeFrom(f) });
   const love = row.querySelector('.love');
   if (parent) row.append(rateGroup(f.track, love));
@@ -1236,6 +1238,7 @@ function fitPhone(owner, group, wrap, ...extra) {
 document.addEventListener('pointerdown', e => $$('.node-menu:not([hidden])').forEach(m => { if (!m.parentElement.contains(e.target)) m.parentElement.close(); }));
 
 async function moreTree(n) {
+  if (trDigging.has(n.id)) return; // a second tap or a second Dig into the same leaf would add its three twice
   const run = trRun;
   trDigging.add(n.id); kinNote();
   const r = await api.treeMore(n.id).catch(() => null);
