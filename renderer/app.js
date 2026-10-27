@@ -755,7 +755,8 @@ $('#br-scenes').onclick = () => setMode('scenes');
 $('#br-genres').onclick = () => setMode('genres');
 // Phone: the songs sit under the Roll and the sentence; bring them up once a pick is made (after the reel lands, for a Roll).
 const toResults = (delay = 0) => { if (PHONE.matches) setTimeout(() => $('#stamp-head').scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' }), delay); };
-const pick = s => { openStamp(s); toResults(); };
+const STACKED = matchMedia('(max-width: 899px)'); // one column: a search hides the last pick (CSS), so opening a result clears it
+const pick = s => { if (STACKED.matches && $('#browse-q').value) { $('#browse-q').value = ''; renderBrowse(); } openStamp(s); toResults(); };
 
 // ---- Genres view: search + family/tier filters over the atlas (docs/12) ----
 let gShown = 60, gDig = null, gTimer = 0;
@@ -874,7 +875,7 @@ function renderStamps() {
 }
 let stMenu = 0;
 const PHONE = matchMedia('(max-width: 840px)');
-PHONE.addEventListener('change', () => $('#stamp-songs .track').forEach(r => r.fit?.()));
+PHONE.addEventListener('change', () => $$('#stamp-songs .track').forEach(r => r.fit?.()));
 function songRow(t) {
   const row = trackRow(t, { extra: extraOf(t), full: true });
   if (t.year) row.querySelector('.artist').textContent = `${t.artist}, ${t.year}`;
@@ -1015,6 +1016,7 @@ function showStart(on) {
   $('#tree-saved').replaceChildren(...saved.map(t => el('li', {}, el('button', { type: 'button', className: 'sleeve-pick', onclick: () => growTree(t), ariaLabel: `Grow a tree from ${t.artist} – ${t.title}` },
     t.cover ? el('img', { src: t.cover, alt: '', width: 96, height: 96 }) : el('span', { className: 'cover-ph' }),
     el('span', { className: 'sleeve-title', textContent: t.title }), el('span', { className: 'sleeve-artist', textContent: t.artist })))));
+  $('#tree-saved').scrollLeft = 0;
   const f = trNodes[trFocus];
   if (f) trState('done', '', { actions: [btn(`Back to “${f.track.title}”`, () => { trState('done', ''); showStart(false); })] });
   else if (!saved.length) trState('empty', 'Search any song to start digging. Songs you save in Blind Test or Crate Dig wait here too.', { art: 'empty-deck' });
@@ -1027,6 +1029,7 @@ $('#tree-search').addEventListener('submit', async e => {
   if (!q) return $('#tree-q').focus();
   const run = ++trSearch;
   trState('loading', 'Searching…');
+  $('#tree-saved-box').hidden = true; // the answer (or the no-match line) must not sit under the carousel, off-screen
   const hits = await call('searchTracks', q);
   if (run !== trSearch) return;
   if (!hits) return trState('error', "Couldn't search right now. Check your connection.", { art: 'empty-unknown', actions: [btn('Try again', () => $('#tree-search').requestSubmit(), 'primary')] });
@@ -1121,7 +1124,7 @@ async function growTree(root) {
   const seen = new Set(trNodes.map(n => n && n.edgeType)), none = growSet().edges.filter(e => !seen.has(e)).map(e => EDGE_NAMES[e]);
   if (trNodes.length > 1) trState('done', none.length ? `Nothing found for: ${none.join(', ')}.` : '');
   else trState('empty', `No family found${none.length ? ` for: ${none.join(', ')}` : ' yet'}. Try More, or Tune for other ways to connect.`, { art: 'empty-unknown' });
-  if (trFocus && !kinOf(trFocus).length) moreTree(trNodes[trFocus]); // dug into a song the build left bare
+  if (trFocus && !kinOf(trFocus).length) moreTree(trNodes[trFocus], true); // dug into a song the build left bare
   kinNote();
 }
 api.onTreeNode((run, n) => {
@@ -1163,7 +1166,7 @@ function dig(id) {
   renderDig();
   if ($('#tree-dig').getBoundingClientRect().top < 0) $('#tree-dig').scrollIntoView({ block: 'start' }); // from deep in the list: back up to the new focus
   $('#tree-focus .play')?.focus({ preventScroll: true });
-  if (!kinOf(id).length && !trBusy) moreTree(trNodes[id]);
+  if (!kinOf(id).length && !trBusy) moreTree(trNodes[id], true);
 }
 function addKin(n, fresh) {
   const fam = $('#tree-family');
@@ -1172,7 +1175,7 @@ function addKin(n, fresh) {
     fam.append(group = el('section', { className: 'kin' }, el('h3', { className: 'kin-sign' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol', { className: 'tracks kin-rows' })));
     group.dataset.edge = n.edgeType;
   }
-  const row = trackRow(n.track, { reason: Dig.reason(n, trNodes[n.parentId]), from: treeFrom(n) });
+  const row = trackRow(n.track, { reason: Dig.reason(n, trNodes[n.parentId], true), from: treeFrom(n) });
   row.append(digBtn('Dig', `Dig into ${n.track.artist} – ${n.track.title}`, () => dig(n.id)));
   if (fresh) { row.classList.add('grow'); row.addEventListener('animationend', () => row.classList.remove('grow'), { once: true }); }
   group.lastElementChild.append(row);
@@ -1186,8 +1189,10 @@ function kinNote() {
   b.disabled = trFull || busy;
   let p = $('#tree-family .kin-wait');
   if (!none) return p?.remove();
-  if (!p) $('#tree-family').append(p = el('p', { className: 'kin-wait' }));
-  p.textContent = busy || trBusy ? 'Digging for its family…' : 'No family found for this one yet. Try More, or Tune for other ways to connect.';
+  if (!p) $('#tree-family').append(p = el('div', { className: 'kin-wait' }, el('img', { className: 'state-art', src: 'img/empty-deck.png', alt: '' }), el('p', {}, el('span', { className: 'kin-disc', ariaHidden: 'true' }), el('span', { className: 'kin-msg' }))));
+  const wait = busy || trBusy > 0;
+  p.classList.toggle('is-busy', wait); p.querySelector('.state-art').hidden = !wait;
+  p.querySelector('.kin-msg').textContent = wait ? 'Digging for its family…' : 'No family found for this one yet. Try More, or Tune for other ways to connect.';
 }
 $('#tree-more').onclick = () => trNodes[trFocus] && moreTree(trNodes[trFocus]);
 
@@ -1260,7 +1265,7 @@ function fitPhone(owner, group, wrap, ...extra) {
 }
 document.addEventListener('pointerdown', e => $$('.node-menu:not([hidden])').forEach(m => { if (!m.parentElement.contains(e.target)) m.parentElement.close(); }));
 
-async function moreTree(n) {
+async function moreTree(n, quiet) { // quiet: a Dig started it, the family just fills in; only the More button toasts
   if (trDigging.has(n.id)) return; // a second tap or a second Dig into the same leaf would add its three twice
   const run = trRun;
   trDigging.add(n.id); kinNote();
@@ -1269,6 +1274,7 @@ async function moreTree(n) {
   trDigging.delete(n.id);
   if (r && r.full) trFull = true;
   kinNote();
+  if (quiet && r && !r.error && r.added) return;
   toast(!r || r.error ? "Couldn't reach the music services. Try again." : r.added ? `${r.added} more in the family of “${n.track.title}”.`
     : r.full ? 'This tree is full. Start a new one from any song.' : `No more family found for “${n.track.title}”.`);
 }

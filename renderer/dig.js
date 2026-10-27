@@ -1,12 +1,15 @@
 // Family Tree "Dig": the reason line and the dig path, pure. Works in the renderer (window.Dig) and in node tests (require).
 (function (root) {
   // One full sentence that names the parent, from the label src/tree.js wrote for the child.
-  function reason(n, parent) {
+  // `inGroup`: a family row already sits under its relation's sign, so it keeps only the specific facts.
+  function reason(n, parent, inGroup) {
     if (!parent || !n.label) return '';
     const P = parent.track.artist, L = n.label.replace(/[.\s]+$/, '');
     const dot = s => `${s}.`;
     // "Same scene: britpop, UK, formed 1989 · fans of Pulp play them too" -> "Same scene as Pulp: britpop, UK, formed 1989; fans of Pulp play them too."
     const same = L.match(/^Same (\w+): (.*?)(?: · fans of (.+) play them too)?$/);
+    if (same && inGroup) return same[2] ? dot(same[2][0].toUpperCase() + same[2].slice(1)) : '';
+    if (inGroup && /^Fans of .+ also play$/.test(L)) return '';
     if (same) return dot(`Same ${same[1]} as ${P}: ${same[2]}${same[3] ? `; fans of ${same[3]} play them too` : ''}`);
     if (/^Fans of .+ also play$/.test(L)) return dot(`${L} ${n.track.artist}`);
     // Built on: the parent song is the one that samples or borrows.

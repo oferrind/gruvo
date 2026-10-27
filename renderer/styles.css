@@ -621,7 +621,8 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 .stamps-layout { display: grid; gap: var(--space-6); align-items: start; }
 /* one column: the Roll and the sentence, then the songs, then the catalogue (never songs under 43 entries) */
-@media (max-width: 899px) { .stamp-side { display: contents; } .builder { margin: 0; } .stamp-main { order: 1; } .catalogue { order: 2; } }
+@media (max-width: 899px) { .stamp-side { display: contents; } .builder { margin: 0; } .stamp-main { order: 1; } .catalogue { order: 2; }
+  #stamps:has(#browse-q:not(:placeholder-shown)) .stamp-main { display: none; } /* a search shows its matches, not the last pick (app.js pick() clears it) */ }
 /* 900-1239px: two columns and the page scrolls as one */
 @media (min-width: 900px) {
   .stamps-layout { grid-template-columns: minmax(250px, 290px) minmax(0, 1fr); }
@@ -832,7 +833,11 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 @media (hover: hover) { .kin-rows > .track:hover { background: none; } }
 .kin-rows > .track.grow { animation: kin-in 420ms cubic-bezier(.16,1,.3,1) backwards; }
 @keyframes kin-in { from { opacity: 0; translate: 0 10px; } }
-.kin-wait { margin: var(--space-4) 0; color: var(--color-muted); }
+.kin-wait { margin: var(--space-4) 0; color: var(--color-muted); text-align: center; }
+.kin-wait .state-art { width: 120px; margin-bottom: var(--space-2); }
+.kin-wait p { display: flex; gap: var(--space-2); align-items: center; justify-content: center; margin: 0; }
+.kin-disc { flex: none; width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle, var(--color-accent) 0 2px, transparent 2.5px), repeating-radial-gradient(circle, var(--color-muted) 0 1px, transparent 1px 3px); animation: spin 2.4s linear infinite; }
+.kin-wait .state-art[hidden], .kin-wait:not(.is-busy) .kin-disc { display: none; }
 .dig-more { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin: var(--space-5) 0 var(--space-6);
   border: 1.5px dashed color-mix(in srgb, var(--color-accent) 55%, var(--color-border)); background: none; color: var(--color-accent); font-weight: 650; overflow-wrap: anywhere; }
 
@@ -1197,6 +1202,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .deck { --rec: min(250px, calc((100vw - 2 * var(--space-4) - 16px) / 1.7)); align-self: center; margin-top: var(--space-5); }
   .verdict { left: 6px; }
   :is(#mystery, #stamp-head) { scroll-margin-top: calc(56px + env(safe-area-inset-top, 0px) + var(--space-3)); }
+  #stamps:not([data-mode=roll]) #stamp-head { scroll-margin-top: calc(56px + env(safe-area-inset-top, 0px) + 48px + 2 * var(--space-2) + var(--space-3)); } /* clear the pinned search too */
   .mystery h2 { font-size: 24px; text-align: center; margin-bottom: var(--space-3); }
   .rate { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
   .rate button { min-height: 56px; font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; }
@@ -1259,7 +1265,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .tune::after { content: ""; position: absolute; top: 10px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: color-mix(in srgb, var(--color-text) 28%, transparent); }
   .tune-body { padding: 30px calc(var(--space-4) + env(safe-area-inset-right, 0px)) calc(var(--space-4) + var(--safe-b)) calc(var(--space-4) + env(safe-area-inset-left, 0px)); }
   .tree-start .search label { font-size: 22px; }
-  .sleeves { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--space-4)); padding: 2px var(--space-4) var(--space-2); scroll-snap-type: x proximity; }
+  .sleeves { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(-1 * var(--space-3)); padding: 2px var(--space-3) var(--space-2); scroll-padding-inline: var(--space-3); scroll-snap-type: x proximity; }
   .sleeves > li { scroll-snap-align: start; }
   .dig-focus { padding: var(--space-3); }
   .dig-focus { --cover: 96px; }
@@ -1293,6 +1299,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch #mystery-next { width: 100%; justify-content: center; min-height: 56px; margin: var(--space-5) 0 0; border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent);
   font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; text-decoration: none; }
 .touch #mystery-next:hover:not(:disabled) { background: var(--color-accent); color: var(--color-on-accent); }
+.mystery.is-revealed #rate { display: none; } /* the verdict is in; the reveal keeps one Love */
 .touch :is(.chip, .love, .track .play, .rate button, .suggest-row, .cat-item, .scheme, .way, .theme-toggle) { min-height: 48px; }
 .touch .track .play { width: 48px; height: 48px; margin-top: 0; }
 .touch :is(.node-actions > button, .node-actions .dots, .node-actions summary, .node-rate button) { min-height: 48px; min-width: 48px; padding-inline: var(--space-2); justify-content: center; }
@@ -1307,7 +1314,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch :is(.adventurous input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
 /* touch at any width (a landscape phone gets the desktop layout, not the 840px phone rules): 48px controls, 16px fields */
 .touch :is(select, input[type=search], input[type=text]) { min-height: 48px; font-size: 16px; }
-.touch :is(#tabs [role=tab], .platter .row button, button.cat-more, .state button, .cat-empty button, .find-clear, #stamp-more button, .grow-done) { min-height: 48px; }
+.touch :is(.platter .row button, button.cat-more, .state button, .cat-empty button, .find-clear, #stamp-more button, .grow-done) { min-height: 48px; }
 .touch .grow-filters :is(select, input[type=range]) { min-height: 48px; }
 .touch :is(#sp-go, #prefs-done, .slider input) { min-height: 48px; } /* landscape touch: the controls the phone rules cover */
 @media (min-width: 841px) { .touch .roll-btn { min-height: 48px; } } /* phones keep their 56px */
@@ -1383,8 +1390,11 @@ html { -webkit-tap-highlight-color: transparent; }
 
   /* text links become touch controls: "Show all" is a full-width button, outbound links are pills, sources are rows */
   button.cat-more { display: block; width: 100%; min-height: 48px; margin-top: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); text-align: center; text-decoration: none; }
-  .full-song button.ext, .sp-devices button.ext { min-height: 44px; padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-pill); text-decoration: none; font-weight: 600; }
-  .full-song { gap: var(--space-2); align-items: center; }
+  .sp-devices button.ext { min-height: 44px; padding: 0 var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-pill); text-decoration: none; font-weight: 600; }
+  .full-song { gap: 0 var(--space-4); align-items: center; }
+  .full-song button.ext { font-size: 15px; } /* inline text links as on desktop; the touch rule keeps them 44px tall */
+  .dig-focus .full-song { column-gap: var(--space-3); } .dig-focus .full-label { display: none; } /* the three links alone fit one line in the card's text column; 360px wide phones also get a smaller sleeve */
+  @media (max-width: 380px) { .dig-focus { --cover: 80px; } .dig-focus .full-song { column-gap: var(--space-2); } .dig-focus .full-song button.ext { font-size: 14px; } }
   .more-toggle { min-height: 44px; padding-inline: var(--space-1); }
   #sources ul { list-style: none; padding: 0; }
   #sources li { padding: var(--space-2) 0; border-bottom: 1px solid var(--page-line); line-height: 1.5; }

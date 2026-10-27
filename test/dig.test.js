@@ -20,6 +20,13 @@ test('every other label becomes one sentence that names the parent', () => {
   assert.equal(reason(kid('member', 'Jarvis Cocker (vocals) went on to Relaxed Muscle'), pulp), 'Jarvis Cocker (vocals), of Pulp, went on to Relaxed Muscle.');
 });
 
+test('a row inside its relation group keeps only the specific facts', () => {
+  assert.equal(reason(kid('scene', 'Same scene: britpop, UK, formed 1989 · fans of Pulp play them too'), pulp, true), 'Britpop, UK, formed 1989.');
+  assert.equal(reason(kid('era', 'Same era: UK, 1990s'), pulp, true), 'UK, 1990s.');
+  assert.equal(reason(kid('related', 'Fans of Pulp also play'), pulp, true), '');
+  assert.equal(reason(kid('place', 'Also from Sheffield'), pulp, true), 'Also from Sheffield, like Pulp.');
+});
+
 test('the root has no reason; a missing label gives none', () => {
   assert.equal(reason(pulp, null), '');
   assert.equal(reason(kid('scene', ''), pulp), '');
@@ -36,7 +43,8 @@ test('the dig path runs from the root down to the node', () => {
 const read = f => require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'renderer', f), 'utf8');
 test('the tree renderer guards a second More on a leaf and stale searches', () => {
   const src = read('app.js');
-  assert.match(src, /async function moreTree\(n\) \{\r?\n  if \(trDigging\.has\(n\.id\)\) return;/);
+  assert.match(src, /if \(quiet && r && !r\.error && r\.added\) return;/); // a Dig into a bare record fills in without the More toast
+  assert.match(src, /async function moreTree\(n, quiet\) \{[^\n]*\r?\n  if \(trDigging\.has\(n\.id\)\) return;/);
   assert.match(src, /const run = \+\+trRun;\r?\n  trSearch\+\+;/);
 });
 test('landscape touch keeps the logo, theme switch and search button at touch size', () => {
