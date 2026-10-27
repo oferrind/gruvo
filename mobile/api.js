@@ -54,4 +54,6 @@ for (const ev of ['pause', 'ended', 'emptied', 'error']) document.addEventListen
 // Backgrounded, screen off or closing: stop the music (no auto-resume). The 'pause' event also releases keep-awake.
 const stopMusic = () => { document.querySelector('audio')?.pause(); KeepAwake.allowSleep().catch(() => {}); };
 App.addListener('pause', stopMusic);
+// a preview still loading when the app went away must not start playing in the background
+document.addEventListener('play', e => { if (document.hidden) e.target.pause(); }, true);
 document.addEventListener('visibilitychange', () => { if (document.hidden) { stopMusic(); net.flushCache(); } });

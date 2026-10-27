@@ -796,7 +796,7 @@ main:has(> :is(#stamps, #tree):not([hidden])) { max-width: 1320px; } /* the two 
 #tree :is(.dig-focus, .kin-rows) .track > :is(img, .cover-ph, .play) { width: var(--cover); height: var(--cover); align-self: start; }
 :is(.dig-focus, .kin-rows) .track > .play { margin: 0; min-height: 0; border: none; border-radius: 3px; background: rgb(0 0 0 / .3); color: #fff; }
 :is(.dig-focus, .kin-rows) .track > .play .icon { width: 22px; height: 22px; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .5)); }
-:is(.dig-focus, .kin-rows) .track.is-playing > .play { background: color-mix(in srgb, var(--color-accent) 78%, transparent); color: var(--color-on-accent); }
+:is(.dig-focus, .kin-rows) .track.is-playing > .play { background: transparent; }
 @media (hover: hover) { :is(.dig-focus, .kin-rows) .track:not(.is-playing) > .play:not(:hover, :focus-visible) { background: transparent; color: transparent; } }
 
 /* the family: one sticker per relation, then plain rows */
@@ -1426,7 +1426,7 @@ html { -webkit-tap-highlight-color: transparent; }
   :is(#saved-list, #tonight) > .track:not(.nopreview) { display: grid; grid-template-columns: 56px minmax(0, 1fr) 48px; column-gap: var(--space-3); align-items: start; }
   :is(#saved-list, #tonight) > .track > :is(img, .cover-ph) { grid-area: 1 / 1; width: 56px; height: 56px; border-radius: 4px; }
   :is(#saved-list, #tonight) > .track > .play { grid-area: 1 / 1; width: 56px; height: 56px; min-height: 56px; border: none; border-radius: 4px; background: rgb(0 0 0 / .3); color: #fff; }
-  :is(#saved-list, #tonight) > .track.is-playing > .play { background: color-mix(in srgb, var(--color-accent) 78%, transparent); color: var(--color-on-accent); }
+  :is(#saved-list, #tonight) > .track.is-playing > .play { background: transparent; }
   :is(#saved-list, #tonight) > .track > .play .icon { width: 20px; height: 20px; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .5)); }
   :is(#saved-list, #tonight) > .track > .meta { grid-area: 1 / 2; }
   :is(#saved-list, #tonight) > .track > .love { grid-area: 1 / 3; width: 48px; height: 48px; min-width: 0; padding: 0; gap: 0; font-size: 0; border-radius: 50%; border-color: transparent; background: none; }
@@ -1435,7 +1435,7 @@ html { -webkit-tap-highlight-color: transparent; }
   #stamp-songs > .track:not(.nopreview) { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; column-gap: var(--space-2); align-items: center; padding-block: var(--space-2); }
   #stamp-songs > .track > :is(img, .cover-ph) { grid-area: 1 / 1; width: 56px; height: 56px; border-radius: 4px; }
   #stamp-songs > .track > .play { grid-area: 1 / 1; width: 56px; height: 56px; min-height: 56px; margin: 0; border: none; border-radius: 4px; background: rgb(0 0 0 / .3); color: #fff; }
-  #stamp-songs > .track.is-playing > .play { background: color-mix(in srgb, var(--color-accent) 78%, transparent); color: var(--color-on-accent); }
+  #stamp-songs > .track.is-playing > .play { background: transparent; }
   #stamp-songs > .track > .play .icon { width: 20px; height: 20px; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .5)); }
   #stamp-songs > .track > .meta { grid-area: 1 / 2; }
   #stamp-songs > .track > .node-actions { grid-area: 1 / 3; margin: 0; flex-wrap: nowrap; }
@@ -1451,3 +1451,6 @@ html { -webkit-tap-highlight-color: transparent; }
 }
 @keyframes panel-in { from { opacity: 0; translate: 0 10px; } }
 @keyframes sheet-in { from { translate: 0 100%; box-shadow: 0 0 0 100vmax transparent; } }
+/* the playing cover keeps its true colours: only the ▶/❚❚ sits on an accent disc */
+:is(.dig-focus, .kin-rows, #saved-list, #tonight, #stamp-songs) .track.is-playing > .play .icon { box-sizing: content-box; padding: 7px; border-radius: 50%;
+  background: var(--color-accent); color: var(--color-on-accent); filter: none; }
