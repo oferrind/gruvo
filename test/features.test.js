@@ -82,7 +82,7 @@ test('explain names the nearest love and a shared trait', () => {
   const loved = F.vector({ bpm: 120, rms: 0.2, rmsCV: 0.3, centroid: 600, flatness: 0.01, onsetRate: 4, bands: [5, 5, 2, 1, 1, 0.5, 0.2, 0.1] });
   const cand = F.vector({ bpm: 121, rms: 0.2, rmsCV: 0.3, centroid: 650, flatness: 0.01, onsetRate: 4, bands: [5, 5, 2, 1, 1, 0.5, 0.2, 0.1] });
   const s = F.explain(cand, [R('dz:1', 'love', loved)], { 'dz:1': '“Tezeta” by Mulatu' }, 10);
-  assert.match(s, /~120 BPM/);
+  assert.match(s, /driving pulse/);
   assert.match(s, /“Tezeta” by Mulatu/);
   assert.equal(F.explain(cand, [], {}, 10), '');
   const far = cand.map((x, i) => (i === 3 || i === 5 ? 1 - x : x));
@@ -96,7 +96,7 @@ test('explain does not overclaim tempo or contradict itself', () => {
   const beat = o => F.vector({ ...base, rms: 0.3, bpm: 80, onsetRate: 4, ...o });
   assert.doesNotMatch(F.explain(beat({ bpm: 160, centroid: 3000 }), [R('dz:1', 'love', beat())], {}), /faster|slower/); // double time
   const quiet = F.explain(F.vector({ ...base, bpm: 120, onsetRate: 4 }), [R('dz:1', 'love', F.vector({ ...base, bpm: 121, onsetRate: 4 }))], {});
-  assert.match(quiet, /steady ~\d+ BPM/); // quiet track: never "driving"
+  assert.match(quiet, /steady pulse/); // quiet track: never "driving"
 });
 
 test('minimum match: reach widens with Adventure; no loves means anything fits', () => {

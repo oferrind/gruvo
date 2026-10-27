@@ -44,7 +44,7 @@ function pickDeezer(rows, artist, title, requireTitle = false) {
 }
 
 const cleanTitle = t => t.replace(/\s*[([-][^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || t; // "Beautiful Ones (Remastered)", "Song - 2011 Remaster"; keeps (Live) / (feat. X)
-const fromDeezer = r => ({ source: 'dz', id: r.id, title: cleanTitle(r.title_short || r.title), artist: r.artist.name, artistDzId: r.artist.id,
+const fromDeezer = r => ({ source: 'dz', id: r.id, title: cleanTitle(r.title), artist: r.artist.name, artistDzId: r.artist.id,
   cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, isrc: r.isrc, previewUrl: r.preview });
 
 // Adventure 0-100 -> how the Blind Test picks candidates.

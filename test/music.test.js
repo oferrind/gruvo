@@ -287,3 +287,10 @@ test('deep cut: skips the top 10, drops rated tracks, prefers another album, nee
   assert.equal(m.pickDeepCut(top, {}, () => 0.999).id, 134); // never past position 35
 });
 
+test('fromDeezer strips remaster suffixes only', () => {
+  const t = title => m.fromDeezer({ id: 1, title, artist: { name: 'A', id: 2 } }).title;
+  for (const s of ['Song (2007 Remaster)', 'Song - Remastered 2011', 'Song (Remastered)']) assert.equal(t(s), 'Song');
+  assert.equal(t('Song (Live)'), 'Song (Live)');
+  assert.equal(t('Song (feat. X)'), 'Song (feat. X)');
+});
+
