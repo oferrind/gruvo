@@ -1,6 +1,6 @@
 {
   "name": "music-discovery",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Desktop music discovery: Blind Taste Test, Genre Stamps, Family Tree",
   "main": "main.js",
   "scripts": {
