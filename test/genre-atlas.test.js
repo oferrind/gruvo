@@ -121,6 +121,17 @@ test('nearby: the parent and up to 4 children/siblings, never itself; search ran
   assert.equal(SD.searchGenres('').total, FIX.length);
 });
 
+test('scene search: every word, any field (name, tags, blurb, decade, country), accents and case ignored; the continent filter holds', () => {
+  const ids = (q, c) => SD.searchScenes(q, c).map(s => s.id);
+  assert.deepEqual(ids('CITY  pop'), ['1980-JP-city-pop']); // two tag words, odd case and spacing
+  assert.deepEqual(ids('Tokyó'), ['1980-JP-city-pop']); // an accent the blurb doesn't have
+  assert.deepEqual(ids('psych 70s'), ['1970-JP-psych', '1970-TR-psych']);
+  assert.deepEqual(ids('nigeria'), ['1970-NG-afrobeat', '2010-NG-afrobeats']); // the country's name, not on the label
+  assert.deepEqual(ids('psych', 'Europe'), []);
+  assert.equal(ids('').length, SD.CATALOGUE.length);
+  assert.deepEqual(ids('zzz'), []);
+});
+
 test('genre-data.js: unique slugs, parents exist, families known, tiers valid; the full build ships 500+', t => {
   const data = require('../renderer/genre-data'), slugs = new Set(data.map(e => e[0]));
   assert.equal(slugs.size, data.length);

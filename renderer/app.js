@@ -35,9 +35,8 @@ let current = null, currentExtra = null, currentFrom = null, retried = false, on
 const hidden = t => t === mystery && !rated; // an unrated mystery: nothing that names it (cover, colour, last-played) may show
 
 // from: {tab, label} where the track was started, for the bar's "came from" chip and Home's "continue".
-async function play(item, { label, onFail: failCb, extra, from } = {}) {
+async function play(item, { onFail: failCb, extra, from } = {}) {
   current = item; currentExtra = extra || null; currentFrom = from || null; retried = false; onFail = failCb || null;
-  $('#now-playing').textContent = label || `${item.artist} – ${item.title}`;
   renderNpLike(); renderNpMeta(); syncPlayState();
   remember(item);
   // Stop the old track now: while the new preview is fetched (or turns out unavailable) its time must not drive the new scrubber or tonearm.
@@ -122,9 +121,11 @@ $('#np-progress').addEventListener('change', () => { scrubbing = false; });
 $('#deck').addEventListener('animationend', e => { if (e.target.classList.contains('tonearm')) $('#deck').classList.remove('needle-drop'); });
 $('#np-toggle').onclick = togglePlay;
 
-// Bar 2.0: the cover (a blurred "?" while it is a mystery) and the "came from" chip that jumps back to the source.
+// The bar: the cover (a plain "?" sleeve while it is a mystery), title over artist, and the "came from" link back to the source.
 const tabName = id => ($(`#tab-${id}`)?.firstChild.textContent || id).trim();
 function renderNpMeta() {
+  const [title, artist] = !current ? ['Nothing playing', ''] : hidden(current) ? ['Mystery track', ''] : [current.title, current.artist];
+  $('#now-playing').textContent = title; $('#np-artist').textContent = artist;
   const c = $('#np-cover');
   c.classList.toggle('is-mystery', !!current && hidden(current));
   c.replaceChildren(!current ? '' : hidden(current) ? el('span', { textContent: '?' }) : current.cover ? el('img', { src: current.cover, alt: '' }) : '');
@@ -563,7 +564,7 @@ async function fill() {
 
 function setRateEnabled(on) { $$('#rate button').forEach(b => { b.disabled = !on; b.removeAttribute('aria-pressed'); }); }
 
-const playMystery = () => { const m = mystery; play(m, { label: 'Mystery track: rate it to reveal', from: { tab: 'blind', label: tabName('blind') }, onFail: () => { // preview dead: drop silently, never offer this artist again
+const playMystery = () => { const m = mystery; play(m, { from: { tab: 'blind', label: tabName('blind') }, onFail: () => { // preview dead: drop silently, never offer this artist again
   if (mystery !== m || rated) return;
   addHeard(m); save(); showMystery();
 } }); };
@@ -629,7 +630,7 @@ function rate(kind) {
   $('#mystery').classList.add('is-revealed');
   tonight.unshift({ t: m, kind, extra });
   renderTonight();
-  if (current === m) { $('#now-playing').textContent = `${m.artist} – ${m.title}`; currentExtra = extra; renderNpLike(); renderNpMeta(); remember(m); }
+  if (current === m) { currentExtra = extra; renderNpLike(); renderNpMeta(); remember(m); }
   $('#mystery-next').hidden = false; $('#enter-hint').hidden = false;
   $('#mystery-next').focus({ preventScroll: true }); // focusing the far button scrolled the title under the sticky header
   if (PHONE.matches) $('#mystery').scrollIntoView({ block: 'start', behavior: reduced() ? 'auto' : 'smooth' }); // sleeve, name and verdict in view (scroll-margin clears the header)
@@ -740,11 +741,13 @@ function setMode(mode) {
   if (mode === 'genres' && !SD.ATLAS.size) mode = 'scenes';
   if (mode !== 'scenes' && mode !== 'genres') mode = 'roll';
   $('#stamps').dataset.mode = mode;
-  $('#roll-pane').hidden = mode !== 'roll'; $('#browse-pane').hidden = mode === 'roll';
+  $('#roll-pane').hidden = mode !== 'roll'; $('#browse-pane').hidden = $('#browse-find').hidden = mode === 'roll';
+  $('#browse-q').placeholder = mode === 'genres' ? 'Search genres: zeuhl, shoegaze…' : 'Search scenes: Lagos, city pop…';
+  $('#browse-q').setAttribute('aria-label', mode === 'genres' ? 'Search genres' : 'Search scenes');
   $('#scenes-view').hidden = mode !== 'scenes'; $('#genres-view').hidden = mode !== 'genres';
   for (const [id, m] of [['mode-roll', 'roll'], ['br-scenes', 'scenes'], ['br-genres', 'genres']]) $(`#${id}`).setAttribute('aria-pressed', String(mode === m));
   ls('stampMode', mode);
-  if (mode === 'genres') renderGenreList();
+  if (mode === 'genres') renderGenreList(); else if (mode === 'scenes') renderCatalogue();
   renderStampHead(); // its empty line speaks to the chosen mode
 }
 $('#mode-roll').onclick = () => setMode('roll');
@@ -765,23 +768,42 @@ function genreItem(s) {
 }
 function renderGenreList() {
   if ($('#genres-view').hidden) return;
-  const q = $('#genre-q').value, family = $('#genre-family').value, gTier = $('#genre-tier').value, none = !q.trim() && !family && !gTier;
+  const q = $('#browse-q').value, family = $('#genre-family').value, gTier = $('#genre-tier').value, none = !q.trim() && !family && !gTier;
   let stamps, total;
   if (none) { // "Dig somewhere new": 12 random uncollected Deep/Obscure genres
     gDig ??= [...SD.ATLAS.values()].filter(e => e.tier !== 'C' && !profile.stamps[`--${e.slug}`]).sort(() => Math.random() - .5).slice(0, 12).map(e => SD.makeStamp(`--${e.slug}`));
     stamps = gDig; total = stamps.length;
   } else ({ stamps, total } = SD.searchGenres(q, { family, tier: gTier }, gShown));
   $('#genre-dig').textContent = none ? 'Dig somewhere new' : `${total} genre${total === 1 ? '' : 's'}`;
-  $('#genre-list').replaceChildren(...(stamps.length ? stamps.map(genreItem) : [el('li', { className: 'muted cat-empty', textContent: 'No genre matches.' })]));
+  $('#genre-list').replaceChildren(...(stamps.length ? stamps.map(genreItem) : [noMatch('genre')]));
   $('#genre-more').hidden = none || total <= stamps.length;
   $('#genre-more').textContent = `Show more (${total - stamps.length})`;
 }
-$('#genre-q').addEventListener('input', () => { clearTimeout(gTimer); gShown = 60; gTimer = setTimeout(renderGenreList, 150); });
-$('#genre-q').addEventListener('keydown', e => {
+// One search field over both lists (Scenes and Genres), kept across the switch. On a phone it stays under the top bar,
+// and typing brings the list up under it, past an open pick's songs.
+function renderBrowse() {
+  $('#browse-clear').hidden = !$('#browse-q').value;
+  gShown = 60; catAll = false;
+  renderGenreList(); renderCatalogue();
+  const f = $('#browse-find'), under = parseFloat(getComputedStyle(f).top) + f.offsetHeight; // where the field's bottom sits once stuck
+  const d = $('#browse-pane').getBoundingClientRect().top - under;
+  if (PHONE.matches && Math.abs(d) > 1) scrollBy(0, d);
+}
+// No match: the "?" sleeve and a way back.
+const noMatch = what => {
+  const q = $('#browse-q').value.trim();
+  return el('li', { className: 'cat-empty' }, el('img', { className: 'state-art', src: 'img/empty-unknown.png', alt: '' }),
+    el('p', { textContent: q ? `No ${what} matches "${q}".` : `No ${what} matches these filters.` }), q ? btn('Clear search', clearBrowse) : null);
+};
+const clearBrowse = () => { $('#browse-q').value = ''; renderBrowse(); $('#browse-q').focus(); };
+$('#browse-q').addEventListener('input', () => { clearTimeout(gTimer); gTimer = setTimeout(renderBrowse, 150); });
+$('#browse-q').addEventListener('keydown', e => {
+  if (e.key === 'Escape' && e.target.value) { e.preventDefault(); return clearBrowse(); }
   if (e.key !== 'Enter') return;
-  e.preventDefault(); clearTimeout(gTimer); renderGenreList();
-  const top = $('#genre-list .cat-item'); if (top) top.click();
+  e.preventDefault(); clearTimeout(gTimer); renderBrowse();
+  const top = $('#browse-pane > :not([hidden]) .cat-item'); if (top) top.click();
 });
+$('#browse-clear').onclick = clearBrowse;
 $$('#genre-family, #genre-tier').forEach(s => s.addEventListener('change', () => { gShown = 60; renderGenreList(); }));
 $('#genre-more').onclick = () => { gShown += 60; renderGenreList(); $$('#genre-list .cat-item')[gShown - 60]?.focus(); };
 function syncBuilder(s) {
@@ -822,15 +844,16 @@ $('#cat-filter').addEventListener('change', () => renderCatalogue());
 
 let catAll = false; // the catalogue shows 8 rows until "Show all"
 function renderCatalogue() {
-  const f = $('#cat-filter').value, list = SD.CATALOGUE.filter(s => !f || SD.continentOf(s.cc) === f);
-  $('#catalogue').replaceChildren(...(catAll ? list : list.slice(0, 8)).map(s => {
+  const q = $('#browse-q').value, list = SD.searchScenes(q, $('#cat-filter').value), all = catAll || !!q.trim(); // a search shows every match
+  if (!list.length) { $('#cat-more').hidden = true; return $('#catalogue').replaceChildren(noMatch('scene')); }
+  $('#catalogue').replaceChildren(...(all ? list : list.slice(0, 8)).map(s => {
     const b = el('button', { type: 'button', className: `cat-item ink-${INK[SD.continentOf(s.cc)]}`, onclick: () => pick(s) },
       el('span', { className: 'cat-label', textContent: s.label }),
       el('span', { className: 'cat-blurb', textContent: s.blurb }));
     if (stOpen && stOpen.id === s.id) b.setAttribute('aria-current', 'true');
     return el('li', {}, b);
   }));
-  $('#cat-more').hidden = catAll || list.length <= 8;
+  $('#cat-more').hidden = all || list.length <= 8;
   $('#cat-more').textContent = `Show all ${list.length}`;
 }
 $('#cat-more').onclick = () => { catAll = true; renderCatalogue(); $$('#catalogue .cat-item')[8]?.focus(); };

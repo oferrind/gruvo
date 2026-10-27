@@ -197,6 +197,12 @@ function searchGenres(q = '', { family = '', tier = '' } = {}, limit = 60) {
   hits.sort((a, b) => (norm(b.name).startsWith(n) - norm(a.name).startsWith(n)) || a.name.localeCompare(b.name));
   return { total: hits.length, stamps: hits.slice(0, limit).map(e => makeStamp(`--${e.slug}`)) };
 }
+// Scenes to browse: every word of q, normalised (accents and case ignored), somewhere in the scene's name, blurb, tags, decade or place.
+function searchScenes(q = '', continent = '') {
+  const words = String(q).split(/\s+/).map(norm).filter(Boolean);
+  return CATALOGUE.filter(s => (!continent || continentOf(s.cc) === continent) && words.every(w =>
+    [s.label, s.blurb, ...s.tags, s.decade, ALL_CC[s.cc], DEMONYM[s.cc], continentOf(s.cc)].some(f => norm(f).includes(w))));
+}
 // The parent, then up to 4 more (2 children first, siblings fill the rest). Never the genre itself.
 function nearby(slug) {
   const e = ATLAS.get(slug);
@@ -225,7 +231,7 @@ function book(held = {}) {
     atlas: atlas.length, atlasTotal: ATLAS.size, custom: stamps.filter(s => s.custom).length, decades: [...new Set(stamps.map(s => s.decade).filter(Boolean))].sort() };
 }
 
-return { ATLAS, FAMILIES, TIERS, nearby, searchGenres, GENRES, DEMONYM, CATALOGUE, CONTINENTS, DECADES, ALL_CC, continentOf, decadeName, makeStamp, roll, tier, book };
+return { ATLAS, FAMILIES, TIERS, nearby, searchGenres, searchScenes, GENRES, DEMONYM, CATALOGUE, CONTINENTS, DECADES, ALL_CC, continentOf, decadeName, makeStamp, roll, tier, book };
 }
 if (typeof module === 'object' && module.exports) module.exports = StampData;
 else root.StampData = StampData;
