@@ -191,7 +191,6 @@
           <button id="tree-tune-open" type="button" class="ghost tune-open" aria-label="Tune the tree" title="Tune the tree"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 5h8M15 5h2M3 10h2M9 10h8M3 15h10M17 15h0"/><circle cx="13" cy="5" r="2"/><circle cx="7" cy="10" r="2"/><circle cx="15" cy="15" r="2"/></svg></button>
         </div>
         <p class="muted">One record at a time. Dig into any of its family to keep going.</p>
-        <div class="sp-export" hidden><button id="tree-export" type="button">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <div id="tree-start" class="tree-start">
         <form id="tree-search" class="search" role="search">
@@ -213,6 +212,7 @@
           <h2 class="dig-head"><img src="img/sticker-dig.png" alt="" width="44" height="44"><span id="tree-family-h">The family</span></h2>
           <div id="tree-family" class="dig-family"></div>
           <button id="tree-more" type="button" class="dig-more"></button>
+          <div class="sp-export" hidden><button id="tree-export" type="button">Export to Spotify</button><p id="tree-export-status" class="hint" aria-live="polite"></p></div>
         </div>
       </div>
       <dialog id="tree-tune" class="tune" aria-labelledby="tune-title">
@@ -282,7 +282,7 @@
           <div id="pref-regions" class="chips" role="group" aria-labelledby="pref-regions-label"></div>
         </div>
         <div class="field">
-          <label><input id="pref-bringback" type="checkbox" checked> Bring back artists I love <span class="muted">· a deep cut now and then; fewer when Adventure is high</span></label>
+          <label class="bring-back"><input id="pref-bringback" type="checkbox" checked><span>Bring back artists I love <span class="muted">· a deep cut now and then; fewer when Adventure is high</span></span></label>
         </div>
         <div class="field">
           <span id="pref-theme-label" class="label">Light or dark</span>
@@ -320,9 +320,9 @@
         <h2 id="src-title">Data sources</h2>
         <ul class="hint">
           <li><button type="button" class="ext" data-url="https://www.deezer.com">Deezer</button>: 30-second previews, cover art and search.</li>
-          <li><button type="button" class="ext" data-url="https://musicbrainz.org">MusicBrainz</button>: genre tags and the genre atlas (<button type="button" class="ext" data-url="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</button>); core data is CC0.</li>
+          <li><button type="button" class="ext" data-url="https://musicbrainz.org">MusicBrainz</button>: genre tags and the genre atlas <span class="lic">(<button type="button" class="ext" data-url="https://creativecommons.org/licenses/by-nc-sa/3.0/">CC BY-NC-SA 3.0</button>)</span>; core data is CC0.</li>
           <li><button type="button" class="ext" data-url="https://www.wikidata.org">Wikidata</button>: facts (CC0).</li>
-          <li><button type="button" class="ext" data-url="https://en.wikipedia.org">Wikipedia</button>: artist and song summaries (<button type="button" class="ext" data-url="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</button>).</li>
+          <li><button type="button" class="ext" data-url="https://en.wikipedia.org">Wikipedia</button>: artist and song summaries <span class="lic">(<button type="button" class="ext" data-url="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</button>)</span>.</li>
           <li class="sp-only"><button type="button" class="ext" data-url="https://open.spotify.com">Spotify</button>: playback and playlist export, through your own account.</li>
         </ul>
       </div>
