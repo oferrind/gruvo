@@ -1,6 +1,22 @@
 // Renderer: UI only. All network/logic runs in main via window.api; profile via window.store.
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
+// Deezer covers: rows use the 250px one; the big sleeve asks for 500px (same URL pattern; an old like keeps working, and a miss falls back to the small one).
+const bigCover = u => (u ? u.replace('/250x250-', '/500x500-') : u);
+const coverImg = (url, props, big) => {
+  const i = el('img', { src: big ? bigCover(url) : url, ...props });
+  if (big && i.src !== url) i.dataset.small = url;
+  return i;
+};
+// A cover that failed (offline, a blip) is retried when the connection is back; a big one first falls back to the small one.
+const failedImgs = new Set();
+document.addEventListener('error', e => {
+  const i = e.target;
+  if (i.tagName !== 'IMG') return;
+  if (i.dataset.small && i.src !== i.dataset.small) return void (i.src = i.dataset.small);
+  failedImgs.add(i);
+}, true);
+window.addEventListener('online', () => { for (const i of failedImgs) { failedImgs.delete(i); if (i.isConnected) { const u = i.src; i.removeAttribute('src'); i.src = u; } } });
 const el = (tag, props = {}, ...kids) => { const e = document.createElement(tag); Object.assign(e, props); e.append(...kids.filter(k => k != null)); return e; };
 const btn = (text, onclick, className = '') => el('button', { type: 'button', className, textContent: text, onclick });
 const norm = s => String(s || '').normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
@@ -104,6 +120,7 @@ function syncPlayState() {
   });
 }
 ['play', 'pause', 'ended', 'emptied'].forEach(ev => audio.addEventListener(ev, syncPlayState));
+audio.addEventListener('ended', () => { audio.currentTime = 0; scrubbing = false; onTime({ type: 'ended' }); }); // a finished track starts its bar over
 let scrubbing = false;
 const onTime = e => {
   if (e.type === 'emptied') scrubbing = false;
@@ -309,7 +326,7 @@ function trackRow(t, { extra, reason, full, tag = 'li', from } = {}) {
   playBtn.dataset.label = `Play ${name}`;
   playBtn.setAttribute('aria-label', playBtn.dataset.label);
   const row = el(tag, { className: 'track' },
-    t.cover ? el('img', { src: t.cover, alt: '', width: 48, height: 48 }) : el('span', { className: 'cover-ph', ariaHidden: 'true' }),
+    t.cover ? coverImg(t.cover, { alt: '', width: 48, height: 48 }, full) : el('span', { className: 'cover-ph', ariaHidden: 'true' }),
     t.noPreview ? null : playBtn,
     el('div', { className: 'meta' }, title, el('span', { className: 'artist', textContent: t.artist + (t.year ? ` · ${t.year}` : '') }),
       reason ? el('small', { className: 'reason', textContent: reason }) : null, full || t.noPreview ? fullSong(t) : null, full ? aboutDetails(t) : null),
@@ -617,7 +634,7 @@ function rate(kind) {
   $(`#rate [data-rate=${kind}]`).setAttribute('aria-pressed', true);
   const said = VERDICT[kind];
   // Artist/title enter the DOM only now, after rating. The cover slides out over the record, the name types on.
-  $('#deck').prepend(m.cover ? el('img', { className: 'sleeve', src: m.cover, alt: `Cover of ${m.title}` }) : el('span', { className: 'sleeve cover-ph', ariaHidden: 'true' }));
+  $('#deck').prepend(m.cover ? coverImg(m.cover, { className: 'sleeve', alt: `Cover of ${m.title}` }, true) : el('span', { className: 'sleeve cover-ph', ariaHidden: 'true' }));
   $('#deck').append(el('img', { className: 'verdict', src: `img/sticker-${kind}.png`, alt: '' })); // the shop's sticker; the sr-only line below says it
   $('#deck').dataset.verdict = kind;
   const [meta, about] = revealDetails(m);
@@ -708,7 +725,7 @@ $('#adventure').addEventListener('input', e => { profile.adventure = Number(e.ta
 $('#adventure').addEventListener('change', save);
 
 // ---------- B. Genre Stamps (docs/06) ----------
-let SD, stRun = 0, stOpen = null, stSongs = [], nextRoll = null;
+let SD, stRun = 0, stDone = false, stOpen = null, stSongs = [], nextRoll = null;
 const stState = (kind, msg, opts) => setState($('#stamp-state'), kind, msg, opts);
 // Per-viewer conveniences only (last rolls, combos that came back thin); losing them is harmless. Rarity lives in the profile.
 const ls = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch { return null; } };
@@ -861,7 +878,7 @@ $('#cat-more').onclick = () => { catAll = true; renderCatalogue(); $$('#catalogu
 
 function renderStampHead() {
   const s = stOpen, head = $('#stamp-head');
-  $('#stamp-export-box').hidden = !stSongs.length;
+  $('#stamp-export-box').hidden = !(stSongs.length && stDone); // only once the Roll has finished
   if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: { scenes: 'Pick a scene: a place, a decade and its sound. Ten songs from it.',
     genres: 'Search or pick a genre, from the well-known to the deeply obscure.' }[$('#stamps').dataset.mode] || 'Roll, or pick a genre. Add a decade or a place if you like.' }));
   head.replaceChildren(el('div', { className: 'stamp-info' },
@@ -888,7 +905,6 @@ function songRow(t) {
 api.onStampRow((run, row) => {
   if (run !== stRun) return;
   stSongs.push(row);
-  $('#stamp-export-box').hidden = false;
   $('#stamp-songs').append(songRow(row));
 });
 
@@ -918,7 +934,7 @@ function prefetchNext(s, tries = 3) {
 }
 async function openStamp(s, rerolls = 0) {
   const run = ++stRun;
-  stOpen = s; stSongs = [];
+  stOpen = s; stSongs = []; stDone = false;
   $('#stamp-songs').replaceChildren(); $('#stamp-more').replaceChildren(); $('#stamp-export-status').replaceChildren();
   renderStampHead(); renderCatalogue(); renderGenreList();
   stState('loading', 'Searching…');
@@ -941,6 +957,7 @@ async function openStamp(s, rerolls = 0) {
       { actions: near.map(x => btn(x.label, () => openStamp(x))) });
   }
   if (!stSongs.length) return stState('empty', 'No songs came through for this one.', { art: 'empty-unknown', actions: [btn('Try again', () => openStamp(s), 'primary')] }); // never a silent empty list
+  stDone = true; $('#stamp-export-box').hidden = false;
   const doneMsg = n => (s.atlas ? `${n} songs tagged ${SD.ATLAS.get(s.genre).name}${s.decade ? `, first released in the ${SD.decadeName(s.decade)}` : ''}${s.cc ? `, by artists from ${countryNames[s.cc]}` : ''}.`
     : `${n} songs, every one first released in the ${SD.decadeName(s.decade)} by an artist from ${countryNames[s.cc]}.`);
   stState('done', doneMsg(res.count));

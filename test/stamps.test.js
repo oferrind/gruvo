@@ -71,6 +71,17 @@ test('artist-first top-up: under 8 guarded artists, tagged artists from the coun
   assert.equal(res.rarity, 'Legendary');
 });
 
+test('Roll streams the first page before the top-up, and skips the top-up once 10 songs are in', async () => {
+  const jp = Array.from({ length: 6 }, (_, i) => A(`j${i}`, `Band${i}`, 'JP', { tags: [{ name: 'rock' }] }));
+  const recordings = jp.flatMap((a, i) => [rec(`r${i}`, a, `One${i}`, '1994'), rec(`s${i}`, a, `Two${i}`, '1994')]);
+  const { get, calls } = fakeGet({ recordings, guard: jp, topArtists: jp });
+  const rows = [], at = [];
+  await S.stampSongs((u, o) => (at.push(rows.length), get(u, o)), S.makeStamp('1990-JP-rock'), { emit: r => rows.push(r), rand: seeded() });
+  assert.equal(rows.length, 10);
+  assert.ok(!calls.some(c => /artist\?limit=100&query=\(tag/.test(c)), 'full Roll: no top-up');
+  assert.ok(at.some(n => n > 0 && n < 10), 'rows arrived while lookups were still going');
+});
+
 test('fewer than 5 songs is thin, never an empty success', async () => {
   const a = A('a', 'Solo', 'MN');
   const { get } = fakeGet({ recordings: [rec('1', a, 'One', '2012')], guard: [a] });
