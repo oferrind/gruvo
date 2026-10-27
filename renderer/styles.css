@@ -827,7 +827,7 @@ main:has(> #stamps:not([hidden])) { max-width: 1320px; }
 @media (min-width: 820px) {
   .sleeves { gap: var(--space-5); }
   .dig { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--space-6); align-items: start; }
-  .dig-path { position: sticky; top: 72px; }
+  .dig-path { position: sticky; top: 72px; max-height: calc(100dvh - 160px); overflow-y: auto; } /* a long dig stays reachable in a short window */
   .dig-path:not(:has(li + li)) { display: block; } /* the column keeps its place, even for the first record */
   .dig-path ol { display: block; margin: 0; padding: 0; overflow: visible; }
   .dig-path li { display: block; }
@@ -1270,7 +1270,9 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch button.ext { display: inline-flex; align-items: center; }
 .touch .crate .love { width: 48px; height: 48px; }
 .touch .chip { padding-inline: var(--space-4); }
-.touch .about-more summary { padding-block: 12px; }
+.touch .about-more summary { padding-block: 12px; min-height: 44px; }
+.touch .brand { min-height: 48px; }
+.touch .theme-toggle { min-width: 48px; } /* landscape touch: the logo and the theme switch are targets too */
 .touch :is(.adventurous, .grow-edge) { min-height: 48px; }
 .touch :is(.adventurous input, .scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
 /* touch at any width (a landscape phone gets the desktop layout, not the 840px phone rules): 48px controls, 16px fields */
@@ -1280,7 +1282,8 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch :is(#sp-go, #prefs-done, .slider input) { min-height: 48px; } /* landscape touch: the controls the phone rules cover */
 @media (min-width: 841px) { .touch .roll-btn { min-height: 48px; } } /* phones keep their 56px */
 .touch #sp-setup summary { display: flex; align-items: center; min-height: 48px; }
-.touch .np-toggle { width: 48px; height: 48px; }
+.touch :is(.np-toggle, .nowbar.is-idle .np-toggle) { width: 48px; height: 48px; min-height: 48px; }
+.touch .search button { min-height: 48px; }
 .touch .field > label:has(input) { padding-block: 9px; }
 .touch .track .meta button.link { display: inline-flex; align-items: center; min-height: 44px; }
 .touch :is(.genre-btn, .np-from) { position: relative; }

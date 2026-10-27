@@ -31,3 +31,15 @@ test('the dig path runs from the root down to the node', () => {
   assert.deepEqual(path(nodes, 0).map(n => n.id), [0]);
   assert.deepEqual(path(nodes, 9), []);
 });
+
+// Renderer guards that have no DOM harness: pinned at the source so a refactor cannot drop them silently.
+const read = f => require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'renderer', f), 'utf8');
+test('the tree renderer guards a second More on a leaf and stale searches', () => {
+  const src = read('app.js');
+  assert.match(src, /async function moreTree\(n\) \{\r?\n  if \(trDigging\.has\(n\.id\)\) return;/);
+  assert.match(src, /const run = \+\+trRun;\r?\n  trSearch\+\+;/);
+});
+test('landscape touch keeps the logo, theme switch and search button at touch size', () => {
+  const css = read('styles.css');
+  for (const re of [/\.touch \.brand \{ min-height: 48px/, /\.touch \.theme-toggle \{ min-width: 48px/, /\.touch \.search button \{ min-height: 48px/]) assert.match(css, re);
+});
