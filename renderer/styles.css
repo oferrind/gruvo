@@ -39,7 +39,6 @@
   --shadow-art: 0 10px 24px -8px rgb(0 0 0 / .7);
   --shadow-bar: 0 -10px 30px -18px rgb(0 0 0 / .6);
   --nowbar-h: 64px;
-  --nowbar-idle: 44px;
   --content-w: 1040px;
   --dur: 140ms;
   /* paper and print: a faint scan grain on the room, paper fibres on cards (static tiles, no animated filters) */
@@ -509,13 +508,21 @@ progress::-webkit-progress-value { background: var(--color-accent); border-radiu
 .verdict { position: absolute; z-index: 4; left: -16px; bottom: 4px; width: 88px; height: auto; rotate: -9deg; filter: drop-shadow(0 3px 4px rgb(0 0 0 / .45));
   animation: stamp 160ms ease-out 400ms backwards; }
 
-/* Rating: Love is an ink press with a heart pulse, OK a soft tick, Skip a flick. Pressed reads as state, not as a filled CTA. */
-.rate { display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: var(--space-3); }
-.rate button { position: relative; min-height: 42px; font-size: 15px; font-weight: 650; }
-.rate [data-rate=love] { background: var(--color-love); border-color: var(--color-love); color: var(--color-on-accent); }
-@media (hover: hover) { .rate [data-rate=love]:hover:not(:disabled) { background: var(--color-love); border-color: var(--color-love); filter: brightness(1.08); } }
-.rate button[aria-pressed=true] { opacity: 1; cursor: default; color: var(--color-text); border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface)); }
-.rate [data-rate=love][aria-pressed=true] { color: var(--color-on-accent); border-color: var(--color-love); background: var(--color-love); animation: press 160ms cubic-bezier(.16,1,.3,1); }
+/* Rating: Skip, OK and Love are three equal paper tags. Love is an outlined heart until pressed, then the heart fills in;
+   pressed is a tag pushed into the card (an amber or red edge), not a filled CTA. The Tree card's Skip / OK / Love wear the same tags. */
+.rate { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+:is(.rate, .dig-focus .node-rate) button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px;
+  border: 1px solid var(--color-border); border-radius: 3px; background: var(--paper), var(--color-surface); color: var(--color-text);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .05), 0 3px 6px -2px rgb(0 0 0 / .35); font: 750 15px/1 var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+@media (hover: hover) { :is(.rate, .dig-focus .node-rate) button:hover:not(:disabled) { background: var(--paper), var(--color-surface-2); border-color: var(--color-accent); color: var(--color-text); } }
+.rate [data-rate=love]::before { content: ""; width: 15px; height: 15px; flex: none; background: var(--color-love); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M8 13.6S2 9.9 2 5.9C2 4 3.4 2.6 5.1 2.6c1.2 0 2.3.7 2.9 1.8.6-1.1 1.7-1.8 2.9-1.8C12.6 2.6 14 4 14 5.9c0 4-6 7.7-6 7.7Z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M8 13.6S2 9.9 2 5.9C2 4 3.4 2.6 5.1 2.6c1.2 0 2.3.7 2.9 1.8.6-1.1 1.7-1.8 2.9-1.8C12.6 2.6 14 4 14 5.9c0 4-6 7.7-6 7.7Z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.rate [data-rate=love][aria-pressed=true]::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='black' stroke='black' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M8 13.6S2 9.9 2 5.9C2 4 3.4 2.6 5.1 2.6c1.2 0 2.3.7 2.9 1.8.6-1.1 1.7-1.8 2.9-1.8C12.6 2.6 14 4 14 5.9c0 4-6 7.7-6 7.7Z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='black' stroke='black' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M8 13.6S2 9.9 2 5.9C2 4 3.4 2.6 5.1 2.6c1.2 0 2.3.7 2.9 1.8.6-1.1 1.7-1.8 2.9-1.8C12.6 2.6 14 4 14 5.9c0 4-6 7.7-6 7.7Z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.dig-focus .node-rate .love .icon { color: var(--color-love); }
+:is(.rate, .dig-focus .node-rate) button[aria-pressed=true] { opacity: 1; color: var(--color-text); border-color: var(--color-accent); background: var(--paper), color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / .28); }
+.rate button[aria-pressed=true] { cursor: default; }
+:is(.rate, .dig-focus .node-rate) [data-rate=love][aria-pressed=true] { border-color: var(--color-love); background: var(--paper), color-mix(in srgb, var(--color-love) 12%, var(--color-surface)); }
+.rate [data-rate=love][aria-pressed=true] { animation: press 160ms cubic-bezier(.16,1,.3,1); }
 .rate [data-rate=love][aria-pressed=true]::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; animation: pulse 160ms ease-out both; }
 .rate [data-rate=ok][aria-pressed=true] { animation: tick 140ms ease-out; }
 .rate [data-rate=ok][aria-pressed=true]::before { content: ""; display: inline-block; width: 10px; height: 5px; margin-right: 8px; border: solid currentColor; border-width: 0 0 2px 2px; rotate: -45deg; translate: 0 -3px; }
@@ -623,7 +630,7 @@ main:has(> :is(#stamps, #tree):not([hidden])) { max-width: 1320px; } /* the two 
   main:has(> #stamps:not([hidden])) { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-block: var(--space-5) 0; }
   #stamps:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #stamps .panel-head { margin-bottom: var(--space-4); }
-  .stamps-layout { flex: 1; min-height: 0; align-items: stretch; grid-template-columns: 290px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .stamps-layout { flex: 1; min-height: 0; align-items: stretch; grid-template-columns: 410px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); } /* "Play me 90s Japanese rock" on one line */
   .stamp-side { grid-row: auto; display: flex; flex-direction: column; min-height: 0; }
   .catalogue, #scenes-view:not([hidden]), #genres-view:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .cat-list { flex: 0 1 auto; min-height: 96px; overflow-y: auto; }
@@ -793,8 +800,7 @@ main:has(> :is(#stamps, #tree):not([hidden])) { max-width: 1320px; } /* the two 
   .dig-focus .track > .love { grid-area: 2 / 1; justify-self: stretch; align-self: start; min-width: 0; }
 }
 .dig-focus .node-rate { display: flex; gap: var(--space-2); }
-.dig-focus .node-rate button { min-height: 40px; padding: 0 var(--space-4); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-size: 15px; }
-.dig-focus .node-rate button[aria-pressed=true]:not(.love) { background: var(--color-surface-2); border-color: var(--color-muted); }
+.dig-focus .node-rate button { min-height: 40px; padding: 0 var(--space-4); }
 .dig-focus.skipped .track > :is(img, .meta) { opacity: .5; transition: opacity var(--dur); }
 
 /* cover-as-play (focus, family, search hits): the sleeve is the button; with a mouse the ▶ shows on hover */
@@ -977,11 +983,9 @@ select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) 
   padding: 0 max(var(--space-5), env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(var(--space-5), env(safe-area-inset-left, 0px));
   background: var(--grain), var(--color-surface); border-top: 1px solid var(--color-border);
   box-shadow: var(--shadow-bar); z-index: 5; transition: height 160ms cubic-bezier(.16,1,.3,1); }
-.nowbar.is-idle { height: calc(var(--nowbar-idle) + env(safe-area-inset-bottom, 0px)); }
-body:has(.nowbar.is-idle) { padding-bottom: calc(var(--nowbar-idle) + var(--space-4)); }
-.nowbar.is-idle :is(.np-cover, .np-seek, .np-time, #np-like) { display: none; }
-.nowbar.is-idle .np-toggle { width: 30px; height: 30px; min-height: 30px; background: var(--color-surface-2); color: var(--color-muted); }
-.nowbar.is-idle .np-title { color: var(--color-muted); font: 600 15px/1 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
+/* nothing playing: no bar at all, only its toast (as on the phone). The page keeps the bar's room, so nothing moves when a song starts. */
+.nowbar.is-idle { height: 0; padding: 0; border: none; background: none; box-shadow: none; }
+.nowbar.is-idle > :not(.toast) { display: none; }
 .np-cover { width: 44px; height: 44px; flex: none; border-radius: 3px; overflow: hidden; background: var(--color-surface-2); box-shadow: 0 3px 8px -2px rgb(0 0 0 / .5); }
 .np-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .np-cover:empty { display: none; }
@@ -1114,7 +1118,8 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .crate .track.is-playing > .play .icon { background: var(--color-accent); color: var(--color-on-accent); }
 @media (hover: hover) { .crate .track > .play:hover:not(:disabled) { background: rgb(0 0 0 / .12); } .crate .track > .play:hover .icon { scale: 1.1; } }
 .crate .meta { grid-column: 1; }
-.crate .meta > :is(.title, .artist) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crate .meta > .artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crate .meta > .title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: 2.5em; line-height: 1.25; overflow-wrap: anywhere; } /* two lines, then "…"; every card keeps room for two, so the artists line up */
 .crate .love { grid-column: 2; min-width: 0; width: 36px; height: 36px; min-height: 36px; padding: 0; gap: 0; font-size: 0; border-color: transparent; background: none; border-radius: 50%; color: var(--color-muted); } /* icon only: the label stays in aria-label */
 .crate .track:not(:hover, :focus-within) .love[aria-pressed=true] { visibility: hidden; }
 .crate > .state { grid-column: 1 / -1; }
@@ -1220,7 +1225,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .np-seek::-webkit-slider-runnable-track { height: 3px; border-radius: 0; background-color: transparent; }
   .np-seek::-webkit-slider-thumb { opacity: 1; width: 11px; height: 11px; margin-top: -4px; background: var(--tint); }
   .np-seek:disabled::-webkit-slider-thumb { opacity: 0; }
-  .np-toggle, .nowbar.is-idle .np-toggle { width: 48px; height: 48px; min-height: 48px; }
+  .np-toggle { width: 48px; height: 48px; min-height: 48px; }
   .np-toggle .icon { width: 20px; height: 20px; }
   .nowbar .love { min-width: 0; width: 48px; height: 48px; min-height: 48px; padding: 0; gap: 0; font-size: 0; border-color: transparent; background: none; border-radius: 50%; } /* icon only: the label stays in aria-label */
   .nowbar .love:not([aria-pressed=true]) { color: var(--color-muted); }
@@ -1296,7 +1301,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .dig-focus { padding: var(--space-3); }
   .dig-focus { --cover: 96px; }
   .dig-focus .track { column-gap: var(--space-3); }
-  .dig-focus .title { font-size: 26px; }
+  .dig-focus .track .title { font-size: 26px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; text-wrap: balance; } /* beats the phone's .track .title; three lines at most */
   .dig-focus .node-rate button { flex: 1; min-height: 48px; }
   .dig-focus .track > .node-rate { justify-self: stretch; }
   .dig-head { font-size: 21px; }
@@ -1349,7 +1354,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch .slider .end { margin-top: -10px; } /* the 48px slider's track sits mid-box: keep its ends tight under it */
 @media (min-width: 841px) { .touch .roll-btn { min-height: 48px; } } /* phones keep their 56px */
 .touch #sp-setup summary { display: flex; align-items: center; min-height: 48px; }
-.touch :is(.np-toggle, .nowbar.is-idle .np-toggle) { width: 48px; height: 48px; min-height: 48px; }
+.touch .np-toggle { width: 48px; height: 48px; min-height: 48px; }
 .touch .search button { min-height: 48px; }
 .touch .field > label:has(input) { padding-block: 9px; }
 .touch .track .meta button.link { display: inline-flex; align-items: center; min-height: 44px; }
@@ -1398,10 +1403,7 @@ html { -webkit-tap-highlight-color: transparent; }
   .intro-go { width: 100%; min-height: 56px; }
   .tracklist button { min-height: 64px; }
 
-  /* Blind Test: tonal Skip and OK, Love in ink; the slider gets a thumb you can find */
-  .rate button:not([data-rate=love]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
-  .rate button[aria-pressed=true]:not([data-rate=love]) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 26%, var(--color-surface)); box-shadow: inset 0 0 0 1px var(--color-accent); }
-  .rate button { border-radius: 14px; }
+  /* Blind Test: the slider gets a thumb you can find */
   .slider input { min-height: 48px; }
   .reveal-card { border-top-color: var(--page-line); }
   .reveal-actions { gap: var(--space-2); }
