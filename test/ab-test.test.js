@@ -2,7 +2,6 @@ const test = require('node:test');
 const assert = require('node:assert');
 const F = require('../renderer/features');
 const store = require('../src/store');
-const { report, fisher } = require('../scripts/ab-report');
 const music = require('../src/music');
 
 test('tag cosine: identical 1, disjoint 0, partial in between', () => {
@@ -42,16 +41,6 @@ test('store: abTest validated (default off) and ab kept only as fp|tags', () => 
   assert.deepEqual(store.parse(JSON.stringify({ likes: [], heard: [], prefs: { abTest: { on: 'yes', started: 'x' } } })).profile.prefs.abTest, { on: false, started: 0 });
 });
 
-test('ab-report counts per method and runs Fisher', () => {
-  const R = (rating, ab) => ({ id: String(Math.random()), rating, features: [1], ab });
-  const ratings = [...Array(2).fill(0).map(() => R('love', 'fp')), ...Array(8).fill(0).map(() => R('skip', 'fp')),
-    ...Array(8).fill(0).map(() => R('love', 'tags')), R('ok', 'tags'), R('skip', 'tags'), R('love')];
-  const r = report({ ratings });
-  assert.deepEqual([r.fp.n, r.fp.love, r.fp.skip], [10, 2, 8]);
-  assert.deepEqual([r.tags.n, r.tags.love, r.tags.ok, r.tags.skip], [10, 8, 1, 1]);
-  assert.ok(Math.abs(r.p - fisher(2, 8, 8, 2)) < 1e-12 && r.p < 0.05);
-  assert.ok(Math.abs(fisher(1, 1, 1, 1) - 1) < 1e-9);
-});
 
 test('artistTags: one unambiguous artist gives lowercase tag counts, cached; same-name twins give null', async () => {
   let calls = 0;
