@@ -799,7 +799,7 @@ main:has(> :is(#stamps, #tree):not([hidden])) { max-width: 1320px; } /* the two 
   .dig-focus .track > .love { grid-area: 2 / 1; justify-self: stretch; align-self: start; min-width: 0; }
 }
 .dig-focus .node-rate { display: flex; gap: var(--space-2); }
-.dig-focus .node-rate button { min-height: 40px; padding: 0 var(--space-4); }
+.dig-focus .node-rate button { min-height: 40px; min-width: 92px; padding: 0 var(--space-4); }
 .dig-focus.skipped .track > :is(img, .meta) { opacity: .5; transition: opacity var(--dur); }
 
 /* cover-as-play (focus, family, search hits): the sleeve is the button; with a mouse the ▶ shows on hover */
@@ -1301,7 +1301,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .dig-focus { --cover: 96px; }
   .dig-focus .track { column-gap: var(--space-3); }
   .dig-focus .track .title { font-size: 26px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; text-wrap: balance; } /* beats the phone's .track .title; three lines at most */
-  .dig-focus .node-rate button { flex: 1; min-height: 48px; }
+  .dig-focus .node-rate button { flex: 1; min-width: 0; min-height: 48px; }
   .dig-focus .track > .node-rate { justify-self: stretch; }
   .dig-head { font-size: 21px; }
   .has-sheet #b-genre { display: none; }
