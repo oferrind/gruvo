@@ -62,6 +62,13 @@ test('search hits: a song Deezer lacks comes from MusicBrainz, without a preview
   assert.equal(hits[1].source, 'dz');
 });
 
+test('search hits: songs with a preview come before ones without', async () => {
+  const row = (id, preview) => ({ id, title: `Song ${id}`, artist: { id: id + 10, name: 'Band' }, rank: 1000 - id, preview });
+  const get = fakeGet({ 'api.deezer.com/search': { data: [row(1, ''), row(2, 'p'), row(3, '')] } });
+  const hits = await m.flows.searchTracks(get, 'band song');
+  assert.equal(hits[0].previewUrl, 'p');
+});
+
 test('search hits: MusicBrainz is not asked when Deezer has the song', async () => {
   const urls = [];
   const get = async url => { urls.push(url); return fx('dz_search_creep'); };
@@ -290,6 +297,9 @@ test('deep cut: skips the top 10, drops rated tracks, prefers another album, nee
 test('fromDeezer strips remaster suffixes only', () => {
   const t = title => m.fromDeezer({ id: 1, title, artist: { name: 'A', id: 2 } }).title;
   for (const s of ['Song (2007 Remaster)', 'Song - Remastered 2011', 'Song (Remastered)']) assert.equal(t(s), 'Song');
+  for (const s of ['Song (From "Film")', 'Song [From Film]', 'Song (Original Mix)', 'Song - Single Version', 'Song (Single Version)', 'Song - From "X"']) assert.equal(t(s), 'Song');
+  assert.equal(t('Rock-N-Roll (Remastered)'), 'Rock-N-Roll');
+  assert.equal(t('(From Here)'), '(From Here)'); // never empties a title
   assert.equal(t('Song (Live)'), 'Song (Live)');
   assert.equal(t('Song (feat. X)'), 'Song (feat. X)');
 });

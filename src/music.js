@@ -43,7 +43,7 @@ function pickDeezer(rows, artist, title, requireTitle = false) {
   return soleArtist(ok, artist, r => r.artist.name, r => r.artist.id).sort((a, b) => (b.rank || 0) - (a.rank || 0))[0] || null;
 }
 
-const cleanTitle = t => t.replace(/(?:\s+-\s+|\s*[([])[^)\]]*remaster[^)\]]*[)\]]?\s*$/i, '') || t; // "Beautiful Ones (Remastered)", "Song - 2011 Remaster"; keeps (Live) / (feat. X)
+const cleanTitle = require('../renderer/title'); // "Beautiful Ones (Remastered)", "Song - 2011 Remaster", "(From …)"; keeps (Live) / (feat. X)
 const fromDeezer = r => ({ source: 'dz', id: r.id, title: cleanTitle(r.title), artist: r.artist.name, artistDzId: r.artist.id,
   cover: r.album && r.album.cover_medium, albumId: r.album && r.album.id, isrc: r.isrc, previewUrl: r.preview });
 
@@ -347,7 +347,7 @@ async function mbSong(get, q) {
 
 async function searchTracks(get, q) {
   const res = await get(`${DZ}/search?q=${enc(q)}&limit=25`);
-  const rows = sortHits(res.data || [], q).slice(0, 10).map(fromDeezer);
+  const rows = sortHits(res.data || [], q).sort((a, b) => !!b.preview - !!a.preview).slice(0, 10).map(fromDeezer); // playable songs first (stable)
   const nq = norm(q);
   // Only when Deezer has no studio take naming both title and artist (Wonderwall: live ones only). MusicBrainz is slow (1.5 s pacing).
   if ((res.data || []).some(r => !altTake(r) && nq.includes(baseTitle(r.title)) && nq.includes(norm(r.artist.name)))) return rows;
