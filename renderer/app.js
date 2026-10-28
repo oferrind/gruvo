@@ -251,7 +251,7 @@ function unlike(t) {
   profile.ratings = profile.ratings.filter(r => r.id !== likeKey(t) || r.rating !== 'love');
   save();
   afterLikeChange();
-  if (old && !$('#saved').hidden) undoToast(`Removed “${t.title}”`, () => { // Saved: put it back where it was
+  if (old && !$('#saved').hidden) undoToast(`Removed “${cleanTitle(t.title)}”`, () => { // Saved: put it back where it was
     if (isLiked(t)) return;
     profile.likes.splice(at, 0, old);
     if (sk) profile.stamps[sk] = (profile.stamps[sk] || 0) + 1;
@@ -522,7 +522,7 @@ function nextFromQueue() {
 // "Why you got this": where it came from, plus the sound match only when it is close. Phrasing rotates between reveals.
 let lastWhy;
 function soundReason(m, v) {
-  const names = { ...seedNames(), ...Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${l.title}” by ${l.artist}`])) };
+  const names = { ...seedNames(), ...Object.fromEntries(profile.likes.map(l => [likeKey(l), `“${cleanTitle(l.title)}” by ${l.artist}`])) };
   const sound = v && window.Features ? Features.explain(v, profile.ratings.filter(r => r.id !== likeKey(m)), names, { close: true }) : '';
   if (!m.why) return sound || m.reason || '';
   if (whyTag(m)) return sound; // the sticker already says how it was found
@@ -1043,7 +1043,7 @@ const trDigging = new Set(); // ids with a More in flight
 const trState = (kind, msg, opts) => setState($('#tree-state'), kind, msg, opts);
 const trWork = d => { trBusy += d; if (trBusy) trState('loading', 'Searching…'); };
 const kinOf = id => trNodes.filter(n => n && n.parentId === id);
-const treeFrom = n => ({ tab: 'tree', label: n.parentId == null ? tabName('tree') : `Tree, via ${trNodes[n.parentId].track.title}` });
+const treeFrom = n => ({ tab: 'tree', label: n.parentId == null ? tabName('tree') : `Tree, via ${cleanTitle(trNodes[n.parentId].track.title)}` });
 const TREE_MORE = 3; // songs one More adds (src/tree.js MORE)
 
 // A 48px "Dig ›" / "Grow ›": the one way into a record.
@@ -1066,7 +1066,7 @@ function showStart(on) {
     el('span', { className: 'sleeve-title', textContent: cleanTitle(t.title) }), el('span', { className: 'sleeve-artist', textContent: t.artist })))));
   $('#tree-saved').scrollLeft = 0;
   const f = trNodes[trFocus];
-  if (f) trState('done', '', { actions: [btn(`Back to “${f.track.title}”`, () => { trState('done', ''); showStart(false); })] });
+  if (f) trState('done', '', { actions: [btn(`Back to “${cleanTitle(f.track.title)}”`, () => { trState('done', ''); showStart(false); })] });
   else if (!saved.length) trState('empty', 'Search any song to start digging. Songs you save in Blind Test or Crate Dig wait here too.', { art: 'empty-deck' });
   else trState('done', '');
 }
@@ -1588,7 +1588,7 @@ async function playInSpotify(t, b, deviceId) {
     ...r.devices.map(d => btn(d.name, () => playInSpotify(t, b, d.id), 'ext'))));
   if (r.error) return toast(r.error);
   audio.pause();
-  toast(`Playing “${t.title}” in Spotify${r.name ? ` on ${r.name}` : ''}`);
+  toast(`Playing “${cleanTitle(t.title)}” in Spotify${r.name ? ` on ${r.name}` : ''}`);
 }
 
 // Private playlist from tracks (in order); reports matches and the songs Spotify doesn't have. Genre Stamps can call it too.
