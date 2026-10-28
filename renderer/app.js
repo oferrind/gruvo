@@ -147,7 +147,7 @@ $('#np-toggle').onclick = togglePlay;
 // The bar: the cover (a plain "?" sleeve while it is a mystery), title over artist, and the "came from" link back to the source.
 const tabName = id => ($(`#tab-${id}`)?.firstChild.textContent || id).trim();
 function renderNpMeta() {
-  const [title, artist] = !current ? ['Nothing playing', ''] : hidden(current) ? ['Mystery track', ''] : [current.title, current.artist];
+  const [title, artist] = !current ? ['Nothing playing', ''] : hidden(current) ? ['Mystery track', ''] : [cleanTitle(current.title), current.artist];
   $('#now-playing').textContent = title; $('#np-artist').textContent = artist;
   const c = $('#np-cover');
   c.classList.toggle('is-mystery', !!current && hidden(current));
@@ -334,7 +334,7 @@ const fromOf = row => {
 };
 function trackRow(t, { extra, reason, full, tag = 'li', from } = {}) {
   const name = `${t.artist} – ${t.title}`;
-  const title = el('span', { className: 'title', textContent: t.title });
+  const title = el('span', { className: 'title', textContent: cleanTitle(t.title) });
   const playBtn = el('button', { type: 'button', className: 'play',
     onclick: () => current && likeKey(current) === likeKey(t) && audio.getAttribute('src') ? togglePlay() : play(t, { extra, from: from || fromOf(row) }) });
   playBtn.append(icon('play'));
@@ -358,6 +358,7 @@ function trackRow(t, { extra, reason, full, tag = 'li', from } = {}) {
 const tabs = $$('#tabs [role=tab]');
 let introOpen = false;
 const tabHist = []; // tabs left behind, for the Android back button
+let prefsFrom = null, prefsFirst = false; // the tab Preferences was opened from: the last button leads back there
 let goingBack = false;
 function showTab(name, focus) {
   closeIntro();
@@ -369,7 +370,7 @@ function showTab(name, focus) {
   if (name === 'home') renderHome();
   if (name === 'blind' && mystery && !rated && !current) playMystery(); // Home is the landing page: the first mystery waits until you come here
   if (name === 'saved') renderSaved();
-  if (name === 'prefs') renderPrefs();
+  if (name === 'prefs') { if (prev && prev !== 'prefs') prefsFrom = prev; renderPrefs(); prefsMode(prefsFirst); }
   if (name === 'tree' && !trNodes.length) showStart(true);
 }
 $('#tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) showTab(t.dataset.tab); });
@@ -539,7 +540,7 @@ function aboutBlock(t) {
   const box = el('div', { className: 'about', ariaBusy: 'true' }, el('p', { className: 'about-text is-loading', textContent: '…' }));
   aboutOf(t).then(({ text, url, facts = {} }) => {
     box.setAttribute('aria-busy', 'false');
-    const chips = [facts.album, facts.year, facts.label, facts.genre].filter(Boolean).map(f => el('li', { textContent: f }));
+    const chips = [facts.album, facts.year, facts.label, facts.genre && Dig.genre(facts.genre)].filter(Boolean).map(f => el('li', { textContent: f }));
     box.replaceChildren(...[
       text && el('p', { className: 'about-text' }, text, url ? ' ' : null, url ? el('button', { type: 'button', className: 'ext about-src', textContent: 'from Wikipedia',
         ariaLabel: 'Read more on Wikipedia (opens your browser)', onclick: () => api.open(url).catch(() => toast('Could not open the browser')) }) : null),
@@ -657,7 +658,7 @@ function rate(kind) {
   $('#deck').append(el('img', { className: 'verdict', src: `img/sticker-${kind}.png`, alt: '' })); // the shop's sticker; the sr-only line below says it
   $('#deck').dataset.verdict = kind;
   const [meta, about] = revealDetails(m);
-  $('#mystery-title').textContent = m.title; // the song's name takes the "Mystery track" line; the artist leads the card below
+  $('#mystery-title').textContent = cleanTitle(m.title); // the song's name takes the "Mystery track" line; the artist leads the card below
   $('#reveal').replaceChildren(el('div', { className: 'reveal-card' },
     el('p', { className: 'sr-only', textContent: `You said ${said}. It was ${m.title}, by` }),
     el('h3', { className: 'reveal-artist', textContent: m.artist }),
@@ -676,16 +677,20 @@ const VERDICT = { skip: 'Skip', ok: 'OK', love: 'Love' };
 // How the pick was found, as a short price-sticker tag ("Random trip: Greece", "Near Oasis").
 function whyTag(m) {
   const w = m.why || {};
-  return { trip: `Random trip: ${w.place}${m.decade ? `, ${m.decade}s` : ''}`, near: `Near ${w.artist}`, trail: `Via ${w.person}`, genre: `${w.genre} shelf` }[w.kind] || '';
+  return { trip: `Random trip: ${w.place}${m.decade ? `, ${m.decade}s` : ''}`, near: `Near ${w.artist}`, trail: `Via ${w.person}`, genre: `${Dig.genre(Dig.shopGenre(w.genre) || w.genre)} shelf` }[w.kind] || '';
 }
 // Reveal order: name, then a meta row (how it was found · year · label · genre · album), then the about text clamped to 3 lines.
 function revealDetails(m) {
   const tag = whyTag(m);
   const facts = el('ul', { className: 'facts', ariaLabel: 'Release details' });
-  const meta = el('div', { className: 'meta-row' }, tag ? el('span', { className: 'sticker', textContent: tag }) : null, facts);
+  const sticker = tag ? el('span', { className: 'sticker', textContent: tag }) : null;
+  const meta = el('div', { className: 'meta-row' }, sticker, facts);
   const box = el('div', { className: 'about', ariaBusy: 'true' }, el('p', { className: 'about-text is-loading', textContent: '…' }));
   aboutOf(m).then(({ text, url, facts: f = {} }) => {
-    facts.append(...[f.year, f.label, f.genre, f.album].filter(x => x && ![m.title, m.artist].some(n => norm(n) === norm(x))).map(x => el('li', { textContent: x })));
+    facts.append(...[f.year, f.label, f.genre && Dig.genre(f.genre), f.album].filter(x => x && ![m.title, m.artist].some(n => norm(n) === norm(x))).map(x => el('li', { textContent: x })));
+    // The shelf is where it was picked from, not a claim about the song: reword it when the facts name another genre.
+    const shelf = norm(m.why && m.why.genre);
+    if (sticker && m.why.kind === 'genre' && f.genre && !norm(f.genre).includes(shelf) && !shelf.includes(norm(f.genre))) sticker.textContent = `Picked from your ${Dig.genre(Dig.shopGenre(m.why.genre) || m.why.genre)} shelf`;
     box.setAttribute('aria-busy', 'false');
     if (!text) return box.replaceChildren();
     const p = el('p', { className: 'about-text clamp', textContent: text });
@@ -827,10 +832,10 @@ function renderBrowse() {
   if (PHONE.matches && Math.abs(d) > 1) scrollBy(0, d);
 }
 // No match: the "?" sleeve and a way back.
-const noMatch = what => {
+const noMatch = (what, offer) => {
   const q = $('#browse-q').value.trim();
   return el('li', { className: 'cat-empty' }, el('img', { className: 'state-art', src: 'img/empty-unknown.png', alt: '' }),
-    el('p', { textContent: q ? `No ${what} matches "${q}".` : `No ${what} matches these filters.` }), q ? btn('Clear search', clearBrowse) : null);
+    el('p', { textContent: q ? `No ${what} matches "${q}".` : `No ${what} matches these filters.` }), offer || null, q ? btn('Clear search', clearBrowse) : null);
 };
 const clearBrowse = () => { $('#browse-q').value = ''; renderBrowse(); $('#browse-q').focus(); };
 $('#browse-q').addEventListener('input', () => { clearTimeout(gTimer); gTimer = setTimeout(renderBrowse, 150); });
@@ -844,9 +849,10 @@ $('#browse-clear').onclick = clearBrowse;
 $$('#genre-family, #genre-tier').forEach(s => s.addEventListener('change', () => { gShown = 60; renderGenreList(); }));
 $('#genre-more').onclick = () => { gShown += 60; renderGenreList(); $$('#genre-list .cat-item')[gShown - 60]?.focus(); };
 function syncBuilder(s) {
-  if (s.decade) $('#b-decade').value = s.decade;
-  if (s.cc) $('#b-place').value = s.cc;
-  if (Object.hasOwn(SD.GENRES, s.genre)) $('#b-genre').value = s.genre;
+  $('#b-decade').value = s.decade || ''; $('#b-place').value = s.cc || ''; // the builder mirrors what was opened or rolled
+  const e = SD.ATLAS.get(s.genre), sel = $('#b-genre');
+  if (s.genre && !$$('#b-genre option').some(o => o.value === s.genre) && e) sel.append(el('option', { value: s.genre, textContent: e.label })); // an atlas slug: makeStamp takes it in any combo
+  if (!s.genre) sel.value = ''; else if ($$('#b-genre option').some(o => o.value === s.genre)) sel.value = s.genre;
   syncGenreBtn();
 }
 // Phone: the genre select is replaced by a button that opens a searchable sheet over every atlas genre (CSS shows it only on phones).
@@ -882,7 +888,11 @@ $('#cat-filter').addEventListener('change', () => renderCatalogue());
 let catAll = false; // the catalogue shows 8 rows until "Show all"
 function renderCatalogue() {
   const q = $('#browse-q').value, list = SD.searchScenes(q, $('#cat-filter').value), all = catAll || !!q.trim(); // a search shows every match
-  if (!list.length) { $('#cat-more').hidden = true; return $('#catalogue').replaceChildren(noMatch('scene')); }
+  if (!list.length) {
+    $('#cat-more').hidden = true;
+    const g = q.trim() && SD.ATLAS.size ? SD.searchGenres(q, {}, 1).stamps[0] : null; // "shoegaze" is a genre, not a scene: offer it in Genres
+    return $('#catalogue').replaceChildren(noMatch('scene', g && btn(`See ${g.label} in Genres`, () => { setMode('genres'); pick(g); }, 'primary')));
+  }
   $('#catalogue').replaceChildren(...(all ? list : list.slice(0, 8)).map(s => {
     const b = el('button', { type: 'button', className: `cat-item ink-${INK[SD.continentOf(s.cc)]}`, onclick: () => pick(s) },
       el('span', { className: 'cat-label', textContent: s.label }),
@@ -898,7 +908,7 @@ $('#cat-more').onclick = () => { catAll = true; renderCatalogue(); $$('#catalogu
 function renderStampHead() {
   const s = stOpen, head = $('#stamp-head');
   $('#stamp-export-box').hidden = !(stSongs.length && stDone); // only once the Roll has finished
-  if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: { scenes: 'Pick a scene: a place, a decade and its sound. Ten songs from it.',
+  if (!s) return head.replaceChildren(el('p', { className: 'stamp-empty', textContent: { scenes: 'Pick a scene: a place, a decade and its sound. Up to ten songs from it.',
     genres: 'Search or pick a genre, from the well-known to the deeply obscure.' }[$('#stamps').dataset.mode] || 'Roll, or pick a genre. Add a decade or a place if you like.' }));
   head.replaceChildren(el('div', { className: 'stamp-info' },
     el('h2', { textContent: s.label }), s.blurb ? el('p', { className: 'stamp-blurb', textContent: s.blurb }) : null,
@@ -954,7 +964,7 @@ function prefetchNext(s, tries = 3) {
 }
 async function openStamp(s, rerolls = 0) {
   const run = ++stRun;
-  stOpen = s; stSongs = []; stDone = false;
+  stOpen = s; stSongs = []; stDone = false; syncBuilder(s);
   $('#stamp-songs').replaceChildren(); $('#stamp-more').replaceChildren(); $('#stamp-export-status').replaceChildren();
   renderStampHead(); renderCatalogue(); renderGenreList();
   stState('loading', 'Searching…');
@@ -1053,7 +1063,7 @@ function showStart(on) {
   $('#tree-saved-box').hidden = !saved.length;
   $('#tree-saved').replaceChildren(...saved.map(t => el('li', {}, el('button', { type: 'button', className: 'sleeve-pick', onclick: () => growTree(t), ariaLabel: `Grow a tree from ${t.artist} – ${t.title}` },
     t.cover ? el('img', { src: t.cover, alt: '', width: 96, height: 96 }) : el('span', { className: 'cover-ph' }),
-    el('span', { className: 'sleeve-title', textContent: t.title }), el('span', { className: 'sleeve-artist', textContent: t.artist })))));
+    el('span', { className: 'sleeve-title', textContent: cleanTitle(t.title) }), el('span', { className: 'sleeve-artist', textContent: t.artist })))));
   $('#tree-saved').scrollLeft = 0;
   const f = trNodes[trFocus];
   if (f) trState('done', '', { actions: [btn(`Back to “${f.track.title}”`, () => { trState('done', ''); showStart(false); })] });
@@ -1184,7 +1194,7 @@ function renderDig() {
   $('#tree-path').replaceChildren(...Dig.path(trNodes, trFocus).map(n => {
     const b = el('button', { type: 'button', className: 'crumb', onclick: () => n !== f && dig(n.id) },
       n.track.cover ? el('img', { src: n.track.cover, alt: '', width: 40, height: 40 }) : el('span', { className: 'cover-ph' }),
-      el('span', { className: 'crumb-title', textContent: n.track.title }));
+      el('span', { className: 'crumb-title', textContent: cleanTitle(n.track.title) }));
     b.setAttribute('aria-label', n === f ? `${n.track.title}, in focus` : `Back to ${n.track.artist} – ${n.track.title}`);
     if (n === f) b.setAttribute('aria-current', 'step');
     return el('li', {}, b);
@@ -1194,7 +1204,7 @@ function renderDig() {
   const love = row.querySelector('.love');
   if (parent) row.append(rateGroup(f.track, love));
   $('#tree-focus').replaceChildren(row);
-  $('#tree-family-h').textContent = `The family of “${f.track.title}”`;
+  $('#tree-family-h').textContent = `The family of “${cleanTitle(f.track.title)}”`;
   $('#tree-family').replaceChildren();
   kinOf(trFocus).forEach(n => addKin(n, false));
   kinNote();
@@ -1210,10 +1220,11 @@ function addKin(n, fresh) {
   const fam = $('#tree-family');
   let group = [...fam.children].find(g => g.dataset.edge === n.edgeType);
   if (!group) {
-    fam.append(group = el('section', { className: 'kin' }, el('h3', { className: 'kin-sign' }, edgeIcon(n.edgeType), EDGE_NAMES[n.edgeType] || n.edgeType), el('ol', { className: 'tracks kin-rows' })));
-    group.dataset.edge = n.edgeType;
+    const base = Dig.shared(n.label).join(' · '); // the scene / era facts every row of this group shares, shown once on its sign
+    fam.append(group = el('section', { className: 'kin' }, el('h3', { className: 'kin-sign' }, edgeIcon(n.edgeType), (EDGE_NAMES[n.edgeType] || n.edgeType) + (base ? ` · ${base[0].toUpperCase()}${base.slice(1)}` : '')), el('ol', { className: 'tracks kin-rows' })));
+    group.dataset.edge = n.edgeType; group.dataset.base = JSON.stringify(Dig.shared(n.label));
   }
-  const row = trackRow(n.track, { reason: Dig.reason(n, trNodes[n.parentId], true), from: treeFrom(n) });
+  const row = trackRow(n.track, { reason: Dig.reason(n, trNodes[n.parentId], true, JSON.parse(group.dataset.base || '[]')), from: treeFrom(n) });
   row.append(digBtn('Dig', `Dig into ${n.track.artist} – ${n.track.title}`, () => dig(n.id)));
   if (fresh) { row.classList.add('grow'); row.addEventListener('animationend', () => row.classList.remove('grow'), { once: true }); }
   group.lastElementChild.append(row);
@@ -1223,7 +1234,7 @@ function addKin(n, fresh) {
 function kinNote() {
   const f = trNodes[trFocus], b = $('#tree-more'), busy = trDigging.has(trFocus), none = !kinOf(trFocus).length;
   if (!f) return;
-  b.textContent = trFull ? 'This tree is full' : busy ? 'Digging…' : `+ ${TREE_MORE} more like “${f.track.title}”`;
+  b.textContent = trFull ? 'This tree is full' : busy ? 'Digging…' : `+ ${TREE_MORE} more like this`;
   b.disabled = trFull || busy;
   let p = $('#tree-family .kin-wait');
   if (!none) return p?.remove();
@@ -1313,8 +1324,8 @@ async function moreTree(n, quiet) { // quiet: a Dig started it, the family just 
   if (r && r.full) trFull = true;
   kinNote();
   if (quiet && r && !r.error && r.added) return;
-  toast(!r || r.error ? "Couldn't reach the music services. Try again." : r.added ? `${r.added} more in the family of “${n.track.title}”.`
-    : r.full ? 'This tree is full. Start a new one from any song.' : `No more family found for “${n.track.title}”.`);
+  toast(!r || r.error ? "Couldn't reach the music services. Try again." : r.added ? `${r.added} more in the family of “${cleanTitle(n.track.title)}”.`
+    : r.full ? 'This tree is full. Start a new one from any song.' : `No more family found for “${cleanTitle(n.track.title)}”.`);
 }
 
 // ---------- Saved ----------
@@ -1346,40 +1357,35 @@ function renderSaved() {
 // ---------- Home ----------
 // One short date everywhere: "26 Oct", with the year only when it is not this year ("26 Oct 2025").
 const day = ts => { const d = new Date(ts); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); };
-const topOf = (xs, n = 3) => Object.entries(xs.reduce((a, x) => ((a[x] = (a[x] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, n);
 function renderHome() {
   if (!profile) return;
   const { last, likes } = profile, f = last && last.from && $(`#tab-${last.from.tab}`) ? last.from : null;
   // Last on the platter: the record you played last; before any play, the newest love; before any love, a blank inner sleeve.
-  const loved = !last && likes[likes.length - 1], shown = last ? last.track : loved;
+  const newest = likes[likes.length - 1], showLast = last && !(newest && current && likeKey(current) === likeKey(last.track)); // the mini-player already shows what is playing
+  const loved = !showLast && newest, shown = showLast ? last.track : loved;
   if (!current) setTint(shown && shown.cover);
   const blank = () => el('span', { className: 'sleeve-blank' });
   const art = shown && shown.cover ? el('img', { src: shown.cover, alt: '' }) : blank();
   if (art.tagName === 'IMG') art.onerror = () => art.replaceWith(blank());
   $('#platter').classList.toggle('is-empty', !shown);
-  $('#platter-title').textContent = last ? 'Last on the platter' : loved ? 'Last you loved' : 'Nothing on the platter yet';
+  $('#platter-title').textContent = showLast ? 'Last on the platter' : loved ? 'Last you loved' : 'Nothing on the platter yet';
   $('#platter-art').replaceChildren(art);
   $('#platter-body').replaceChildren(...(shown ? [
     trackRow(shown, { tag: 'div', from: f || undefined, extra: extraOf(shown),
-      reason: last ? `Played ${day(last.ts)}${f ? ` from ${f.label || tabName(f.tab)}` : ''}` : loved.ts ? `Loved ${day(loved.ts)}` : 'Loved' }),
+      reason: showLast ? `Played ${day(last.ts)}${f ? ` from ${f.label || tabName(f.tab)}` : ''}` : loved.ts ? `Loved ${day(loved.ts)}` : 'Loved' }),
     el('div', { className: 'row' }, btn(tonight.length ? 'Next mystery' : 'Start a Blind Test', () => showTab('blind'), 'primary'),
       f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab)) : null)]
     : [el('p', { className: 'muted', textContent: 'Start with a mystery: one track, no names, and you rate it before you find out who it was.' }),
       el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'))]));
 
   // Lately: one sentence from your loves and picks, not a stats table.
-  const and = xs => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
-  const parts = [topOf(likes.filter(l => l.country).map(l => countryNames[l.country] || l.country)).map(([k]) => k),
-    topOf(likes.filter(l => l.decade).map(l => `the ${l.decade}s`), 2).map(([k]) => k),
-    profile.prefs.genres.slice(0, 2).map(g => g.name)].filter(x => x.length).map(and);
-  $('#lately').textContent = parts.length ? `Lately: ${parts.join('; ')}.` : 'Love a few records and your taste starts to show here.';
+  $('#lately').textContent = Dig.lately(likes, c => countryNames[c] || c, profile.prefs.genres.map(g => Dig.shopGenre(g.name)).filter(Boolean)) || 'Love a few records and your taste starts to show here.';
 
   // Other ways in: a quiet row (the tabs are the ways in); the stamps tab is whatever the tab after Blind Test is called now.
   const stampTab = tabs.find(b => !['home', 'blind', 'tree', 'saved', 'prefs'].includes(b.dataset.tab));
-  const newest = likes[likes.length - 1];
   const ways = [['blind', tonight.length ? `${tonight.length} revealed tonight` : 'a mystery is cued up'],
     stampTab && [stampTab.dataset.tab, 'roll a genre you have never heard'],
-    ['tree', newest ? `grow one from “${newest.title}”` : 'start from any song']].filter(Boolean);
+    ['tree', newest ? `grow one from “${cleanTitle(newest.title)}”` : 'start from any song']].filter(Boolean);
   $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
     el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
 
@@ -1492,7 +1498,7 @@ async function renderGenres() {
   }
   box.className = 'chips';
   const p = profile.prefs;
-  box.replaceChildren(...genreList.map(g => toggleChip(g.name, p.genres.some(x => x.id === g.id),
+  box.replaceChildren(...genreList.filter(g => Dig.shopGenre(g.name)).map(g => toggleChip(Dig.shopGenre(g.name), p.genres.some(x => x.id === g.id),
     on => { p.genres = setIn(p.genres, { id: g.id, name: g.name }, on, (a, b) => a.id === b.id); })));
 }
 
@@ -1530,8 +1536,10 @@ let regionList = {};
 function prefsMode(first) {
   $('#prefs-title').textContent = first ? 'First, what do you already love?' : 'Your taste';
   $('#prefs-skip').hidden = !first;
-  $('#prefs-done').textContent = first ? 'Continue' : 'Back to the Blind Test';
-  $('#prefs-done').onclick = () => (first ? openIntro() : showTab('blind'));
+  prefsFirst = first;
+  const back = prefsFrom && prefsFrom !== 'prefs' && $(`#tab-${prefsFrom}`) ? prefsFrom : null;
+  $('#prefs-done').textContent = first ? 'Continue' : back ? `Back to ${tabName(back)}` : 'Done';
+  $('#prefs-done').onclick = () => (first ? openIntro() : showTab(back || 'home'));
 }
 function openPrefs(first) {
   prefsMode(first);

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { reason, path } = require('../renderer/dig');
+const { reason, path, shared, genre, lately, shopGenre } = require('../renderer/dig');
 
 const pulp = { id: 0, parentId: null, track: { artist: 'Pulp', title: 'Common People' } };
 const kid = (edgeType, label, artist = 'Blur') => ({ id: 1, parentId: 0, edgeType, label, track: { artist, title: 'Song 2' } });
@@ -23,8 +23,33 @@ test('every other label becomes one sentence that names the parent', () => {
 test('a row inside its relation group keeps only the specific facts', () => {
   assert.equal(reason(kid('scene', 'Same scene: britpop, UK, formed 1989 · fans of Pulp play them too'), pulp, true), 'Britpop, UK, formed 1989.');
   assert.equal(reason(kid('era', 'Same era: UK, 1990s'), pulp, true), 'UK, 1990s.');
+  // with the group's shared facts on its sign, the row keeps only what differs
+  const base = shared('Same scene: alternative rock, US, formed 1983');
+  assert.deepEqual(base, ['alternative rock', 'US']);
+  assert.equal(reason(kid('scene', 'Same scene: alternative rock, US, formed 1989'), pulp, true, base), 'Formed 1989.');
+  assert.equal(reason(kid('scene', 'Same scene: alternative rock, UK, formed 1989'), pulp, true, base), 'UK, formed 1989.');
+  assert.equal(reason(kid('era', 'Same era: UK, 1990s'), pulp, true, shared('Same era: UK, 1990s')), '');
+  assert.equal(genre('alternative Rock'), 'Alternative rock');
+  assert.equal(genre('r&b'), 'R&b'); assert.equal(genre('R&B'), 'R&B'); assert.equal(genre(''), '');
   assert.equal(reason(kid('related', 'Fans of Pulp also play'), pulp, true), '');
   assert.equal(reason(kid('place', 'Also from Sheffield'), pulp, true), 'Also from Sheffield, like Pulp.');
+});
+
+test('the Lately line reads as a sentence and copes with missing parts', () => {
+  const cn = c => ({ MX: 'Mexico', IN: 'India' }[c]);
+  const likes = [{ country: 'MX', decade: 1980 }, { country: 'MX', decade: 1980 }, { country: 'IN', decade: 1990 }];
+  assert.equal(lately(likes, cn, ['Rock']), "Lately you've loved 80s Mexico and 90s India, mostly rock.");
+  assert.equal(lately([{ country: 'MX' }], cn), "Lately you've loved Mexico.");
+  assert.equal(lately([{ decade: 1970 }], cn, ['R&B']), "Lately you've loved the 70s, mostly R&B.");
+  assert.equal(lately([], cn, ['Pop']), "Lately you've leaned toward pop.");
+  assert.equal(lately([], cn), '');
+});
+
+test('Deezer genres get the shop voice; the non-musical ones drop out', () => {
+  assert.equal(shopGenre('Rap/Hip Hop'), 'Hip hop');
+  assert.equal(shopGenre('Latin Music'), 'Latin');
+  assert.equal(shopGenre('R&B'), 'R&B');
+  for (const n of ['Films/Games', 'Kids', 'Comedy', 'All']) assert.equal(shopGenre(n), '');
 });
 
 test('the root has no reason; a missing label gives none', () => {
