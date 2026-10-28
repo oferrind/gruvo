@@ -1361,7 +1361,7 @@ function renderHome() {
   if (!profile) return;
   const { last, likes } = profile, f = last && last.from && $(`#tab-${last.from.tab}`) ? last.from : null;
   // Last on the platter: the record you played last; before any play, the newest love; before any love, a blank inner sleeve.
-  const newest = likes[likes.length - 1], showLast = last && !(newest && current && likeKey(current) === likeKey(last.track)); // the mini-player already shows what is playing
+  const newest = likes.findLast(t => !current || likeKey(t) !== likeKey(current)), showLast = last && !(newest && current && likeKey(current) === likeKey(last.track)); // the mini-player already shows what is playing
   const loved = !showLast && newest, shown = showLast ? last.track : loved;
   if (!current) setTint(shown && shown.cover);
   const blank = () => el('span', { className: 'sleeve-blank' });
