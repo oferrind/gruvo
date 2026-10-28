@@ -69,7 +69,6 @@ function createWindow() {
 
 const H = Handlers.create({ get: net.get, audio: net.audio, open: url => shell.openExternal(url), store });
 const ctxOf = e => ({ send: (...a) => e.sender.send(...a), alive: () => !e.sender.isDestroyed() });
-ipcMain.handle('api:get', (e, url) => H.get(url));
 ipcMain.handle('api:audio', (e, url) => H.audio(url));
 ipcMain.handle('api:call', (e, name, ...args) => H.call(name, ...args));
 ipcMain.handle('api:countries', () => H.countries());

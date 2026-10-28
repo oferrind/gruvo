@@ -22,7 +22,6 @@ const ctx = { send: (ch, run, x) => { const v = structuredClone(x); queueMicrota
 
 window.api = {
   caps: { blobAudio: true, spotifyLogin: false },
-  get: wrap(H.get),
   audio: url => H.audio(url), // already a fresh ArrayBuffer per call
   call: wrap(H.call),
   countries: wrap(H.countries),

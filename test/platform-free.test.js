@@ -27,7 +27,6 @@ test('handlers.js never pulls in spotify.js', () => {
 test('handlers: call uses the injected get; bad inputs are refused; tree emits through ctx', async () => {
   const H = require('../src/handlers').create({ get: async url => ({ url }), audio: async () => ({}), open: () => {}, store: { load: () => 'L', save: p => p } });
   const sent = [];
-  assert.deepEqual(await H.get(5), { url: '5' });
   await assert.rejects(H.call('nope'), /unknown call/);
   await assert.rejects(H.call('__proto__'), /unknown call/);
   await assert.rejects(H.treeGrow({ send: () => {}, alive: () => true }, { artist: 1 }), /bad root/);
