@@ -35,7 +35,7 @@ const SD = require('../renderer/stamp-data')(COUNTRIES, FIX);
 test('atlas: --slug builds a genre-only stamp; unknown slugs and empty keys are null; every old id still resolves', () => {
   const z = SD.makeStamp('--zeuhl');
   assert.deepEqual([z.id, z.decade, z.cc, z.genre, z.tags, z.label, z.family, z.tier, z.parent], ['--zeuhl', null, '', 'zeuhl', ['zeuhl'], 'Zeuhl', 'rock', 'O', 'progressive-rock']);
-  assert.equal(z.blurb, 'A branch of Progressive rock. Heard here: Magma, Corima.');
+  assert.equal(z.blurb, 'A branch of Progressive rock.');
   for (const bad of ['--nope', '--', '--BAD', '1985--zeuhl']) assert.equal(SD.makeStamp(bad), null, bad);
   assert.equal(SD.makeStamp('1990--zeuhl').decade, 1990);
   assert.equal(SD.makeStamp('-FR-zeuhl').label, 'French zeuhl');

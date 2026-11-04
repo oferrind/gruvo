@@ -75,7 +75,7 @@ Tier = the MB recording count for `tag:"<g>" AND status:official` (§3).
     taste tag; ×2 if uncollected. The last 5 rolls are still excluded.
   - Adventurous on a genre roll: after 2 genre rolls in a row inside families you already hold, force a family you don't hold.
     This mirrors the continent rule.
-- **Blurb:** none is hand-written. Show "A branch of <parent>. Heard here: <3 artist names from the build run>".
+- **Blurb:** none is hand-written. Show "A branch of <parent>."
 
 ## 4. Build plan (Builder: sonnet)
 ### 4.1 Data: `renderer/genre-data.js` (generated, committed, about 120 KB)

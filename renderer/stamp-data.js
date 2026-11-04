@@ -123,10 +123,10 @@ const KEY = /^(\d{4})?-([A-Z]{2})?-([a-z0-9-]{0,40})$/;
 const atlasCache = new Map();
 function atlasStamp(id, e, decade, cc) {
   if (atlasCache.has(id)) return atlasCache.get(id);
-  const par = ATLAS.get(e.parent), heard = e.artists.length ? ` Heard here: ${e.artists.join(', ')}.` : '';
+  const par = ATLAS.get(e.parent);
   const s = { id, decade: decade || null, cc, genre: e.slug, tags: [e.name], atlas: true, family: e.family, tier: e.tier, parent: e.parent, artists: e.artists,
     label: decade || cc ? `${decade ? `${decadeName(decade)} ` : ''}${cc ? `${DEMONYM[cc]} ` : ''}${caps(e.name)}` : e.label,
-    blurb: `A branch of ${par ? par.label : FAMILIES[e.family].toLowerCase()}.${heard}` };
+    blurb: `A branch of ${par ? par.label : FAMILIES[e.family].toLowerCase()}.` };
   atlasCache.set(id, s);
   return s;
 }
