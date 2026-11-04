@@ -302,5 +302,11 @@ test('fromDeezer strips remaster suffixes only', () => {
   assert.equal(t('(From Here)'), '(From Here)'); // never empties a title
   assert.equal(t('Song (Live)'), 'Song (Live)');
   assert.equal(t('Song (feat. X)'), 'Song (feat. X)');
+  // after a dash only whole store tags go: real words stay
+  for (const s of ['Hello - From The Start', 'Song - Remastered 2011 Live']) assert.equal(t(s), s);
+  for (const s of ['Song - 2009 Remastered Version', 'Song - Mono Single Version', 'Song (Remastered) - Single Version']) assert.equal(t(s), 'Song');
+  assert.equal(t('Song (Live) (Remastered)'), 'Song (Live)');
+  const t0 = Date.now(); t('Song ' + '(remaster'.repeat(30) + ')x'); t('(' + '(remaster'.repeat(1200) + ')x');
+  assert.ok(Date.now() - t0 < 50, 'no regex blow-up on hostile titles');
 });
 
