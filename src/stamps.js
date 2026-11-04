@@ -17,14 +17,35 @@ const BAD = /\b(live|remix|mix|demo|instrumental|karaoke|version|edit|interview|
 const latin = s => /\p{Script=Latin}/u.test(s) && !/[^\p{Script=Latin}\p{Script=Common}\p{M}]/u.test(s);
 const creditArtist = r => ((r['artist-credit'] || [])[0] || {}).artist;
 
+// Scene fit. The artist's own top tags (by votes) must name the genre or a scene alias, the votes must not be dominated by soundtrack/game/anime,
+// and for a decade the artist must have been active in it (MB life-span). An artist with no tags or dates is not judged on them.
+const words = s => ` ${String(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()} `;
+const OST = /soundtrack|video game|game music|\banime\b|film score|\bscore\b|composer|\bost\b/i;
+const TOP = 3, OST_SHARE = 0.3; // measured, see the 2026-11 Crate Dig report
+function fits(a, sc) {
+  if (!sc) return true;
+  const tags = [...(a.tags || [])].sort((x, y) => (y.count || 0) - (x.count || 0)), votes = t => Math.max(t.count || 0, 1);
+  if (tags.length) {
+    if (!tags.slice(0, TOP).some(t => sc.match.some(m => words(t.name).endsWith(m)))) return false; // the tag's head: "rap metal" is metal, not rap
+    if (!sc.ost && (tags.slice(0, 2).some(t => OST.test(t.name)) || tags.filter(t => OST.test(t.name)).reduce((n, t) => n + votes(t), 0) / tags.reduce((n, t) => n + votes(t), 0) >= OST_SHARE)) return false;
+  }
+  const ls = a['life-span'] || {}, b = Number(String(ls.begin || '').slice(0, 4)), e = Number(String(ls.end || '').slice(0, 4));
+  return !sc.d || !((b && b > sc.d + 9) || (e && e < sc.d));
+}
+// A stamp's scene: its tags plus the tags of catalogue scenes in the same place and genre (1990 JP rock: j-rock, visual kei). Never a wider genre.
+function sceneOf(stamp) {
+  const q = [...new Set([...stamp.tags, ...data.aliases(stamp)])];
+  return { q, d: stamp.decade || 0, match: q.map(words), ost: q.some(t => OST.test(t)) };
+}
+
 // MB artists -> guard map id -> {name (Latin, for search), names (normalised name, sort-name, aliases), tagged}, only those from cc
-// (any country when cc is empty, minus the special-purpose artists). tagged = the artist record itself carries the exact tag.
-function addGuard(guard, artists, cc, tags = []) {
+// (any country when cc is empty, minus the special-purpose artists) that fit the scene sc (optional). tagged = the artist record itself carries the exact tag.
+function addGuard(guard, artists, cc, tags = [], sc = null) {
   const want = new Set(tags.map(norm));
   for (const a of artists || []) {
-    if (!a || (cc && a.country !== cc) || SPECIAL.has(a.id) || guard.has(a.id)) continue;
+    if (!a || (cc && a.country !== cc) || SPECIAL.has(a.id) || guard.has(a.id) || !fits(a, sc)) continue;
     const all = [a.name, ...(a.aliases || []).map(x => x.name), a['sort-name']].filter(Boolean); // sort-name last: "Yoshida, Takuro" searches badly
-    guard.set(a.id, { name: latin(a.name) ? a.name : all.find(latin) || a.name, names: new Set(all.map(norm).filter(Boolean)), tagged: (a.tags || []).some(t => want.has(norm(t.name))) });
+    guard.set(a.id, { name: latin(a.name) ? a.name : all.find(latin) || a.name, names: new Set(all.map(norm).filter(Boolean)), tagged: (a.tags || []).some(t => want.has(norm(t.name))), w: (a.tags || []).reduce((n, t) => n + (t.count || 0), 0) });
   }
   return guard;
 }
@@ -96,7 +117,7 @@ async function lookup(get, g, song, lim) {
 // ---------- artist-first pool, ranked by Deezer fame ----------
 // Era pool query: artists of the stamp's tags/country that were active in the decade (begin before its end, not ended before its start).
 const poolQ = (tags, cc, d) => `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''}${d ? ` AND begin:[* TO ${d + 9}] AND (end:[${d} TO *] OR ended:false)` : ''}`;
-const entryOf = (id, g) => ({ id, name: g.name, names: [...g.names], tagged: g.tagged });
+const entryOf = (id, g) => ({ id, name: g.name, names: [...g.names], tagged: g.tagged, w: g.w || 0 }); // w: tag votes, a free popularity hint
 const guardOf = list => new Map(list.map(e => [e.id, { name: e.name, names: new Set(e.names), tagged: e.tagged }]));
 
 // Fame order with discovery: the better-known half by fans fills 2 of every 3 slots, the lesser half (shuffled) the third.
@@ -106,12 +127,13 @@ function rank(list, rand = Math.random) {
   return out;
 }
 
-// Takes the next RANK_N candidates off pool, finds each on Deezer (3 in flight; not on Deezer = dropped) and returns them ranked, with fan + Deezer id.
-const RANK_N = 50;
-async function rankNext(get, pool, live, rand) {
-  const take = pool.splice(0, RANK_N), got = [];
-  for (let i = 0; i < take.length && live(); i += 3) {
-    await Promise.all(take.slice(i, i + 3).map(async e => { const a = await dzArtist(get, { name: e.name, names: new Set(e.names) }); if (a) got.push({ ...e, fan: a.nb_fan || 0, dz: a.id }); }));
+// Takes the next n candidates off pool, finds each on Deezer (6 in flight; not on Deezer = dropped) and returns them ranked, with fan + Deezer id.
+// Small batches (6 for the first, then RANK_N) so the first songs start after a few lookups, not fifty.
+const RANK_FIRST = 6, RANK_N = 12, GROUP = 3;
+async function rankNext(get, pool, live, rand, n = RANK_N, miss = {}) {
+  const take = pool.splice(0, n), got = [];
+  for (let i = 0; i < take.length && live(); i += 6) {
+    await Promise.all(take.slice(i, i + 6).map(async e => { const a = await dzArtist(get, { name: e.name, names: new Set(e.names) }); if (a) got.push({ ...e, fan: a.nb_fan || 0, dz: a.id }); else miss[e.id] = Promise.resolve(null); })); // not on Deezer: lookup() skips them too
   }
   return rank(got, rand);
 }
@@ -131,27 +153,47 @@ async function albumSongs(get, e, d) {
   }
   return out;
 }
+// A genre-only stamp has no decade: the artist's own Deezer top tracks instead (also no title matching).
+async function topSongs(get, e) {
+  const names = new Set(e.names);
+  return ((await get(`${DZ}/artist/${e.dz}/top?limit=10`)).data || []).filter(t => t.preview && t.artist && names.has(norm(t.artist.name)) && !BAD.test(t.title) && !NOT_ERA.test(t.title))
+    .slice(0, 3).map(t => ({ artistId: e.id, title: t.title, year: 0, tagged: e.tagged, row: t }));
+}
+const mbSongs = async (get, es, d) => songsFrom((await get(mbUrl('recording', `(${es.map(e => `arid:${e.id}`).join(' OR ')}) AND ${eraQ(d)}`))).recordings, guardOf(es), d);
 
-// A ranked batch's (<= 10 artists) in-era songs: Deezer albums (3 artists in flight) first, then the MB recordings (one call) for the rest.
-async function eraSongs(get, batch, d) {
-  const mb = get(mbUrl('recording', `(${batch.map(e => `arid:${e.id}`).join(' OR ')}) AND ${eraQ(d)}`));
-  const dzs = [];
-  if (d) for (let i = 0; i < batch.length; i += 3) dzs.push(...(await Promise.all(batch.slice(i, i + 3).map(e => albumSongs(get, e, d).catch(() => [])))).flat());
-  const seen = new Set();
-  return [...dzs, ...songsFrom((await mb).recordings, guardOf(batch), d)].filter(s => !seen.has(songKey(s)) && seen.add(songKey(s)));
+// Advances the fame ranking one unit; run(songs, entries) plays them and returns true when the Roll is full. st = {q: ranked, pool: unranked, redo, size, art}.
+// Order: the ranked artists' Deezer songs, GROUP artists at a time (the first song comes fast, and nothing is looked up past the 15th); then rank
+// another small batch; only when the pool is spent, one MusicBrainz call for the artists the Deezer route left short (re-released catalogues).
+// Returns false when it stopped (full, cancelled, or nothing left); what it did not use stays in st for More.
+async function fameStep(get, st, d, live, rand, run) {
+  if (st.q.length) {
+    const batch = st.q.splice(0, RANK_N);
+    for (let i = 0; i < batch.length; i += GROUP) {
+      const g = batch.slice(i, i + GROUP), songs = (await Promise.all(g.map(e => (d ? albumSongs(get, e, d) : topSongs(get, e)).catch(() => [])))).flat();
+      st.redo.push(...g.filter(e => songs.filter(s => s.artistId === e.id).length < 2));
+      if (!live() || await run(songs, g)) { st.q.unshift(...batch.slice(i)); return false; } // its untried songs are More's first
+    }
+    return true;
+  }
+  if (st.pool.length) { st.q = await rankNext(get, st.pool, live, rand, st.size, st.art); st.size = RANK_N; return true; }
+  if (!st.redo.length) return false;
+  const es = st.redo.splice(0, RANK_N), songs = await mbSongs(get, es, d);
+  if (!live() || await run(songs, es)) { st.redo.unshift(...es); return false; }
+  return true;
 }
 
 // opts.paged adds `next` (a cursor for stampMore) to the result; without it the return shape is unchanged (build script).
 async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand = Math.random, paged = false } = {}) {
-  const { tags } = stamp, d = stamp.decade || 0, cc = stamp.cc || '';
-  const first = await get(mbUrl('recording', `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`));
-  if (first.error) return { error: true };
-  const recs = first.recordings || [];
-  const ids = [...new Set(recs.map(r => (creditArtist(r) || {}).id).filter(Boolean))].slice(0, 80);
-  const guard = new Map();
-  if (ids.length) addGuard(guard, (await get(mbUrl('artist', ids.map(i => `arid:${i}`).join(' OR ')))).artists, cc, cc ? [] : tags);
+  const { tags } = stamp, d = stamp.decade || 0, cc = stamp.cc || '', sc = sceneOf(stamp);
+  // The artist pool first (the MB queue is serial and the pool feeds the first songs): page 1 starts the Roll, pages 2-3 join the pool as they land
+  // (a big scene has 1000+ matches in arbitrary order, so X JAPAN can sit on page 3). The recording query is only the fallback.
+  const poolUrl = mbUrl('artist', poolQ(sc.q, cc, d)), pages = [0, 100, 200].map(o => get(o ? `${poolUrl}&offset=${o}` : poolUrl));
+  let fp = null;
+  const firstP = () => (fp ||= get(mbUrl('recording', `${tagQ(sc.q)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`)));
+  const found = await pages[0];
+  if (found.error && (await firstP()).error) return { error: true };
   if (!live()) return null;
-  const per = {}, lim = { dz: 0, art: {} }, seen = new Set(), names = []; // names: artists in play order (tagged first), for the genre build script
+  const guard = new Map(), per = {}, lim = { dz: 0, art: {} }, seen = new Set(), names = []; // names: artists in play order (tagged first), for the genre build script
   let count = 0;
   const artistIds = new Set();
   // Plays songs in order, 3 Deezer lookups in flight at once (src/net.js still paces the host); rows emit in order as each resolves.
@@ -178,75 +220,85 @@ async function stampSongs(get, stamp, { emit = () => {}, live = () => true, rand
       }
     }
   };
-  const songs = songsFrom(recs, guard, d);
-  const poolUrl = mbUrl('artist', poolQ(tags, cc, d)), poolP = Promise.all([get(poolUrl), get(`${poolUrl}&offset=100`)]); // 2 pages, fetched while the first songs resolve
-  await play(songs, 5); // a few recording-first songs start streaming at once; famous artists fill the rest
-  // Artist-first: tagged artists active in the era (+ the recording-first ones), ranked by Deezer fame, then their in-era recordings.
-  // Well-tagged artists first (tag votes are a free popularity hint), so the 50 looked up on Deezer per round are the likelier-famous ones.
-  const weight = a => (a.tags || []).reduce((n, t) => n + (t.count || 0), 0);
-  const found = (await poolP).flatMap(r => r.artists || []).sort((a, b) => weight(b) - weight(a)), before = new Set(guard.keys());
-  addGuard(guard, found, cc, cc ? [] : tags);
-  const pool = [...guard].filter(([id]) => !before.has(id)).concat([...guard].filter(([id]) => before.has(id))).map(([id, g]) => entryOf(id, g));
-  let ranked = [];
-  while (count < TARGET && live() && (ranked.length || pool.length)) {
-    if (!ranked.length) { ranked = await rankNext(get, pool, live, rand); continue; }
-    const batch = ranked.splice(0, 10);
-    await play((await eraSongs(get, batch, d)).filter(s => !seen.has(songKey(s))));
-    if (count >= TARGET) ranked.unshift(...batch); // its untried songs are More's first
+  // Artist-first: tagged artists active in the era, ranked by Deezer fame, a few at a time, then their in-era songs. Well-tagged artists first
+  // (tag votes are a free popularity hint), so the artists looked up on Deezer in each small batch are the likelier-famous ones.
+  const byW = (a, b) => b.w - a.w, st = { q: [], pool: [], redo: [], size: RANK_FIRST, art: lim.art };
+  const pooled = list => { const had = new Set(guard.keys()); addGuard(guard, list, cc, cc ? [] : tags, sc); st.pool.push(...[...guard].filter(([id]) => !had.has(id)).map(([id, g]) => entryOf(id, g))); st.pool.sort(byW); };
+  pooled(found.artists);
+  const late = Promise.all(pages.slice(1)).then(rs => rs.forEach(r => pooled(r.artists)));
+  const run = async songs => (await play(songs.filter(s => !seen.has(songKey(s)))), count >= TARGET);
+  while (count < TARGET && live() && await fameStep(get, st, d, live, rand, run));
+  if (count < TARGET && live()) { // the pool of page 1 is spent: pages 2-3 carry on
+    await late;
+    while (count < TARGET && live() && await fameStep(get, st, d, live, rand, run));
   }
-  if (count < TARGET && live()) await play(songs.filter(s => !seen.has(songKey(s)))); // the rest of the recording-first songs
-  // Still short and MusicBrainz has more pages: read on (a niche stamp's first 100 recordings often hold few songs Deezer carries).
-  if (count < TARGET && live() && recs.length >= 100 && (first.count || 0) > 100) {
-    const r = await stampMore(get, stamp, { offset: 100, seen: [...seen], per, shown: count, done: false, q: [], pool: [] }, { emit: row => (names.push(row.artist), emit(row)), live, rand, want: TARGET - count });
-    if (!r.error) { count += r.added; r.next.seen.forEach(k => seen.add(k)); Object.assign(per, r.next.per); Object.keys(per).forEach(k => artistIds.add(k)); }
+  let first = null;
+  if (count < TARGET && live()) { // pool spent and still short: the recording-first songs (a niche stamp may have few tagged artists)
+    first = await firstP();
+    const recs = first.recordings || [], ids = [...new Set(recs.map(r => (creditArtist(r) || {}).id).filter(Boolean))].slice(0, 80);
+    if (ids.length) addGuard(guard, (await get(mbUrl('artist', ids.map(i => `arid:${i}`).join(' OR ')))).artists, cc, cc ? [] : tags, sc);
+    if (live()) await play(songsFrom(recs, guard, d).filter(s => !seen.has(songKey(s))));
+    // Still short and MusicBrainz has more pages: read on (a niche stamp's first 100 recordings often hold few songs Deezer carries).
+    if (count < TARGET && live() && recs.length >= 100 && (first.count || 0) > 100) {
+      const r = await stampMore(get, stamp, { offset: 100, seen: [...seen], per, shown: count, done: false, q: [], pool: [], redo: [] }, { emit: row => (names.push(row.artist), emit(row)), live, rand, want: TARGET - count });
+      if (!r.error) { count += r.added; r.next.seen.forEach(k => seen.add(k)); Object.assign(per, r.next.per); Object.keys(per).forEach(k => artistIds.add(k)); }
+    }
   }
-  const artists = artistIds.size, mbCount = first.count; // recordings carrying the tag: the genre's tier
+  await late; // the cursor must hold every pooled artist
+  if (!paged && !first) first = await firstP(); // the build script wants the tag's recording count
+  const artists = artistIds.size, mbCount = (first || {}).count; // recordings carrying the tag: the genre's tier
   if (!live()) return null; // cancelled (a prefetch that was dropped): not a thin stamp, so nobody marks it short
   if (count < (stamp.atlas && !d && !cc ? 3 : 5)) return { thin: true, count }; // a verified genre (>= 6 songs at build) shows what it has
   const res = { count, artists, mbCount, names, short: count < 12, rarity: count < 12 || artists < 8 ? 'Legendary' : artists < 15 ? 'Rare' : 'Common' };
-  if (paged) res.next = { offset: 0, seen: [...seen], per, shown: count, done: false, q: ranked, pool }; // offset 0: the rest of page 1 comes first (tried songs are in seen); q/pool: the fame-ranked artists still to play, and the candidates not yet ranked
+  if (paged) res.next = { offset: 0, seen: [...seen], per, shown: count, done: false, q: st.q, pool: st.pool, redo: st.redo }; // offset 0: the rest of page 1 comes first (tried songs are in seen); q/pool/redo: the fame-ranked artists still to play, the candidates not yet ranked, the short ones for MusicBrainz
   return res;
 }
 
-// The next 15 playable songs after a cursor ({offset, seen, per, shown, done} from `next`): further MusicBrainz pages, same guards
-// and max-2-per-artist, nothing already tried. A page cut short by the 15th song is re-read next time (tried songs are in `seen`).
+// The next 15 playable songs after a cursor ({offset, seen, per, shown, done, q, pool, redo} from `next`): the fame-ranked artists first, then further
+// MusicBrainz pages; same guards and max-2-per-artist, nothing already tried. A page cut short by the 15th song is re-read next time (tried songs are in `seen`).
 // Returns {added, next} or {error, next} (same cursor, retry-safe).
 async function stampMore(get, stamp, cursor, { emit = () => {}, live = () => true, rand = Math.random, want = TARGET } = {}) {
-  const { tags } = stamp, d = stamp.decade || 0, cc = stamp.cc || '';
+  const { tags } = stamp, d = stamp.decade || 0, cc = stamp.cc || '', sc = sceneOf(stamp);
   let { offset, done } = cursor;
-  const seen = new Set(cursor.seen), per = { ...cursor.per }, lim = { dz: 0, art: {} }, q = [...(cursor.q || [])], pool = [...(cursor.pool || [])];
+  const seen = new Set(cursor.seen), per = { ...cursor.per }, lim = { dz: 0, art: {} }, st = { q: [...(cursor.q || [])], pool: [...(cursor.pool || [])], redo: [...(cursor.redo || [])], size: RANK_N, art: lim.art };
   let added = 0;
-  const out = () => ({ offset, seen: [...seen], per, shown: cursor.shown + added, done, q, pool });
+  const out = () => ({ offset, seen: [...seen], per, shown: cursor.shown + added, done, q: st.q, pool: st.pool, redo: st.redo });
   // Plays songs (max 2 per artist, nothing tried) until the 15th; true = stop here (cut short or cancelled).
   const step = async (songs, guard) => {
-    for (const { song } of order(songs.filter(s => !seen.has(songKey(s))), rand)) {
-      if (!live()) return true;
-      if (added >= want || lim.dz >= BUDGET) return true;
-      if ((per[song.artistId] || 0) >= 2) continue;
-      const g = guard.get(song.artistId), t = await lookup(get, g, song, lim);
-      seen.add(songKey(song));
-      if (!t || !live()) continue;
-      per[song.artistId] = (per[song.artistId] || 0) + 1;
-      added++;
-      emit({ ...t, year: song.year, ...(cc && { country: cc }), ...(d && { decade: d }), genre: stamp.genre, stamp: stamp.id });
+    const list = order(songs.filter(s => !seen.has(songKey(s))), rand).map(x => x.song); // 3 lookups in flight, rows emit in order
+    for (let i = 0; i < list.length;) {
+      if (!live() || added >= want || lim.dz >= BUDGET) return true;
+      const batch = [], tent = {};
+      for (; i < list.length && batch.length < Math.min(3, want - added); i++) {
+        const song = list[i], n = (per[song.artistId] || 0) + (tent[song.artistId] || 0);
+        if (n >= 2) continue;
+        tent[song.artistId] = (tent[song.artistId] || 0) + 1;
+        batch.push({ song, p: lookup(get, guard.get(song.artistId), song, lim) });
+      }
+      for (const { song, p } of batch) {
+        const t = await p;
+        seen.add(songKey(song));
+        if (!t || !live()) continue;
+        per[song.artistId] = (per[song.artistId] || 0) + 1;
+        added++;
+        emit({ ...t, year: song.year, ...(cc && { country: cc }), ...(d && { decade: d }), genre: stamp.genre, stamp: stamp.id });
+      }
     }
     return false;
   };
   while (!done && added < want && live() && lim.dz < BUDGET) {
-    if (q.length || pool.length) { // first down the fame-ranked artists
-      if (!q.length) { q.push(...await rankNext(get, pool, live, rand)); continue; }
-      const batch = q.splice(0, 10);
-      if (await step(await eraSongs(get, batch, d), guardOf(batch))) { q.unshift(...batch); break; }
+    if (st.q.length || st.pool.length || st.redo.length) { // first down the fame-ranked artists
+      if (!await fameStep(get, st, d, live, rand, async (songs, es) => (await step(songs, guardOf(es))) || added >= want)) break;
       continue;
     }
-    const pg = await get(`${mbUrl('recording', `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`)}&offset=${offset}`);
+    const pg = await get(`${mbUrl('recording', `${tagQ(sc.q)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`)}&offset=${offset}`);
     if (pg.error) return added ? { added, next: out() } : { error: true, next: out() }; // songs already streamed: keep them, the cursor retries this page
     const recs = pg.recordings || [], guard = new Map();
     const ids = [...new Set(recs.map(r => (creditArtist(r) || {}).id).filter(Boolean))].slice(0, 80);
     if (ids.length) {
       const ar = await get(mbUrl('artist', ids.map(i => `arid:${i}`).join(' OR ')));
       if (ar.error) return { error: true, next: out() };
-      addGuard(guard, ar.artists, cc, cc ? [] : tags);
+      addGuard(guard, ar.artists, cc, cc ? [] : tags, sc);
     }
     if (await step(songsFrom(recs, guard, d), guard)) break;
     offset += recs.length;
@@ -306,4 +358,4 @@ function stampRunner(get) {
   };
 }
 
-module.exports = { ...data, rank, addGuard, songsFrom, order, strictPick, stampSongs, stampMore, stampRunner };
+module.exports = { ...data, rank, sceneOf, addGuard, songsFrom, order, strictPick, stampSongs, stampMore, stampRunner };

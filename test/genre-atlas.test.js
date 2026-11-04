@@ -47,15 +47,16 @@ test('atlas: --slug builds a genre-only stamp; unknown slugs and empty keys are 
 
 test('stampSongs, genre only: no country/era in the MB query; [unknown] and "[" titles dropped; tagged artists first; artist top-up under 8 tagged', async () => {
   const tagged = Array.from({ length: 3 }, (_, i) => A(`t${i}`, `Magma${i}`, 'FR', { tags: [{ name: 'Zeuhl' }] }));
-  const plain = Array.from({ length: 6 }, (_, i) => A(`p${i}`, `Pop${i}`, 'US', { tags: [{ name: 'pop' }] }));
+  const plain = Array.from({ length: 6 }, (_, i) => A(`p${i}`, `Pop${i}`, 'US')); // no tags: not judged on them
   const unk = A('125ec42a-7229-4250-afc5-e057484327fe', '[unknown]', '');
   const recordings = [...plain.map((a, i) => rec(`rp${i}`, a, `Plain${i}`, '2001')), ...tagged.map((a, i) => rec(`rt${i}`, a, `Tagged${i}`, '1973')),
     rec('ru', unk, 'Real Title', '1999'), rec('rb', plain[0], '[untitled]', '2000')];
   const { get, calls } = fakeGet({ recordings, guard: [...plain, ...tagged, unk] });
   const rows = [];
   const res = await S.stampSongs(get, { id: '--zeuhl', decade: null, cc: '', genre: 'zeuhl', tags: ['zeuhl'] }, { emit: r => rows.push(r), rand: seeded(2) });
-  assert.match(calls[0], /recording\?limit=100&query=\(tag:"zeuhl"\) AND status:official&/);
-  assert.ok(!/country:|firstreleasedate/.test(calls[0]));
+  const rc = calls.find(c => c.includes('/recording?'));
+  assert.match(rc, /recording\?limit=100&query=\(tag:"zeuhl"\) AND status:official&/);
+  assert.ok(!/country:|firstreleasedate/.test(rc));
   assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:"zeuhl"\)&/.test(c)), 'artist-first pool query');
   assert.equal(rows.length, 9);
   assert.ok(rows.slice(0, 3).every(r => r.artist.startsWith('Magma')), 'tagged artists first');
