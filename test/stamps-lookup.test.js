@@ -23,5 +23,5 @@ test('lookup: an empty free search falls back to the artist top list; an artist 
   await S.stampSongs(get, S.makeStamp('1990-JP-rock'), { emit: r => rows.push(r.title), rand: seeded() });
   assert.deepEqual(rows.sort(), ['Omoide', '透明少女']);
   assert.equal(calls.filter(c => c.includes('/artist/7/top')).length, 1, 'top list fetched once per artist');
-  assert.equal(calls.filter(c => c.includes('Ghost Band')).length, 2, 'one free search + one artist search, then the artist is skipped');
+  assert.equal(calls.filter(c => c.includes('Ghost Band')).length, 3, 'fame lookup + one free search + one artist search, then the artist is skipped');
 });

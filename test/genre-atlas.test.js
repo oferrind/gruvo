@@ -56,7 +56,7 @@ test('stampSongs, genre only: no country/era in the MB query; [unknown] and "[" 
   const res = await S.stampSongs(get, { id: '--zeuhl', decade: null, cc: '', genre: 'zeuhl', tags: ['zeuhl'] }, { emit: r => rows.push(r), rand: seeded(2) });
   assert.match(calls[0], /recording\?limit=100&query=\(tag:"zeuhl"\) AND status:official&/);
   assert.ok(!/country:|firstreleasedate/.test(calls[0]));
-  assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:"zeuhl"\)&/.test(c)), 'under 8 tagged artists: artist top-up');
+  assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:"zeuhl"\)&/.test(c)), 'artist-first pool query');
   assert.equal(rows.length, 9);
   assert.ok(rows.slice(0, 3).every(r => r.artist.startsWith('Magma')), 'tagged artists first');
   assert.ok(rows.every(r => r.genre === 'zeuhl' && r.stamp === '--zeuhl' && !('country' in r) && !('decade' in r)));
@@ -64,11 +64,11 @@ test('stampSongs, genre only: no country/era in the MB query; [unknown] and "[" 
   assert.deepEqual([res.count, res.mbCount, res.names.length], [9, 1234, 9]);
 });
 
-test('stampSongs, genre only: 8 tagged artists need no top-up', async () => {
+test('stampSongs, genre only: the artist pool query has no country/era window', async () => {
   const tagged = Array.from({ length: 8 }, (_, i) => A(`t${i}`, `Band${i}`, 'GB', { tags: [{ name: 'shoegaze' }] }));
   const { get, calls } = fakeGet({ recordings: tagged.map((a, i) => rec(`r${i}`, a, `S${i}`, '1991')), guard: tagged });
   await S.stampSongs(get, { id: '--shoegaze', decade: null, cc: '', genre: 'shoegaze', tags: ['shoegaze'] }, { rand: seeded() });
-  assert.ok(!calls.some(c => /artist\?.*query=\(tag/.test(c)));
+  assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:"shoegaze"\)&/.test(c)));
 });
 
 test('atlas Roll: genre stamps appear, never the last 5 or a short one; taste and Deep weigh more; the 3rd roll in held families goes to a new family', () => {

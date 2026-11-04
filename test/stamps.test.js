@@ -8,11 +8,13 @@ const A = (id, name, country, more = {}) => ({ id, name, 'sort-name': name, coun
 const dz = (artist, title) => ({ id: `${artist}|${title}`, title, preview: 'https://cdnt-preview.dzcdn.net/x', artist: { id: 1, name: artist }, album: {} });
 
 // Routes by the decoded MB query; Deezer echoes back one exact hit per search (the strict match is tested on its own).
-function fakeGet({ recordings = [], guard = [], topArtists = [], topRecs = [] }) {
+function fakeGet({ recordings = [], guard = [], topArtists = [], topRecs = [], fans = {} }) {
   const calls = [];
   const get = async url => {
     const u = decodeURIComponent(url);
     calls.push(u);
+    if (u.includes('/search/artist')) { const n = new URL(url).searchParams.get('q'); return { data: [...guard, ...topArtists].filter(a => a.name === n).map(a => ({ id: a.name, name: a.name, nb_fan: fans[a.name] || 0 })) }; }
+    if (u.includes('/top?')) { const n = u.split('/artist/')[1].split('/')[0]; return { data: [...recordings, ...topRecs].filter(r => r['artist-credit'][0].artist.name === n).map(r => dz(n, r.title)) }; }
     if (u.includes('api.deezer.com/search')) {
       const q = new URL(url).searchParams.get('q');
       return { data: [...recordings, ...topRecs].map(r => [r['artist-credit'][0].artist.name, r.title]).filter(([a, t]) => `${a} ${t}` === q).map(([a, t]) => dz(a, t)) };
@@ -38,7 +40,7 @@ test('recording-first query carries tags, country, era and official status; the 
   assert.equal(rows.length, 8);
   assert.ok(rows.every(r => r.artist.startsWith('Band') && r.year === 1994 && r.stamp === '1990-JP-rock' && r.country === 'JP'));
   assert.ok(!calls.some(c => c.includes('Squeeze')), 'the UK import is never searched');
-  assert.ok(!calls.some(c => /artist\?.*query=\(tag/.test(c)), 'no top-up with 8 guarded artists');
+  assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:.*\) AND country:JP AND begin:\[\* TO 1999\] AND \(end:\[1990 TO \*\] OR ended:false\)&/.test(c)), 'era pool query');
   assert.deepEqual([res.count, res.artists, res.rarity, res.short], [8, 8, 'Legendary', true]);
 });
 
@@ -64,21 +66,20 @@ test('artist-first top-up: under 8 guarded artists, tagged artists from the coun
   const { get, calls } = fakeGet({ recordings: [], topArtists, topRecs });
   const rows = [];
   const res = await S.stampSongs(get, S.makeStamp('1970-ET-jazz'), { emit: r => rows.push(r), rand: seeded() });
-  assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:"ethio-jazz".*\) AND country:ET&/.test(c)));
-  assert.ok(calls.some(c => /recording\?limit=100&query=\(arid:t0 OR .*arid:t5\) AND firstreleasedate:\[1970 TO 1979\]/.test(c)));
+  assert.ok(calls.some(c => /artist\?limit=100&query=\(tag:"ethio-jazz".*\) AND country:ET AND begin:\[\* TO 1979\]/.test(c)));
+  assert.ok(calls.some(c => /recording\?limit=100&query=\(arid:.*\) AND firstreleasedate:\[1970 TO 1979\]/.test(c) && ok.every(o => c.includes(`arid:${o.id}`))));
   assert.equal(rows.length, 6);
   assert.ok(rows.every(r => r.artist.startsWith('Mulatu') && r.year === 1972));
   assert.equal(res.rarity, 'Legendary');
 });
 
-test('Roll streams the first page before the top-up, and skips the top-up once 15 songs are in', async () => {
+test('Roll streams recording-first songs before the artist-first ranking finishes, and stops at 15', async () => {
   const jp = Array.from({ length: 8 }, (_, i) => A(`j${i}`, `Band${i}`, 'JP', { tags: [{ name: 'rock' }] }));
   const recordings = jp.flatMap((a, i) => [rec(`r${i}`, a, `One${i}`, '1994'), rec(`s${i}`, a, `Two${i}`, '1994')]);
   const { get, calls } = fakeGet({ recordings, guard: jp, topArtists: jp });
   const rows = [], at = [];
   await S.stampSongs((u, o) => (at.push(rows.length), get(u, o)), S.makeStamp('1990-JP-rock'), { emit: r => rows.push(r), rand: seeded() });
   assert.equal(rows.length, 15);
-  assert.ok(!calls.some(c => /artist\?limit=100&query=\(tag/.test(c)), 'full Roll: no top-up');
   assert.ok(at.some(n => n > 0 && n < 15), 'rows arrived while lookups were still going');
 });
 
