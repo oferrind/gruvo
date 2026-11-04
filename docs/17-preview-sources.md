@@ -32,10 +32,11 @@ Strategist, 2026-10-26. This companion to docs 14 and 16 asks one question: whic
 
 > Subject: Free, ad-free app using Deezer API previews – is in-memory audio analysis permitted?
 >
-> Hello, I build Stumble, a free, ad-free, account-less music-discovery app for Android and desktop that plays 30-second previews via the Deezer API with your logo and links back to Deezer.
+> Hello, I build Gruvo, a free, ad-free, account-less music-discovery app for Android and desktop that plays 30-second previews via the Deezer API with your logo and links back to Deezer.
 > To recommend songs, the app briefly analyses each preview in memory (tempo, loudness and timbre statistics) and keeps only those numbers on the user's device; no audio is ever stored, cached, or shared.
 > Could you confirm whether this analysis is permitted under the API Terms of Use, or tell me what conditions or approval it needs?
 > If it is not permitted, I will disable it and use the API only for playback and metadata.
+> The app also builds "mood" lists of 20 songs from your editorial playlists (e.g. coffee shop), re-ordered to each user's taste and crediting the source playlist; is that use permitted too?
 > Thank you, [name], [project URL / contact alias]
 
 ## Sources (accessed 2026-10-26)
