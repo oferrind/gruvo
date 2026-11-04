@@ -1072,7 +1072,7 @@ function renderShelf() {
   const chip = v => { const b = btn(v.label, () => pullVibe(v), 'chip'); b.dataset.vibe = v.id; b.setAttribute('aria-pressed', false); return b; };
   const pickAny = () => Vibes.VIBES[Math.floor(Math.random() * Vibes.VIBES.length)];
   $('#vibe-shelf').replaceChildren(el('div', { className: 'chips' }, btn('Surprise me', () => pullVibe(pickAny()), 'chip')),
-    ...Vibes.GROUPS.map(g => el('section', { className: 'stamp-tool' }, el('h2', { textContent: g }),
+    ...Vibes.GROUPS.map(g => el('section', { className: 'vibe-crate' }, el('h2', { textContent: g }),
       el('div', { className: 'chips', role: 'group', ariaLabel: g }, ...Vibes.VIBES.filter(v => v.group === g).map(chip)))));
 }
 function renderMoods() {
@@ -1084,7 +1084,7 @@ async function pullVibe(v) {
   vbOpen = v; vbCur = null; vbShown = new Set(); vbRows = [];
   ls('vibeLast', v.id);
   $('#vibe-songs').replaceChildren(); $('#vibe-more').replaceChildren(); $('#vibe-export-status').replaceChildren(); $('#vibe-export-box').hidden = true; $('#vibe-note').hidden = true;
-  renderVibeHead(); $('#vibe-shelf [data-vibe]').forEach(b => b.setAttribute('aria-pressed', b.dataset.vibe === v.id));
+  renderVibeHead(); $$('#vibe-shelf [data-vibe]').forEach(b => b.setAttribute('aria-pressed', b.dataset.vibe === v.id));
   vbState('loading', 'Pulling the shelf…');
   const [pool, near] = await Promise.all([vbPool(v), vbNearMap()]);
   if (run !== vbRun) return;
