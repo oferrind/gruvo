@@ -5,6 +5,7 @@ const { safeExternal } = require('./links');
 const { flows, COUNTRIES } = require('./music');
 const Tree = require('./tree');
 const Stamps = require('./stamps');
+const allFlows = { ...flows, ...require('./vibes').flows };
 
 // A track from the renderer, cleaned; anything malformed throws.
 const trackIn = t => {
@@ -23,8 +24,8 @@ function create({ get, audio, open, store }) {
     trackIn,
     audio: url => audio(String(url)),
     async call(name, ...args) {
-      if (!Object.hasOwn(flows, name)) throw new Error(`unknown call ${name}`);
-      return flows[name](get, ...args);
+      if (!Object.hasOwn(allFlows, name)) throw new Error(`unknown call ${name}`);
+      return allFlows[name](get, ...args);
     },
     countries: () => COUNTRIES,
     async treeGrow(ctx, root, heard, run, saved, settings) {
