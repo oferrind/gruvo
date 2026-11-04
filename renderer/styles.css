@@ -769,7 +769,7 @@ main:has(> :is(#stamps, #moods, #tree):not([hidden])) { max-width: 1320px; } /* 
 @media (min-width: 1240px) { #moods .stamp-side { overflow-y: auto; padding-bottom: var(--space-5); } } /* the shelf scrolls on its own beside the songs */
 /* phone: each crate is one row you flick through, so the songs sit under the shelf, not 40 chips down */
 @media (max-width: 899px) {
-  .vibe-shelf { gap: var(--space-4); padding: 0; min-width: 0; } /* the flick rows must not widen the column the songs share */
+  .vibe-shelf { gap: var(--space-4); padding: 0; min-width: 0; } .vibe-crate { min-width: 0; } /* the flick rows must not widen the column the songs share */
   .vibe-crate .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--space-3)); padding: var(--space-3) var(--space-3) var(--space-2); scroll-padding-inline: var(--space-3); }
   .vibe-crate .chip { flex: none; }
 }
