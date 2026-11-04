@@ -39,7 +39,7 @@ test('recording-first query carries tags, country, era and official status; the 
   assert.ok(rows.every(r => r.artist.startsWith('Band') && r.year === 1994 && r.stamp === '1990-JP-rock' && r.country === 'JP'));
   assert.ok(!calls.some(c => c.includes('Squeeze')), 'the UK import is never searched');
   assert.ok(!calls.some(c => /artist\?.*query=\(tag/.test(c)), 'no top-up with 8 guarded artists');
-  assert.deepEqual([res.count, res.artists, res.rarity, res.short], [8, 8, 'Rare', false]);
+  assert.deepEqual([res.count, res.artists, res.rarity, res.short], [8, 8, 'Legendary', true]);
 });
 
 test('client guards: era is the recording year, no live/remix/video/disambiguation; dedupe; max 2 per artist', async () => {
@@ -53,8 +53,8 @@ test('client guards: era is the recording year, no live/remix/video/disambiguati
   const rows = [];
   const { get } = fakeGet({ recordings, guard: [a, ...others] });
   await S.stampSongs(get, S.makeStamp('1970-NG-afrobeat'), { emit: r => rows.push(r), rand: seeded(3) });
-  assert.equal(rows.length, 9); // 7 others + Fela x2: a 3rd only while under 8
-  assert.equal(rows.filter(r => r.artist === 'Fela Kuti').length, 2);
+  assert.equal(rows.length, 10); // 7 others + Fela x3: a 3rd only while under 12
+  assert.equal(rows.filter(r => r.artist === 'Fela Kuti').length, 3);
 });
 
 test('artist-first top-up: under 8 guarded artists, tagged artists from the country add their in-era recordings', async () => {
@@ -71,15 +71,15 @@ test('artist-first top-up: under 8 guarded artists, tagged artists from the coun
   assert.equal(res.rarity, 'Legendary');
 });
 
-test('Roll streams the first page before the top-up, and skips the top-up once 10 songs are in', async () => {
-  const jp = Array.from({ length: 6 }, (_, i) => A(`j${i}`, `Band${i}`, 'JP', { tags: [{ name: 'rock' }] }));
+test('Roll streams the first page before the top-up, and skips the top-up once 15 songs are in', async () => {
+  const jp = Array.from({ length: 8 }, (_, i) => A(`j${i}`, `Band${i}`, 'JP', { tags: [{ name: 'rock' }] }));
   const recordings = jp.flatMap((a, i) => [rec(`r${i}`, a, `One${i}`, '1994'), rec(`s${i}`, a, `Two${i}`, '1994')]);
   const { get, calls } = fakeGet({ recordings, guard: jp, topArtists: jp });
   const rows = [], at = [];
   await S.stampSongs((u, o) => (at.push(rows.length), get(u, o)), S.makeStamp('1990-JP-rock'), { emit: r => rows.push(r), rand: seeded() });
-  assert.equal(rows.length, 10);
+  assert.equal(rows.length, 15);
   assert.ok(!calls.some(c => /artist\?limit=100&query=\(tag/.test(c)), 'full Roll: no top-up');
-  assert.ok(at.some(n => n > 0 && n < 10), 'rows arrived while lookups were still going');
+  assert.ok(at.some(n => n > 0 && n < 15), 'rows arrived while lookups were still going');
 });
 
 test('fewer than 5 songs is thin, never an empty success', async () => {
@@ -224,7 +224,7 @@ test('More songs: cursor pages on, never repeats a song, then reports done', asy
   const { get, stamp } = pagedWorld();
   const shown = [], emit = r => shown.push(r.title);
   const first = await S.stampSongs(get, stamp, { emit, rand: seeded(), paged: true });
-  assert.equal(shown.length, 10);
+  assert.equal(shown.length, 15);
   assert.equal(first.next.done, false);
   let next = first.next, rounds = 0;
   while (!next.done && rounds++ < 20) ({ next } = await S.stampMore(get, stamp, next, { emit, rand: seeded(rounds) }));
@@ -248,8 +248,8 @@ test('More songs: the first fetch keeps its shape without paged; a failed page k
   fail = false;
   const rows = [];
   const ok = await S.stampMore(flaky, stamp, bad.next, { emit: r => rows.push(r) });
-  assert.equal(ok.added, 10);
-  assert.equal(rows.length, 10);
+  assert.equal(ok.added, 15);
+  assert.equal(rows.length, 15);
 });
 
 test('More songs: max 2 songs per artist across pages', async () => {
