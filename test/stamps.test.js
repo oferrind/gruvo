@@ -35,8 +35,9 @@ test('recording-first query carries tags, country, era and official status; the 
   const { get, calls } = fakeGet({ recordings, guard: [...jp, uk] });
   const rows = [];
   const res = await S.stampSongs(get, S.makeStamp('1990-JP-rock'), { emit: r => rows.push(r), rand: seeded() });
-  assert.match(calls[0], /recording\?limit=100&query=\(tag:"rock" OR tag:"j-rock".*\) AND country:JP AND firstreleasedate:\[1990 TO 1999\] AND status:official/);
-  assert.match(calls[1], /artist\?limit=100&query=arid:j0 OR arid:j1/);
+  const rc = calls.findIndex(c => c.includes('/recording?'));
+  assert.match(calls[rc], /recording\?limit=100&query=\(tag:"rock" OR tag:"j-rock".*\) AND country:JP AND firstreleasedate:\[1990 TO 1999\] AND status:official/);
+  assert.match(calls[rc + 1], /artist\?limit=100&query=arid:j0 OR arid:j1/);
   assert.equal(rows.length, 8);
   assert.ok(rows.every(r => r.artist.startsWith('Band') && r.year === 1994 && r.stamp === '1990-JP-rock' && r.country === 'JP'));
   assert.ok(!calls.some(c => c.includes('Squeeze')), 'the UK import is never searched');

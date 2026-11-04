@@ -54,7 +54,7 @@ test('artist-first: the biggest artists fill the Roll, an artist off Deezer is d
   assert.equal(rows.length, 15);
   assert.ok(new Set(rows.map(r => r.artist)).has('Act0'), 'the biggest artist is in');
   assert.ok(!rows.some(r => r.artist === 'Act5'), 'not on Deezer: dropped');
-  assert.ok(res.next.q.length > 0, 'cursor keeps the ranked remainder');
+  assert.ok(res.next.q.length + res.next.redo.length > 0, 'cursor keeps the ranked remainder');
   const r2 = await S.stampMore(get, stamp, res.next, { emit: r => more.push(r), rand: seeded() });
   assert.equal(r2.added, more.length);
   assert.ok(more.length >= 10 && more.every(m => !rows.some(r => r.title === m.title)));

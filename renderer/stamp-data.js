@@ -190,6 +190,9 @@ function roll({ held = {}, recent = [], topTags = [], adventurous = false, strea
 }
 
 
+// Tags of the catalogue scenes in the same place and genre, other decades too (a 1980 JP rock stamp also searches j-rock, visual kei). Strict: same cc AND genre.
+const aliases = s => (s.cc && s.genre ? CATALOGUE.filter(c => c.cc === s.cc && c.genre === s.genre).flatMap(c => c.tags).filter(t => !s.tags.includes(t)) : []);
+
 // Genres to browse: normalised substring match on the name, prefix hits first, then A-Z. {total, stamps}.
 function searchGenres(q = '', { family = '', tier = '' } = {}, limit = 60) {
   const n = norm(q);
@@ -231,7 +234,7 @@ function book(held = {}) {
     atlas: atlas.length, atlasTotal: ATLAS.size, custom: stamps.filter(s => s.custom).length, decades: [...new Set(stamps.map(s => s.decade).filter(Boolean))].sort() };
 }
 
-return { ATLAS, FAMILIES, TIERS, nearby, searchGenres, searchScenes, GENRES, DEMONYM, CATALOGUE, CONTINENTS, DECADES, ALL_CC, continentOf, decadeName, makeStamp, roll, tier, book };
+return { aliases, ATLAS, FAMILIES, TIERS, nearby, searchGenres, searchScenes, GENRES, DEMONYM, CATALOGUE, CONTINENTS, DECADES, ALL_CC, continentOf, decadeName, makeStamp, roll, tier, book };
 }
 if (typeof module === 'object' && module.exports) module.exports = StampData;
 else root.StampData = StampData;
