@@ -240,7 +240,7 @@ async function stampMore(get, stamp, cursor, { emit = () => {}, live = () => tru
       continue;
     }
     const pg = await get(`${mbUrl('recording', `${tagQ(tags)}${cc ? ` AND country:${cc}` : ''} AND ${eraQ(d)}`)}&offset=${offset}`);
-    if (pg.error) return { error: true, next: out() };
+    if (pg.error) return added ? { added, next: out() } : { error: true, next: out() }; // songs already streamed: keep them, the cursor retries this page
     const recs = pg.recordings || [], guard = new Map();
     const ids = [...new Set(recs.map(r => (creditArtist(r) || {}).id).filter(Boolean))].slice(0, 80);
     if (ids.length) {
