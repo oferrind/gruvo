@@ -1084,7 +1084,10 @@ async function pullVibe(v) {
   vbOpen = v; vbCur = null; vbShown = new Set(); vbRows = [];
   ls('vibeLast', v.id);
   $('#vibe-songs').replaceChildren(); $('#vibe-more').replaceChildren(); $('#vibe-export-status').replaceChildren(); $('#vibe-export-box').hidden = true; $('#vibe-note').hidden = true;
-  renderVibeHead(); $$('#vibe-shelf [data-vibe]').forEach(b => b.setAttribute('aria-pressed', b.dataset.vibe === v.id));
+  renderVibeHead(); $$('#vibe-shelf [data-vibe]').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.vibe === v.id);
+    if (b.dataset.vibe === v.id) b.scrollIntoView({ block: 'nearest', inline: 'nearest' }); // Surprise me / Last time: show the card in its swipe row
+  });
   vbState('loading', 'Pulling the shelf…');
   const [pool, near] = await Promise.all([vbPool(v), vbNearMap()]);
   if (run !== vbRun) return;
