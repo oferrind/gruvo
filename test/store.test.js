@@ -135,3 +135,19 @@ test('prefs.bringBack defaults on and only an explicit false turns it off; back 
   assert.deepEqual(store.load().back, { n: 0, last: 0, seen: {}, ok: [] });
 });
 
+
+test('listening events survive save/load; malformed ones are dropped; capped at the newest 3000', () => {
+  tmp();
+  const good = [{ ts: 5, k: 'listen', id: 'dz:1', from: 'blind', sec: 12.345, ends: 1, extra: 'x' }, { ts: 6, k: 'rate', id: 'dz:1', v: 'skip' },
+    { ts: 7, k: 'save', id: 'dz:2', from: 'Not A Tab' }, { ts: 8, k: 'listen', id: 'dz:3', sec: -4, ends: 'x' }];
+  const bad = [null, { ts: 1, k: 'play', id: 'a' }, { k: 'save', id: 'a' }, { ts: 1, k: 'save', id: 7 }, { ts: 1, k: 'rate', id: 'a', v: 'meh' }];
+  store.save({ likes: [], heard: [], events: [...good, ...bad] });
+  assert.deepEqual(store.load().events, [{ ts: 5, k: 'listen', id: 'dz:1', from: 'blind', sec: 12.3, ends: 1 }, { ts: 6, k: 'rate', id: 'dz:1', v: 'skip' },
+    { ts: 7, k: 'save', id: 'dz:2' }, { ts: 8, k: 'listen', id: 'dz:3', sec: 0, ends: 0 }]);
+  store.save({ likes: [], heard: [], events: Array.from({ length: 3010 }, (_, i) => ({ ts: i + 1, k: 'save', id: 'dz:1' })) });
+  const e = store.load().events;
+  assert.equal(e.length, 3000);
+  assert.equal(e[0].ts, 11);
+  tmp();
+  assert.deepEqual(store.load().events, []); // old profiles load with none
+});

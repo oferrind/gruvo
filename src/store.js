@@ -2,7 +2,7 @@
 const { norm, COUNTRIES } = require('./music');
 const { validSettings } = require('./tree');
 
-const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, rarity: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null, back: validBack() });
+const DEFAULT = () => ({ likes: [], heard: [], stamps: {}, rarity: {}, adventure: 50, ratings: [], prefs: validPrefs(), last: null, back: validBack(), events: [] });
 const MAX_RATINGS = 500;
 
 // Sound Fingerprint ratings: {id, rating, features}; anything malformed is dropped, newest MAX_RATINGS kept.
@@ -10,6 +10,17 @@ const RATING = { love: 1, ok: 1, skip: 1 };
 const validRatings = r => (Array.isArray(r) ? r : []).filter(x => x && typeof x.id === 'string' && Object.hasOwn(RATING, x.rating)
   && Array.isArray(x.features) && x.features.length > 0 && x.features.length <= 64 && x.features.every(Number.isFinite))
   .slice(-MAX_RATINGS).map(({ id, rating, features, seed, ab }) => ({ id, rating, features, ...(seed === true && { seed }), ...(ab === 'fp' || ab === 'tags' ? { ab } : null) }));
+
+// Listening log, on-device only: {ts, k, id, from?, sec?, ends?, v?}. listen = one play of a track (sec actually heard,
+// ends = times it played to the end); rate = a Blind Test verdict; save/unsave = a Love added or removed. Newest MAX_EVENTS kept.
+const MAX_EVENTS = 3000;
+const EVENT = { listen: 1, rate: 1, save: 1, unsave: 1 };
+const validEvents = e => (Array.isArray(e) ? e : []).filter(x => x && Object.hasOwn(EVENT, x.k) && Number.isFinite(x.ts) && x.ts > 0
+  && typeof x.id === 'string' && x.id.length <= 80 && (x.k !== 'rate' || Object.hasOwn(RATING, x.v)))
+  .slice(-MAX_EVENTS).map(({ ts, k, id, from, sec, ends, v }) => ({ ts, k, id,
+    ...(typeof from === 'string' && /^[a-z]{1,16}$/.test(from) && { from }),
+    ...(k === 'listen' && { sec: Number.isFinite(sec) && sec > 0 ? Math.min(Math.round(sec * 10) / 10, 36000) : 0, ends: Number.isInteger(ends) && ends > 0 ? Math.min(ends, 1000) : 0 }),
+    ...(k === 'rate' && { v }) }));
 
 // Taste preferences from the first-launch step: anything malformed is dropped, lists capped.
 const name = s => typeof s === 'string' && s.trim() !== '' && s.length <= 200;
@@ -91,13 +102,14 @@ function parse(raw) {
     prefs: validPrefs(p.prefs),
     last: validLast(p.last),
     back: validBack(p.back),
+    events: validEvents(p.events),
   } };
 }
 
 // Validates a profile from the renderer and returns the text to store; throws if it is not a profile.
 function serialize(p) {
   if (!p || typeof p !== 'object' || !Array.isArray(p.likes) || !Array.isArray(p.heard)) throw new Error('invalid profile');
-  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), rarity: validRarity(p.rarity), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last), back: validBack(p.back) };
+  const data = { likes: p.likes, heard: p.heard, stamps: validStamps(p.stamps), rarity: validRarity(p.rarity), adventure: Number(p.adventure) || 0, ratings: validRatings(p.ratings), prefs: validPrefs(p.prefs), last: validLast(p.last), back: validBack(p.back), events: validEvents(p.events) };
   return JSON.stringify(data, null, 1);
 }
 

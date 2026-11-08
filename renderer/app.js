@@ -60,6 +60,7 @@ const hidden = t => t === mystery && !rated; // an unrated mystery: nothing that
 async function play(item, { onFail: failCb, extra, from } = {}) {
   current = item; currentExtra = extra || null; currentFrom = from || null; retried = false; onFail = failCb || null;
   renderNpLike(); renderNpMeta(); syncPlayState();
+  listen = logEvent({ k: 'listen', id: likeKey(item), from: from && from.tab, sec: 0, ends: 0 }); lastPos = 0;
   remember(item);
   // Stop the old track now: while the new preview is fetched (or turns out unavailable) its time must not drive the new scrubber or tonearm.
   if (audio.getAttribute('src')) { audio.removeAttribute('src'); audio.load(); }
@@ -75,6 +76,7 @@ function togglePlay() {
   audio.paused ? audio.play().catch(() => {}) : audio.pause();
 }
 function unavailable() {
+  if (listen) { profile.events = profile.events.filter(e => e !== listen); listen = null; } // nothing was heard
   toast('Preview unavailable for this track');
   if (onFail) onFail();
 }
@@ -90,6 +92,25 @@ audio.addEventListener('error', async () => {
   audio.play().catch(() => {});
 });
 const plain = o => JSON.parse(JSON.stringify(o));
+// Listening log (profile.events, src/store.js): stays on this device. A listen event is pushed when a play starts and
+// updated in place (seconds actually heard, times played to the end); every later save() writes it.
+let listen = null, lastPos = 0;
+function logEvent(e) {
+  const ev = { ts: Date.now(), ...e };
+  (profile.events ||= []).push(ev);
+  if (profile.events.length > 3000) profile.events.splice(0, profile.events.length - 3000); // store.js keeps the same cap
+  return ev;
+}
+const activeTab = () => tabs.find(b => b.getAttribute('aria-selected') === 'true')?.dataset.tab;
+audio.addEventListener('timeupdate', () => {
+  const d = audio.currentTime - lastPos;
+  lastPos = audio.currentTime;
+  if (listen && !audio.paused && d > 0 && d < 1.5) listen.sec += d; // a jump is a seek, not listening
+});
+audio.addEventListener('seeked', () => { lastPos = audio.currentTime; });
+audio.addEventListener('ended', () => { if (listen) listen.ends++; });
+// shortcut: a closed window can drop the seconds heard since the last save; save on a timer if the log needs them exact.
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 // Phone (api.caps.blobAudio): play the preview from in-memory bytes, so the WebView never caches it on disk. Desktop: the url as is.
 async function phoneSrc(url) {
   if (!url || !api.caps?.blobAudio) return url;
@@ -223,6 +244,7 @@ function like(t, extra = {}) {
   const { source, id, title, artist, artistDzId, albumId, cover, isrc } = t;
   const entry = { source, id, title, artist, artistDzId, albumId, cover, isrc, ...extra, ts: Date.now() };
   profile.likes.push(entry);
+  logEvent({ k: 'save', id: likeKey(t), from: activeTab() });
   entry.stamp = extra.stamp || null; // a Crate Dig song keeps its scene; the count steers rolls toward places and genres you have not loved yet
   if (entry.stamp) { const n = profile.stamps[entry.stamp] = (profile.stamps[entry.stamp] || 0) + 1; }
   addHeard(t);
@@ -249,6 +271,7 @@ function unlike(t) {
   if (sk && profile.stamps[sk] && !--profile.stamps[sk]) delete profile.stamps[sk]; // R2: unloving undoes its stamp
   profile.likes = profile.likes.filter(l => likeKey(l) !== likeKey(t));
   profile.ratings = profile.ratings.filter(r => r.id !== likeKey(t) || r.rating !== 'love');
+  if (old) logEvent({ k: 'unsave', id: likeKey(t), from: activeTab() });
   save();
   afterLikeChange();
   if (old && !$('#saved').hidden) undoToast(`Removed “${cleanTitle(t.title)}”`, () => { // Saved: put it back where it was
@@ -256,6 +279,7 @@ function unlike(t) {
     profile.likes.splice(at, 0, old);
     if (sk) profile.stamps[sk] = (profile.stamps[sk] || 0) + 1;
     if (rating) profile.ratings.push(rating);
+    logEvent({ k: 'save', id: likeKey(t), from: 'saved' });
     save();
     afterLikeChange();
   });
@@ -644,6 +668,7 @@ function rate(kind) {
   const m = mystery;
   const extra = m.country ? { country: m.country, decade: m.decade } : {};
   addHeard(m);
+  logEvent({ k: 'rate', id: likeKey(m), v: kind, from: 'blind' });
   if (kind === 'love') like(m, extra); else teach(m, kind); // every rating (Skip and OK too) teaches the taste model
   save();
   const reason = el('p', { className: 'reason' });
