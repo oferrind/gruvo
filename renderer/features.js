@@ -170,9 +170,10 @@
   const fits = (v, ratings, adventure) => { const L = nearest(v, ratings, 'love'); return !L || L.d <= reach(adventure); };
 
   // Where the next candidate comes from: low Adventure leans on related artists and chosen genres, high on random trips and credit trails.
+  const sourceWeights = (adventure, hasGenres, a = clamp(adventure / 100)) =>
+    [['neighbour', 3 - 2 * a], ['genre', hasGenres ? 2 - a : 0], ['trail', 1 + a], ['explore', 0.25 + 2.75 * a]];
   function pickSource(adventure, hasGenres, r = Math.random()) {
-    const a = clamp(adventure / 100);
-    const w = [['neighbour', 3 - 2 * a], ['genre', hasGenres ? 2 - a : 0], ['trail', 1 + a], ['explore', 0.25 + 2.75 * a]];
+    const w = sourceWeights(adventure, hasGenres);
     let x = r * w.reduce((s, [, n]) => s + n, 0);
     return (w.find(([, n]) => (x -= n) < 0) || w[0])[0];
   }
@@ -197,13 +198,97 @@
   // typical pool (reach 2/3 TMAX -> 1.5 TMAX), so Adventure keeps the same feel.
   const passShare = adventure => 0.35 + 0.5 * clamp(adventure / 100);
   // Lowest blended score that passes; with fewer than 12 samples nothing is rejected yet.
-  function blendCut(win, adventure) {
+  function blendCut(win, adventure, wts) {
     if (win.length < 12) return -Infinity;
-    const s = win.map(w => blend(w, win)).sort((x, y) => y - x);
+    const s = win.map(w => (wts ? blendW(w, win, wts) : blend(w, win))).sort((x, y) => y - x);
     return s[Math.min(s.length - 1, Math.max(0, Math.round(passShare(adventure) * s.length) - 1))];
   }
 
-  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource, nearest, tagCos, W_TAG, W_SOUND, blend, passShare, blendCut };
+  // Hybrid picker (docs/21): the same z-scores plus co-listening closeness (c, renderer/colisten.js), with weights w.
+  // Unknown tags score one SD below the mean (as blend); unknown sound or co-listening is neutral.
+  const zs = (c, win) => ({ t: Number.isFinite(c.t) ? z(c.t, win.map(x => x.t)) : -UNKNOWN_TAG,
+    s: Number.isFinite(c.s) ? z(c.s, win.map(x => x.s)) : 0, c: Number.isFinite(c.c) ? z(c.c, win.map(x => x.c)) : 0,
+    g: Number.isFinite(c.g) ? z(c.g, win.map(x => x.g)) : 0 });
+  const W_HYBRID = { t: 0.8, s: 0.2, c: 0.5, g: 0 }; // replaced by the offline LambdaRank fit (docs/21)
+  const dotW = (x, w) => w.t * x.t + w.s * x.s + w.c * x.c + (w.g || 0) * (x.g || 0);
+  const blendW = (c, win, w) => dotW(zs(c, win), w);
+  // LambdaRank (Burges 2010) for a linear model: pairs with different ratings pull the weights by how much swapping them
+  // would change NDCG. rows: [{x: zs(...), rel: 2 love / 1 ok / 0 skip}]. L2 keeps the weights near `prior` when data is thin.
+  function learnWeights(rows, prior, { iters = 200, lr = 0.5, l2 = 0.02 } = {}) {
+    const w = { g: 0, ...prior }, K = ['t', 's', 'c', 'g'], gain = r => 2 ** r - 1;
+    const ideal = rows.map(r => gain(r.rel)).sort((a, b) => b - a).reduce((a, g, i) => a + g / Math.log2(i + 2), 0);
+    if (!ideal) return w;
+    for (let it = 0; it < iters; it++) {
+      const sc = rows.map(r => dotW(r.x, w)), pos = new Array(rows.length);
+      sc.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).forEach(([, i], p) => { pos[i] = p; });
+      const g = { t: 0, s: 0, c: 0, g: 0 };
+      let tot = 0;
+      for (let i = 0; i < rows.length; i++) for (let j = 0; j < rows.length; j++) {
+        if (rows[i].rel <= rows[j].rel) continue;
+        const dn = Math.abs((gain(rows[i].rel) - gain(rows[j].rel)) * (1 / Math.log2(pos[i] + 2) - 1 / Math.log2(pos[j] + 2))) / ideal;
+        const rho = dn / (1 + Math.exp(sc[i] - sc[j]));
+        for (const k of K) g[k] += rho * ((rows[i].x[k] || 0) - (rows[j].x[k] || 0));
+        tot += dn;
+      }
+      if (!tot) break;
+      for (const k of K) w[k] += lr * (g[k] / tot - l2 * (w[k] - (prior[k] || 0)));
+    }
+    return w;
+  }
+
+  // Thompson sampling (docs/21) over the same sources: each source's Love rate is drawn from Beta(1 + loves, 1 + other verdicts)
+  // and scaled by its Adventure weight. Sources that keep finding loves get picked more; an unlucky one still gets chances,
+  // so the Blind Test keeps learning your taste instead of only pleasing it. stats: {source: {love, n}} from the listening log.
+  const normal = rand => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+  function gamma(k, rand) { // Marsaglia and Tsang (2000), k >= 1
+    const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d);
+    for (;;) {
+      let x, v;
+      do { x = normal(rand); v = 1 + c * x; } while (v <= 0);
+      v = v * v * v;
+      const u = rand();
+      if (u < 1 - 0.0331 * x ** 4 || Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+    }
+  }
+  const beta = (a, b, rand) => { const x = gamma(a, rand); return x / (x + gamma(b, rand)); };
+  function thompsonSource(adventure, hasGenres, stats = {}, rand = Math.random) {
+    const w = sourceWeights(adventure, hasGenres), max = Math.max(...w.map(([, n]) => n));
+    let best = w[0][0], top = -1;
+    for (const [k, n] of w) {
+      if (!n) continue;
+      const { love = 0, n: seen = 0 } = stats[k] || {};
+      const v = beta(1 + love, 1 + Math.max(0, seen - love), rand) * n / max;
+      if (v > top) { best = k; top = v; }
+    }
+    return best;
+  }
+  // Calibration (Steck 2018): greedy re-rank so the tags of what you are shown follow the tag mix of your loves, instead of
+  // the top of the list piling onto one genre. items: [{score, tags}]; mix: {tag: weight}; prefix: tag maps already shown.
+  // Each pick maximises (1 - lambda) * score - lambda * KL(mix || shown mix). Returns item indices in order.
+  function calibrate(items, mix, k, lambda = 0.3, prefix = []) {
+    const top = Object.entries(mix || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 20);
+    const P = top.reduce((a, [, v]) => a + v, 0);
+    const order = items.map((_, i) => i).sort((a, b) => items[b].score - items[a].score);
+    if (!P || lambda <= 0) return order.slice(0, k);
+    const dist = t => { const e = top.map(([g]) => Math.max(0, (t || {})[g] || 0)), s = e.reduce((a, b) => a + b, 0); return s ? e.map(x => x / s) : null; };
+    const sum = top.map(() => 0);
+    let n = 0;
+    const add = d => { if (d) { d.forEach((x, i) => { sum[i] += x; }); n++; } };
+    prefix.forEach(t => add(dist(t)));
+    const kl = extra => top.reduce((a, [, v], i) => {
+      const p = v / P, q = (sum[i] + (extra ? extra[i] : 0)) / (n + (extra ? 1 : 0) || 1);
+      return a + p * Math.log(p / (0.99 * q + 0.01 * p));
+    }, 0);
+    const out = [], left = new Set(order), ds = items.map(x => dist(x.tags));
+    while (out.length < k && left.size) {
+      let best = -1, bv = -Infinity;
+      for (const i of left) { const v = (1 - lambda) * items[i].score - lambda * kl(ds[i]); if (v > bv) { bv = v; best = i; } }
+      out.push(best); left.delete(best); add(ds[best]);
+    }
+    return out;
+  }
+
+  const api = { SR, DIM, TMAX, extract, vector, bpmOf, dist, score, rank, explain, whyLine, reach, fits, pickSource, nearest, tagCos, W_TAG, W_SOUND, blend, passShare, blendCut, zs, blendW, learnWeights, thompsonSource, calibrate, W_HYBRID };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.Features = api;
 })(this);

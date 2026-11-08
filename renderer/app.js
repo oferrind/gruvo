@@ -23,6 +23,8 @@ const norm = s => String(s || '').normalize('NFKD').toLowerCase().replace(/[^\p{
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const DECADES = [1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010];
 document.head.append(el('script', { src: 'features.js' })); // Sound Fingerprint math -> window.Features (no bundler, sandboxed: no require)
+// Co-listening table + lookup -> window.Colisten (docs/21); async false keeps the data before the code that reads it.
+for (const src of ['colisten-data.js', 'colisten.js']) document.head.append(el('script', { src, async: false }));
 
 let profile, countryNames = {};
 
@@ -260,7 +262,7 @@ function teach(t, kind) {
   }
   fingerprint(t).then(v => {
     if (!v || (kind === 'love' && !isLiked(t))) return; // unloved while we were listening
-    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v }].slice(-500); // store.js keeps the same cap
+    profile.ratings = [...profile.ratings.filter(r => r.id !== likeKey(t)), { id: likeKey(t), rating: kind, features: v, a: t.artist }].slice(-500); // store.js keeps the same cap
     save();
   });
 }
@@ -509,6 +511,7 @@ function tagScore(c) {
     const theirs = profile.likes.length ? await Promise.race([call('artistTags', c.artist), new Promise(r => setTimeout(r, TAG_WAIT))]) : null;
     const mine = lovedTags();
     c.tagSim = theirs && Object.keys(mine).length ? Features.tagCos(theirs, mine) : null;
+    c.tags = theirs || null;
     return c;
   })().catch(() => { c.tagSim = null; return c; });
   if (fresh) c.tagP.then(() => { if (!mystery && queue.includes(c)) showMystery(); }); // first call only: no re-entry loop
@@ -518,16 +521,63 @@ function observe(c) { // once both scores exist: feed the calibration window (~8
   if (c.obs || !c.vec || c.tagSim === undefined || !warm()) return;
   c.obs = true;
   const L = Features.nearest(c.vec, profile.ratings, 'love');
-  c.sc = { t: c.tagSim, s: L ? -L.d : null };
+  c.sc = { t: c.tagSim, s: L ? -L.d : null, c: coScore(c), g: window.Colisten ? Colisten.graphScore(c.artist, coSets.love) : null }; // coScore refreshes coSets first
   seen.push(c.sc);
   if (seen.length > 80) seen.shift();
+}
+// ---- Hybrid picker (docs/21). Blind A/B: each mystery is picked by the shipped blend ('ship') or the hybrid ('hyb') at random;
+// the listening log keeps which, and Preferences shows the Love rate of each. The hybrid adds co-listening closeness
+// (window.Colisten), weights learned from your ratings (LambdaRank), Thompson-sampled sources and genre calibration.
+const nextAlg = () => (window.Colisten && Math.random() < 0.5 ? 'hyb' : 'ship');
+let alg = 'ship';
+let coKey = '', coSets = { love: [], skip: [] };
+function coScore(c) {
+  if (!window.Colisten) return null;
+  const key = `${profile.likes.length}:${profile.ratings.length}`;
+  if (key !== coKey) {
+    coKey = key;
+    coSets = { love: Colisten.indices(profile.likes.map(l => l.artist)), skip: Colisten.indices(profile.ratings.filter(r => r.rating === 'skip' && r.a).map(r => r.a)) };
+  }
+  return Colisten.score(c.artist, coSets.love, coSets.skip);
+}
+// Love rate per source from the log's Blind Test verdicts (newest 300), for Thompson sampling.
+function sourceStats() {
+  const out = {};
+  for (const e of profile.events.filter(e => e.k === 'rate' && e.src).slice(-300)) { const s = out[e.src] ||= { love: 0, n: 0 }; s.n++; if (e.v === 'love') s.love++; }
+  return out;
+}
+// Weights: Features.W_HYBRID (learned offline from ratings, docs/21) until 60 ratings carry an artist; then LambdaRank on
+// those ratings, each scored as a fresh candidate would be (its own artist left out), redone every 20 new ratings.
+let learned = null, learning = false, learnedAt = 0;
+function hybridW() {
+  const rows = profile.ratings.filter(r => r.a && !r.seed);
+  if (rows.length >= 60 && rows.length - learnedAt >= 20 && !learning) relearn(rows);
+  return learned || Features.W_HYBRID;
+}
+async function relearn(rows) {
+  learning = true;
+  try {
+    const tags = new Map();
+    for (const a of new Set(rows.map(r => r.a))) tags.set(a, await call('artistTags', a).catch(() => null)); // cached, paced lookups
+    const raw = rows.map(r => {
+      const others = profile.ratings.filter(x => x !== r && !(x.a && norm(x.a) === norm(r.a)));
+      const mine = {};
+      for (const x of others) if (x.rating === 'love' && x.a) for (const [k, v] of Object.entries(tags.get(x.a) || {})) mine[k] = (mine[k] || 0) + Math.max(0, v);
+      const L = Features.nearest(r.features, others, 'love'), ix = k => Colisten.indices(others.filter(x => x.rating === k && x.a).map(x => x.a));
+      const lv = ix('love');
+      return { t: tags.get(r.a) && Object.keys(mine).length ? Features.tagCos(tags.get(r.a), mine) : null, s: L ? -L.d : null, c: Colisten.score(r.a, lv, ix('skip')), g: Colisten.graphScore(r.a, lv) };
+    });
+    learned = Features.learnWeights(raw.map((f, i) => ({ x: Features.zs(f, raw), rel: { love: 2, ok: 1, skip: 0 }[rows[i].rating] })), Features.W_HYBRID);
+    learnedAt = rows.length;
+  } finally { learning = false; }
 }
 function nextFromQueue() {
   if (!warm()) return queue.shift() || null;
   queue.forEach(c => { tagScore(c); observe(c); });
-  const cut = Features.blendCut(seen, profile.adventure);
+  const w = alg === 'hyb' ? hybridW() : null, score = c => (w ? Features.blendW(c.sc, seen, w) : Features.blend(c.sc, seen));
+  const cut = Features.blendCut(seen, profile.adventure, w);
   const known = c => c.sc;
-  const fit = c => c.back || misfits >= 12 || Features.blend(c.sc, seen) >= cut;
+  const fit = c => c.back || misfits >= 12 || score(c) >= cut;
   const drop = queue.filter(c => c.vec && known(c) && !fit(c));
   misfits += drop.length;
   const ready = queue.filter(c => c.vec && known(c) && fit(c));
@@ -536,7 +586,14 @@ function nextFromQueue() {
     if (quick) { queue.splice(queue.indexOf(quick), 1); return quick; }
   }
   if (!ready.length) { queue.splice(0, queue.length, ...queue.filter(c => !drop.includes(c) && c.vec !== null)); return null; } // wait for more fingerprints
-  const [best, ...rest] = ready.sort((x, y) => Features.blend(y.sc, seen) - Features.blend(x.sc, seen));
+  ready.sort((x, y) => score(y) - score(x));
+  if (w) { // hybrid: calibrate against the genres of tonight's last reveals, so one genre doesn't take every mystery
+    const pick = Features.calibrate(ready.map(c => ({ score: score(c), tags: c.tags })), lovedTags(), 1, 0.3, tonight.slice(0, 8).map(x => x.t.tags).filter(Boolean))[0];
+    if (pick > 0) ready.unshift(...ready.splice(pick, 1));
+  }
+  const [best, ...rest] = ready;
+  best.alg = alg;
+  alg = nextAlg();
   misfits = 0;
   rest.forEach(c => { c.passed = (c.passed || 0) + 1; });
   const keep = queue.filter(c => c !== best && !drop.includes(c) && !(c.passed >= 3) && c.vec !== null); // vec null = preview failed to decode: can't be ranked, drop it
@@ -599,17 +656,20 @@ async function fill() {
     const mine = [...queue, mystery].filter(Boolean);
     const back = await call('deepCut', { enabled: profile.prefs.bringBack, adventure: profile.adventure, likes: plain(profile.likes), back: profile.back, busy: mine.some(c => c.back),
       exclude: mine.map(c => c.artistDzId), rated: [...profile.ratings.map(r => r.id), ...tonight.map(x => likeKey(x.t))] });
+    if (back) back.src = 'back';
     if (accept(back)) { fails = 0; continue; }
-    const source = warm() ? Features.pickSource(profile.adventure, profile.prefs.genres.length > 0) : undefined;
+    const genres = profile.prefs.genres.length > 0;
+    const source = !warm() ? undefined : alg === 'hyb' ? Features.thompsonSource(profile.adventure, genres, sourceStats()) : Features.pickSource(profile.adventure, genres);
+    const tagged = c => { if (c) c.src = source || 'cold'; return c; };
     const ask = () => call('nextCandidate', { likes: plain(profile.likes), heard: profile.heard, exclude: excluded(), adventure: profile.adventure, source, prefs: profile.prefs });
     if (source === 'trail') { // MusicBrainz trails can take ~10 s: run one on the side so the other sources keep filling
-      if (!trailing) { trailing = true; ask().then(c => { trailing = false; if (queue.length < 6) accept(c); }); }
+      if (!trailing) { trailing = true; ask().then(c => { trailing = false; if (queue.length < 6) accept(tagged(c)); }); }
       continue;
     }
     // Nothing to play at all (first launch, cold cache): two more searches run on the side and the first to land plays. One slow
     // MusicBrainz search no longer holds up the first mystery; net.js paces each request, so this stays polite.
-    if (!mystery && !queue.length) while (side < 2) { side++; ask().then(c => { side--; tried++; if (!accept(c)) finding(); }); }
-    const cc = await ask();
+    if (!mystery && !queue.length) while (side < 2) { side++; ask().then(c => { side--; tried++; if (!accept(tagged(c))) finding(); }); }
+    const cc = tagged(await ask());
     tried++;
     if (accept(cc)) fails = 0;
     else if (++fails >= 5) {
@@ -668,7 +728,7 @@ function rate(kind) {
   const m = mystery;
   const extra = m.country ? { country: m.country, decade: m.decade } : {};
   addHeard(m);
-  logEvent({ k: 'rate', id: likeKey(m), v: kind, from: 'blind' });
+  logEvent({ k: 'rate', id: likeKey(m), v: kind, from: 'blind', src: m.src, alg: m.alg });
   if (kind === 'love') like(m, extra); else teach(m, kind); // every rating (Skip and OK too) teaches the taste model
   save();
   const reason = el('p', { className: 'reason' });
@@ -1638,7 +1698,16 @@ function renderSchemes() {
 }
 
 let prefsBuilt = false;
+// Blind A/B (docs/21): Love rate of the mysteries each picker chose. Neither is named while you rate.
+function abLine() {
+  const n = { ship: [0, 0], hyb: [0, 0] };
+  for (const e of profile.events) if (e.k === 'rate' && n[e.alg]) { n[e.alg][1]++; if (e.v === 'love') n[e.alg][0]++; }
+  const part = (label, [l, t]) => `${label}: ${l} loved of ${t}${t ? ` (${Math.round(100 * l / t)}%)` : ''}`;
+  return n.ship[1] + n.hyb[1] ? `Each mystery is secretly picked by the old or the new picker. ${part('New', n.hyb)}; ${part('old', n.ship)}.`
+    : 'Each mystery is secretly picked by the old or the new picker; their Love rates show here once you rate some.';
+}
 function renderPrefs() {
+  $('#prefs-ab').textContent = abLine();
   const p = profile.prefs;
   renderPickedArtists();
   prefStatus();
