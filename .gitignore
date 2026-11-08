@@ -6,6 +6,9 @@ out/
 graphify-out/
 
 scripts/.genre-verify.json*
+# Offline eval outputs and caches hold the user's artists and ratings: never commit (public repo)
+scripts/eval/out/
+profile*.json
 mobile/www/
 android/.gradle/
 android/build/
