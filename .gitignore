@@ -19,3 +19,6 @@ android/app/src/main/res/xml/config.xml
 android/keystore.properties
 *.keystore
 *.jks
+
+# MusicBrainz contact for the User-Agent: copy stumble.config.example.json to stumble.config.json and put your email in it
+stumble.config.json
