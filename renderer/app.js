@@ -23,8 +23,11 @@ const norm = s => String(s || '').normalize('NFKD').toLowerCase().replace(/[^\p{
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const DECADES = [1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010];
 document.head.append(el('script', { src: 'features.js' })); // Sound Fingerprint math -> window.Features (no bundler, sandboxed: no require)
-// Co-listening table + lookup -> window.Colisten (docs/21); async false keeps the data before the code that reads it.
-for (const src of ['colisten-data.js', 'colisten.js']) document.head.append(el('script', { src, async: false }));
+// Hybrid picker + blind A/B (docs/21). Off: the hybrid did not pass the docs/20 bar offline (2026-11-09), so no table is loaded,
+// no mystery is split and Preferences says nothing about a test. On: needs renderer/colisten-data.js (scripts/data/colisten.py).
+const HYBRID_AB = false;
+// Co-listening table + lookup -> window.Colisten; async false keeps the data before the code that reads it.
+if (HYBRID_AB) for (const src of ['colisten-data.js', 'colisten.js']) document.head.append(el('script', { src, async: false }));
 
 let profile, countryNames = {};
 
@@ -528,7 +531,7 @@ function observe(c) { // once both scores exist: feed the calibration window (~8
 // ---- Hybrid picker (docs/21). Blind A/B: each mystery is picked by the shipped blend ('ship') or the hybrid ('hyb') at random;
 // the listening log keeps which, and Preferences shows the Love rate of each. The hybrid adds co-listening closeness
 // (window.Colisten), weights learned from your ratings (LambdaRank), Thompson-sampled sources and genre calibration.
-const nextAlg = () => (window.Colisten && Math.random() < 0.5 ? 'hyb' : 'ship');
+const nextAlg = () => (HYBRID_AB && window.Colisten && Math.random() < 0.5 ? 'hyb' : 'ship');
 let alg = 'ship';
 let coKey = '', coSets = { love: [], skip: [] };
 function coScore(c) {
@@ -1708,6 +1711,7 @@ function abLine() {
 }
 function renderPrefs() {
   $('#prefs-ab').textContent = abLine();
+  ['#ab-title', '#prefs-ab', '#src-lb'].forEach(s => { $(s).hidden = !HYBRID_AB; });
   const p = profile.prefs;
   renderPickedArtists();
   prefStatus();

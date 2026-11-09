@@ -44,7 +44,7 @@ with tarfile.open(MB, 'r|bz2') as tf:
         else:
             for line in f:
                 c = line.split(b'\t', 2)
-                iso.setdefault(int(c[0]), c[1].decode())
+                iso.setdefault(int(c[0]), c[1].decode().strip())  # the last column carries the line break
         need.discard(m.name)
         print(m.name, 'read', flush=True)
         if not need: break

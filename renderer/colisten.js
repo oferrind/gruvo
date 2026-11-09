@@ -50,28 +50,33 @@
     return adj;
   }
   // Personalised PageRank (Haveliwala 2002): a walk that hops along relationships and jumps back to your loved artists with
-  // probability `restart`. A high score = close to many loves through members, collaborators and credits. Memoised per seed set.
-  let pprKey = '', pprVal = null;
-  function ppr(seeds, iters = 20, restart = 0.15) {
-    const g = graph(), key = seeds.join(',');
-    if (!g || !seeds.length) return null;
-    if (key === pprKey) return pprVal;
-    const n = g.length, p0 = new Float32Array(n);
-    for (const s of seeds) p0[s] += 1 / seeds.length;
-    let p = p0.slice();
+  // probability `restart`. A high score = close to many loves through members, collaborators and credits. PageRank is linear
+  // in where the walk restarts, so a set of loves is the mean of each love's own vector: one walk per loved artist, cached.
+  const single = new Map();
+  function ppr1(s, iters = 20, restart = 0.15) {
+    if (single.has(s)) return single.get(s);
+    const g = graph(), n = g.length;
+    let p = new Float32Array(n); p[s] = 1;
     for (let it = 0; it < iters; it++) {
       const q = new Float32Array(n);
       for (let i = 0; i < n; i++) if (p[i] && g[i].length) { const share = (1 - restart) * p[i] / g[i].length; for (const j of g[i]) q[j] += share; }
-      for (let i = 0; i < n; i++) q[i] += restart * p0[i];
+      q[s] += restart;
       p = q;
     }
-    pprKey = key; pprVal = p;
+    single.set(s, p);
     return p;
+  }
+  // PageRank mass at artist i from a set of seeds (null without a graph or seeds).
+  function ppr(seeds, i) {
+    if (!graph() || !seeds.length) return null;
+    let m = 0;
+    for (const s of seeds) m += ppr1(s)[i];
+    return m / seeds.length;
   }
   // Graph score for a candidate artist: log PageRank mass from the loved seeds. null = no graph, or the artist isn't in it.
   function graphScore(name, loved) {
-    const i = find(name), p = i < 0 ? null : ppr(loved);
-    return p ? Math.log10(p[i] + 1e-7) : null;
+    const i = find(name), p = i < 0 ? null : ppr(loved, i);
+    return p === null ? null : Math.log10(p + 1e-7);
   }
   // Artist names -> table indices, unknown ones dropped. Callers keep this per profile change, not per candidate.
   const indices = names => [...new Set(names.map(find).filter(i => i >= 0))];

@@ -10,7 +10,7 @@ const { norm } = require('../../src/music');
 const [refFile, cacheFile = require('path').join(require('os').tmpdir(), 'gruvo-scenes-cache.json'), ...ids] = process.argv.slice(2);
 const IDS = ids.length ? ids : ['1990-JP-rock', '1980-JP-city-pop', '1970-TR-psych', '1970-BR-mpb', '1980-US-hip-hop', '1990-GB-britpop',
   '1970-DE-krautrock', '1990-US-grunge', '1990-NO-black-metal', '1970-NG-afrobeat', '1980-GB-post-punk', '1960-US-soul', '2000-SE-indie-pop'];
-const ref = JSON.parse(fs.readFileSync(refFile, 'utf8')); // [name, listeners, country, begin, end, tags]
+const ref = JSON.parse(fs.readFileSync(refFile, 'utf8')).map(r => [r[0], r[1], r[2] && r[2].trim(), ...r.slice(3)]); // [name, listeners, country, begin, end, tags]
 
 // In the scene: from its country, active during its decade (unknown end = still active), a top-3 tag among the stamp's tags.
 const inScene = st => ([, , cc, b, e, tags]) => cc === st.cc && b != null && b <= st.decade + 9 && (e == null || e >= st.decade)
