@@ -209,7 +209,7 @@
   const zs = (c, win) => ({ t: Number.isFinite(c.t) ? z(c.t, win.map(x => x.t)) : -UNKNOWN_TAG,
     s: Number.isFinite(c.s) ? z(c.s, win.map(x => x.s)) : 0, c: Number.isFinite(c.c) ? z(c.c, win.map(x => x.c)) : 0,
     g: Number.isFinite(c.g) ? z(c.g, win.map(x => x.g)) : 0 });
-  const W_HYBRID = { t: 0.8, s: 0.2, c: 0.5, g: 0 }; // replaced by the offline LambdaRank fit (docs/21)
+  const W_HYBRID = { t: 1.10, s: 0.47, c: 0.63, g: 0.24 }; // LambdaRank on 121 ratings, mean over the harness folds (docs/21)
   const dotW = (x, w) => w.t * x.t + w.s * x.s + w.c * x.c + (w.g || 0) * (x.g || 0);
   const blendW = (c, win, w) => dotW(zs(c, win), w);
   // LambdaRank (Burges 2010) for a linear model: pairs with different ratings pull the weights by how much swapping them

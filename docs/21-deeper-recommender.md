@@ -1,8 +1,10 @@
 # 21 - Deeper recommender: what was built, and what the evidence says
 
 2026-11-09. Steps 2 to 5 of the plan whose target and pass bar are in docs/20. The short answer: the new hybrid picker did
-**not** pass the bar, so the app keeps the shipped picker. The hybrid, the A/B test and the data pipeline are in the code,
-switched off by one flag (`HYBRID_AB` in renderer/app.js).
+**not** pass the offline bar. The owner chose to run the live blind A/B anyway, since 121 ratings cannot show a gain under
+about 0.04: `HYBRID_AB` (renderer/app.js) is on, so each Blind Test mystery is picked by the shipped or the hybrid picker at
+random, and the shipped picker stays the default unless the A/B shows the hybrid wins. Setting the flag to false removes
+the hybrid, the table and the Preferences "Picker test" line.
 
 ## Built
 
@@ -23,8 +25,9 @@ switched off by one flag (`HYBRID_AB` in renderer/app.js).
   CC BY-NC-SA). Among the 40,000 table artists: 7,178 relationship edges and 121,178 co-credit edges.
 - **Linking:** through MusicBrainz IDs (listens to names) and normalised artist names (names to Deezer). ISRC linking
   was not needed at the artist level, so it was not built.
-- **App table:** the 40,000 most-listened artists, int8 vectors plus edges, 3.8 MB (renderer/colisten-data.js, not
-  shipped while the flag is off). Works offline; nothing is sent.
+- **App table:** the 40,000 most-listened artists, int8 vectors plus edges, 3.8 MB (renderer/colisten-data.js). Loads in
+  about 135 ms on the desktop; the PageRank walks (one per loved artist, cached) run spread out after load, so the longest
+  pause measured was under 0.2 s. Works offline; nothing is sent.
 - **Match rate:** 86 of 110 rated artists (78%) and 45 of 48 saved artists (94%) are in the table. Skipped artists are
   matched least (17 of 32): rarer acts fall outside the 40,000.
 
@@ -64,15 +67,40 @@ than on these 121 ratings again.
 
 ### Not measured yet
 
-- **Live A/B and the 12 testers:** off with the flag; `node scripts/eval/ab.js <profile.json>...` reports the Love rate
-  per picker, pooled across testers, with a Newcombe interval. Decide at 60 rated mysteries per picker (docs/20).
-- **Crate Dig against an outside reference:** `scripts/eval/scenes.js` compares each scene's Roll with its 10 most-listened
-  ListenBrainz artists that MusicBrainz places in that country, decade and genre. Its first run was stopped by the
-  machine running out of memory, after a bug (country codes with a trailing line break) had emptied the reference; both
-  are fixed, the run is pending. Discogs was not used: its API needs an account token.
+- **Live A/B and the 12 testers:** running from this build. Preferences shows each picker's Love rate;
+  `node scripts/eval/ab.js <profile.json>...` gives the interval, pooled across testers. Decide at 60 rated mysteries per
+  picker (docs/20), not before.
 - **Audio features:** still waiting on Deezer's answer about analysis (docs/17); AcousticBrainz was not added.
 - **Catalogue coverage and the truthful reason:** need weeks of the listening log.
 
+### Crate Dig against an outside reference
+
+`scripts/eval/scenes.js`: for each scene, the 10 most-listened ListenBrainz artists that MusicBrainz places in its
+country, decade and genre (top-3 tags), against a real Roll plus More (live network). Discogs was not used: its API needs
+an account token.
+
+| Scene | Top 10 reached | Dug artists in the scene's top 50 |
+|---|---|---|
+| 2000s Swedish indie pop | 8/10 | 11/15 |
+| 90s US grunge | 5/10 | 12/14 |
+| 90s Norwegian black metal | 5/10 | 11/13 |
+| 60s US soul | 5/10 | 11/14 |
+| 70s Turkish psych | 5/10 | 5/13 |
+| 80s UK post-punk | 4/10 | 13/15 |
+| 70s Brazilian MPB | 4/10 | 9/14 |
+| 70s Nigerian afrobeat | 3/7 | 3/9 |
+| 90s Japanese rock | 3/10 | 8/14 |
+| 90s Britpop | 3/10 | 12/14 |
+| 70s krautrock | 1/10 | 9/14 |
+| 80s US hip hop | 1/10 | 3/14 |
+| 80s Japanese city pop | 0/10 | 0/13 |
+| **All** | **47/127 (0.37)** | **107/176 (0.61)** |
+
+**Caveat.** MusicBrainz "begin" is the birth year for solo artists, so the reference wrongly counts some later solo stars
+as active (Kanye West in 80s hip hop, Utada Hikaru under 80s city pop via the j-pop tag). Without those two scenes: 46/107
+(0.43). **Finding:** Crate Dig misses some flagship bands of their scenes (Nirvana, Joy Division, New Order, Kraftwerk,
+CAN, Oasis, Pulp, Burzum, Mayhem). A next Crate Dig change could seed each Roll with the scene's most-listened artists
+from this table, and be judged by this same check.
 ## Rerun
 
 ```sh

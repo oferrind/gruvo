@@ -25,7 +25,7 @@ const DECADES = [1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010];
 document.head.append(el('script', { src: 'features.js' })); // Sound Fingerprint math -> window.Features (no bundler, sandboxed: no require)
 // Hybrid picker + blind A/B (docs/21). Off: the hybrid did not pass the docs/20 bar offline (2026-11-09), so no table is loaded,
 // no mystery is split and Preferences says nothing about a test. On: needs renderer/colisten-data.js (scripts/data/colisten.py).
-const HYBRID_AB = false;
+const HYBRID_AB = true; // on by the owner's decision (2026-11-09) although it failed the offline bar: the live A/B decides
 // Co-listening table + lookup -> window.Colisten; async false keeps the data before the code that reads it.
 if (HYBRID_AB) for (const src of ['colisten-data.js', 'colisten.js']) document.head.append(el('script', { src, async: false }));
 
@@ -524,7 +524,7 @@ function observe(c) { // once both scores exist: feed the calibration window (~8
   if (c.obs || !c.vec || c.tagSim === undefined || !warm()) return;
   c.obs = true;
   const L = Features.nearest(c.vec, profile.ratings, 'love');
-  c.sc = { t: c.tagSim, s: L ? -L.d : null, c: coScore(c), g: window.Colisten ? Colisten.graphScore(c.artist, coSets.love) : null }; // coScore refreshes coSets first
+  c.sc = { t: c.tagSim, s: L ? -L.d : null, c: coScore(c), g: window.Colisten && coSets.love.every(s => warmed.has(s)) ? Colisten.graphScore(c.artist, coSets.love) : null }; // coScore refreshes coSets first
   seen.push(c.sc);
   if (seen.length > 80) seen.shift();
 }
@@ -534,12 +534,15 @@ function observe(c) { // once both scores exist: feed the calibration window (~8
 const nextAlg = () => (HYBRID_AB && window.Colisten && Math.random() < 0.5 ? 'hyb' : 'ship');
 let alg = 'ship';
 let coKey = '', coSets = { love: [], skip: [] };
+const warmed = new Set();
 function coScore(c) {
   if (!window.Colisten) return null;
   const key = `${profile.likes.length}:${profile.ratings.length}`;
   if (key !== coKey) {
     coKey = key;
     coSets = { love: Colisten.indices(profile.likes.map(l => l.artist)), skip: Colisten.indices(profile.ratings.filter(r => r.rating === 'skip' && r.a).map(r => r.a)) };
+    // One PageRank walk per loved artist, spread out so nothing freezes; the graph score waits until all of them are cached.
+    coSets.love.filter(s => !warmed.has(s)).forEach((s, i) => setTimeout(() => { Colisten.ppr([s], 0); warmed.add(s); }, 30 * i));
   }
   return Colisten.score(c.artist, coSets.love, coSets.skip);
 }
