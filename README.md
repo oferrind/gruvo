@@ -73,7 +73,7 @@ Gruvo is free, has no ads and no accounts, and keeps your profile on your device
 
 ## Status
 
-Version 0.2.0. Work in progress. A Google Play release waits on a reply from Deezer about API use, a privacy policy, and a closed test.
+Version 0.3.0. Work in progress. A Google Play release waits on a reply from Deezer about API use, a privacy policy, and a closed test.
 
 ## License
 
