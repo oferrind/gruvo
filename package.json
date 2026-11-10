@@ -1,6 +1,6 @@
 {
   "name": "music-discovery",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Desktop music discovery: Blind Taste Test, Crate Dig, Family Tree",
   "main": "main.js",
   "scripts": {

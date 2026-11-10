@@ -30,11 +30,8 @@ Needs [Node.js](https://nodejs.org/) 20 or newer.
 git clone https://github.com/oferrind/gruvo.git
 cd gruvo
 npm install
-cp stumble.config.example.json stumble.config.json   # then put your email in it
 npm start
 ```
-
-`stumble.config.json` holds the contact email that MusicBrainz asks every app to send with its requests. It's git-ignored, so your email stays on your machine.
 
 Run the tests with `npm test`.
 
@@ -73,7 +70,7 @@ Gruvo is free, has no ads and no accounts, and keeps your profile on your device
 
 ## Status
 
-Version 0.3.0. Work in progress. A Google Play release waits on a reply from Deezer about API use, a privacy policy, and a closed test.
+Version 0.3.1. Work in progress. A Google Play release waits on a reply from Deezer about API use, a privacy policy, and a closed test.
 
 ## License
 

@@ -6,7 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const UA = `Gruvo/${require('../package.json').version} (${require('../stumble.config.json').contact})`;
+// App id for every request; MusicBrainz and Wikimedia ask for a contact, and the project page is a public one (never a personal email).
+const UA = `Gruvo/${require('../package.json').version} (https://github.com/oferrind/gruvo)`;
 const CHECKPOINT = path.join(__dirname, '.genre-verify.json');
 const OUT = path.join(__dirname, '..', 'renderer', 'genre-data.js');
 const MIN_SONGS = 6; // ≥6 playable on one fetch: margin above the runtime threshold of 5

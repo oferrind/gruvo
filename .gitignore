@@ -23,6 +23,6 @@ android/keystore.properties
 *.keystore
 *.jks
 
-# MusicBrainz contact for the User-Agent: copy stumble.config.example.json to stumble.config.json and put your email in it
+# No longer used (the User-Agent names the project page); kept ignored so an old local copy with an email never gets committed
 stumble.config.json
 __pycache__/
