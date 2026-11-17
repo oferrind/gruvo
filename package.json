@@ -8,13 +8,15 @@
     "test": "node --test",
     "mobile:build": "node scripts/build-mobile.js && cap sync android",
     "mobile:apk": "npm run mobile:build && cd android && gradlew assembleDebug",
-    "mobile:release": "node scripts/build-mobile.js && cap sync android && cd android && gradlew assembleRelease bundleRelease"
+    "mobile:release": "node scripts/build-mobile.js && cap sync android && cd android && gradlew assembleRelease bundleRelease",
+    "win:build": "electron-builder --win nsis --publish never"
   },
   "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
     "@capacitor/cli": "8.5.3",
     "electron": "^45.0.0",
+    "electron-builder": "26.0.12",
     "esbuild": "0.28.2"
   },
   "dependencies": {
@@ -24,5 +26,31 @@
     "@capacitor/app-launcher": "8.0.1",
     "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.4"
+  },
+  "build": {
+    "appId": "com.stumble.music",
+    "executableName": "Gruvo",
+    "artifactName": "gruvo-${version}-setup.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "renderer/**",
+      "src/**",
+      "!node_modules/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "renderer/img/logo-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Gruvo",
+      "uninstallDisplayName": "Gruvo"
+    }
   }
 }
