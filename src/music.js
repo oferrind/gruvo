@@ -56,7 +56,7 @@ function adventureMix(adventure) {
 const chooseSource = (adventure, loveCount, r = Math.random()) =>
   loveCount >= 3 && r >= adventureMix(adventure).pExplore ? 'neighbour' : 'explore';
 
-// heard holds 'dz:<id>' / 'mb:<id>' (R4: same-name artists stay apart) or a normalized name (old profiles).
+// heard holds 'dz:<id>' / 'mb:<id>' (same-name artists stay apart) or a normalized name (old profiles).
 // shortcut: a dz-keyed artist isn't recognised by mb id or by name-only lookups (trail order); store both ids if that shows up.
 const isHeard = (heard, { dz, mb, name }) =>
   (dz != null && heard.includes(`dz:${dz}`)) || (mb != null && heard.includes(`mb:${mb}`)) || heard.includes(norm(name));

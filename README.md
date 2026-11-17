@@ -74,4 +74,4 @@ Version 0.3.1. Work in progress. A Google Play release waits on a reply from Dee
 
 ## License
 
-No open-source licence has been chosen yet, so all rights are reserved for now.
+The code is [MIT](LICENSE). Data keeps its own licence: MusicBrainz tags are CC BY-NC-SA, MusicBrainz core data and ListenBrainz listening data are CC0, and previews and covers belong to Deezer and the labels.

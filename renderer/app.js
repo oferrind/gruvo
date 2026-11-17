@@ -23,9 +23,9 @@ const norm = s => String(s || '').normalize('NFKD').toLowerCase().replace(/[^\p{
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const DECADES = [1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010];
 document.head.append(el('script', { src: 'features.js' })); // Sound Fingerprint math -> window.Features (no bundler, sandboxed: no require)
-// Hybrid picker + blind A/B (docs/21). Off: the hybrid did not pass the docs/20 bar offline (2026-11-09), so no table is loaded,
-// no mystery is split and Preferences says nothing about a test. On: needs renderer/colisten-data.js (scripts/data/colisten.py).
-const HYBRID_AB = true; // on by the owner's decision (2026-11-09) although it failed the offline bar: the live A/B decides
+// Hybrid picker + blind A/B (docs/21). On: each mystery is picked by the shipped or the hybrid picker at random, and
+// Preferences shows the Love rate of each; needs renderer/colisten-data.js (scripts/data/colisten.py). Off: none of that loads.
+const HYBRID_AB = true;
 // Co-listening table + lookup -> window.Colisten; async false keeps the data before the code that reads it.
 if (HYBRID_AB) for (const src of ['colisten-data.js', 'colisten.js']) document.head.append(el('script', { src, async: false }));
 
@@ -237,7 +237,7 @@ function renderNpLike() {
 }
 
 // ---------- likes / rows ----------
-// heard: 'dz:<artistId>' when known (R4: same-name artists stay apart), else the normalized name; matches src/music.js isHeard.
+// heard: 'dz:<artistId>' when known (same-name artists stay apart), else the normalized name; matches src/music.js isHeard.
 const heardKey = name => norm(name) || String(name || '').trim().toLowerCase(); // symbol-only names ("!!!") would normalize to ''
 const isHeard = t => (t.artistDzId != null && profile.heard.includes(`dz:${t.artistDzId}`)) || profile.heard.includes(heardKey(t.artist));
 const addHeard = t => { const k = t.artistDzId != null ? `dz:${t.artistDzId}` : heardKey(t.artist); if (k && !profile.heard.includes(k)) profile.heard.push(k); };
@@ -273,7 +273,7 @@ function unlike(t) {
   const old = profile.likes.find(l => likeKey(l) === likeKey(t));
   const at = profile.likes.indexOf(old), rating = profile.ratings.find(r => r.id === likeKey(t) && r.rating === 'love');
   const sk = old && stampOf(old);
-  if (sk && profile.stamps[sk] && !--profile.stamps[sk]) delete profile.stamps[sk]; // R2: unloving undoes its stamp
+  if (sk && profile.stamps[sk] && !--profile.stamps[sk]) delete profile.stamps[sk]; // unloving undoes its stamp
   profile.likes = profile.likes.filter(l => likeKey(l) !== likeKey(t));
   profile.ratings = profile.ratings.filter(r => r.id !== likeKey(t) || r.rating !== 'love');
   if (old) logEvent({ k: 'unsave', id: likeKey(t), from: activeTab() });
@@ -297,9 +297,9 @@ function afterLikeChange() {
   if (!$('#home').hidden && !$('#home').contains(document.activeElement)) renderHome(); // never re-render under the focused Love
   if ($('#saved').hidden) return;
   const i = $$('#saved-list > li').findIndex(r => r.contains(document.activeElement));
-  renderSaved(); // R3: Saved reflects unloves immediately
+  renderSaved(); // Saved reflects unloves immediately
   if (i < 0) return;
-  // The focused row was just re-rendered away: land on the next row's Love, else the heading (R6).
+  // The focused row was just re-rendered away: land on the next row's Love, else the heading.
   const rows = $$('#saved-list > li .love');
   if (rows.length) return rows[Math.min(i, rows.length - 1)].focus();
   $('#saved-list .state button').focus(); // the list is empty: its heading is hidden, so land on the empty crate's first action
@@ -1827,7 +1827,7 @@ $('#tree-export').onclick = e => {
   seedTaste(); // finishes seeding an interrupted earlier session; no-op otherwise
 })();
 
-// Theme toggle (Agent 6): follows the OS until the user picks; the choice persists in localStorage.
+// Theme toggle: follows the OS until the user picks; the choice persists in localStorage.
 {
   const root = document.documentElement, tbtn = document.getElementById('theme-toggle'), os = matchMedia('(prefers-color-scheme: light)');
   try { const t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') root.dataset.theme = t; } catch {}

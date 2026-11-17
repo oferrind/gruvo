@@ -1,56 +1,41 @@
-# Product
+# Gruvo
 
-<!-- impeccable:product-schema 1 -->
+Hear it first. Find out later.
 
-> Written by Agent 6 without a live interview (no answer mechanism in this subagent run).
-> Every fact below is inferred from `docs/01-ideas.md`, `docs/02-evaluation.md` and the code; items marked *(inferred)* need user confirmation.
+## What it is
 
-## Platform
+Gruvo is a music-discovery app for Android and Windows. One HTML, CSS and JavaScript app runs in Electron on the desktop and in Capacitor on Android. It is free, has no ads and no accounts, and keeps everything it learns about you on your device.
 
-android
+## Who it is for
 
-(One HTML/CSS/JS renderer ships twice: an Electron desktop app for Windows and an Android app via Capacitor. Phone-first design: native Android feel at ≤840px, desktop stays web.)
+A curious listener who is tired of "people who liked X also liked Y", genre radio and charts, and wants music they would never have searched for. Sessions are short and playful: a few mysteries, one scene from one place and decade, or one song's family tree.
 
-## Users
+## What success looks like
 
-A curious listener on their own computer, usually with headphones, who is bored of "people who liked X also liked Y", genre radio and charts, and wants to find music they would never have searched for. *(inferred)* Sessions are short and playful: a few mysteries, a trip to one country and decade, or one credits trail from a song they already love.
+You press Love on a song you had never heard, by an artist you would not have found yourself, and the app can tell you truthfully why it played it. docs/20 turns this into measures and a pass bar.
 
-## Product Purpose
+## The four tabs
 
-Help a listener find new music through routes that are explainable and fun, not popularity. Success means the listener presses Love on something they had never heard of, and can say why they reached it.
+- **Discover**: the Blind Test. A 30-second preview plays with no artist, title or cover. You rate it Love, OK or Skip, and only then see what it was and why it was picked. An Adventure slider sets how far from your taste it goes.
+- **Dig**: two ways in. *Crate Dig* rolls a decade, a place and a genre ("70s Turkish psych") or opens one of over 1,100 genres. *Mood Shelf* offers about 40 moods (coffee shop, rainy window, late night) with 20 songs each, fitted to your taste.
+- **Tree**: start from any song and grow its family: its scene, band members who moved on, what it is built on and its roots, one record at a time. Every step says why it is there.
+- **Saved**: your loved songs, with optional export to a Spotify playlist through your own Spotify Client ID.
 
-## Positioning
+Preferences (taste, Adventure, colour scheme, data sources) open from the gear icon. One now-playing bar is shared by every tab.
 
-Three discovery mechanisms that a similarity-based streaming app can't truthfully copy:
-- **Blind Test**: a 30-second preview with no artist, title, cover or genre. The listener rates it, and only then sees who it was. An Adventure slider sets how far from their taste the picks go.
-- **Passport**: pick a country and a decade, get playable tracks from there and then. Loving a track collects that country-decade stamp.
-- **Family Tree**: start from a song you saved (or search one); grow a small explained tree of songs from its scene, members who moved on, what it is built on and its roots. Every step says why it is there.
+## Sources and limits
 
-## Operating Context
+- Deezer for 30-second previews, covers and editorial playlists; previews are streamed and never written to disk. MusicBrainz, Wikidata and Wikipedia for artists, scenes, tags and descriptions. ListenBrainz listening data (built into the app) for which artists the same people play.
+- No full-length playback, no social features, no accounts.
+- A strict content security policy: no remote scripts or fonts; everything ships with the app.
 
-- Free, key-less public APIs only (Deezer, iTunes Search, MusicBrainz). Previews are 30 seconds, and Deezer preview URLs expire after about 15 minutes.
-- Offline-capable shell: no remote fonts or scripts (a CSP blocks them); assets ship with the app.
-- Keyboard use is first-class in Blind Test (Space, 1/2/3, Enter).
-- Album cover art is the only imagery, and it comes from third parties in every style and colour.
+## Principles
 
-## Capabilities and Constraints
+1. **Judge the sound, not the name.** Identity stays hidden until you have an opinion.
+2. **Every pick explains itself**: a place and a time, a shared person, listeners in common.
+3. **Show what you found**: loves and scenes are the record of where you have been.
+4. **Prove changes with evidence**: a new way of picking songs ships only after it is measured against the current one (docs/20, docs/21).
 
-- Tabs: Blind Test, Passport, Family Tree, Saved; one global now-playing bar.
-- Saved holds loved tracks and collected stamps, stored locally.
-- No accounts, no social features, no full-length playback.
-- Never depend on BPM or audio features (the APIs don't provide them reliably).
+## Accessibility
 
-## Evidence on Hand
-
-No testimonials, user counts or press exist. Do not fabricate any.
-
-## Product Principles
-
-1. Judge the sound, not the name: hide identity until the listener has committed to an opinion.
-2. Every discovery explains itself (a place and a time, a shared person, a cover of a known song).
-3. Collecting is the reward: stamps and loves are the visible record of exploration.
-4. No algorithmic fog: the listener chooses the route; the app never pretends to know them better.
-
-## Accessibility & Inclusion
-
-WCAG 2.1 AA contrast, full keyboard operation, visible focus, screen-reader labels for icon buttons, and respect for `prefers-reduced-motion` and forced-colors. *(inferred: carried over from Agent 5's baseline)*
+WCAG 2.1 AA contrast in every scheme, full keyboard use (Space, 1, 2, 3 and Enter in the Blind Test), visible focus, labels on icon buttons, and support for reduced motion and forced colours.

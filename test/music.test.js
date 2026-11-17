@@ -213,7 +213,7 @@ test('trail picks exclude original artist, one per artist', () => {
   assert.equal(new Set(picks.map(p => p.artist)).size, picks.length);
 });
 
-test('heard is id-keyed: same-name artists stay apart, old name entries still match (R4)', async () => {
+test('heard is id-keyed: same-name artists stay apart, old name entries still match', async () => {
   const rel = [{ id: 1, name: 'Nirvana', nb_fan: 10 }, { id: 2, name: 'Nirvana', nb_fan: 10 }, { id: 3, name: 'Low', nb_fan: 10 }];
   assert.deepEqual(m.pickRelated(rel, 100, ['dz:1']).map(a => a.id), [2, 3]);
   assert.deepEqual(m.pickRelated(rel, 100, ['low']).map(a => a.id), [1, 2]);

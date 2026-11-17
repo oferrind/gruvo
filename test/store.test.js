@@ -48,7 +48,7 @@ test('missing profile loads defaults without a backup', () => {
   assert.deepEqual(fs.readdirSync(d), []);
 });
 
-test('load migrates name-only heard entries of loved Deezer artists to ids (R4)', () => {
+test('load migrates name-only heard entries of loved Deezer artists to ids', () => {
   const d = tmp();
   fs.writeFileSync(path.join(d, 'profile.json'), JSON.stringify({ likes: [{ artist: 'Nirvana', artistDzId: 7 }, { artist: 'Nirvana', artistDzId: 9 }, { artist: 'Fela', source: 'it' }],
     heard: ['nirvana', 'fela', 'dz:7', 'low'] }));
