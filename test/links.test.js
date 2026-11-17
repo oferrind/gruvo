@@ -29,7 +29,7 @@ test('search links: YouTube / Spotify results for "artist title", allowlisted', 
 
 test('no iTunes host is left in the net layer, caches, CSP or flows', () => {
   const fs = require('node:fs'), path = require('node:path');
-  for (const f of ['src/net.js', 'src/cache.js', 'src/music.js', 'src/stamps.js', 'renderer/app.js'])
+  for (const f of ['src/net.js', 'src/cache.js', 'src/music.js', 'src/stamps.js', ...['app', 'player', 'blind', 'crate', 'moods', 'tree', 'saved', 'prefs'].map(n => `renderer/${n}.js`)])
     assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), /itunes\.apple|mzstatic|\.apple\.com/i, f);
   // old saved likes keep their Apple cover art: images only, never audio
   const html = fs.readFileSync(path.join(__dirname, '..', 'renderer/index.html'), 'utf8');
