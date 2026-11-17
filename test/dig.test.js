@@ -67,7 +67,7 @@ test('the dig path runs from the root down to the node', () => {
 // Renderer guards that have no DOM harness: pinned at the source so a refactor cannot drop them silently.
 const read = f => require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'renderer', f), 'utf8');
 test('the tree renderer guards a second More on a leaf and stale searches', () => {
-  const src = read('app.js');
+  const src = read('tree.js');
   assert.match(src, /if \(quiet && r && !r\.error && r\.added\) return;/); // a Dig into a bare record fills in without the More toast
   assert.match(src, /async function moreTree\(n, quiet\) \{[^\n]*\r?\n  if \(trDigging\.has\(n\.id\)\) return;/);
   assert.match(src, /const run = \+\+trRun;\r?\n  trSearch\+\+;/);
