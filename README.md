@@ -5,20 +5,30 @@
 
 Gruvo plays you 30-second previews of songs you've never heard, with no name or artist shown, and lets your ears decide. From there you can dig through decades, countries, genres and moods, or follow one song's family tree to the next.
 
+<p align="center">
+  <img src="docs/screenshots/discover.png" alt="Discover: a Blind Test song revealed after rating it OK, with why it was picked" width="49%">
+  <img src="docs/screenshots/dig-crates.png" alt="Dig, Crates mode: a Roll of 90s Japanese rock" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/dig-moods.png" alt="Dig, Moods mode: twenty songs for a coffee shop" width="60%">
+  <img src="docs/screenshots/phone.png" alt="The phone layout: Discover, dark theme, with the four-tab bar" width="22%">
+</p>
+
 ## Features
 
-- **Blind Test.** A mystery song plays with its cover hidden. Rate it Love, OK or Skip, then see what it was and why it was picked. Your ratings teach Gruvo your taste.
-- **Crate Dig.** Roll a decade, place and genre ("70s Turkish psych", "90s Japanese rock") or browse scenes and over 1,100 genres. Each Roll brings up to 15 playable songs, leaning toward the scene's well-known bands.
-- **Mood Shelf.** Around 40 vibes (coffee shop, rainy window, late night, workout…). Each gives 20 songs that fit the mood *and* your taste, with a line saying why.
-- **Family Tree.** Start from any song and grow its family: same scene, band members, artists it was built on, and its roots. Dig one record at a time.
-- **Saved.** Your loved songs, with export to a Spotify playlist (optional, with your own Spotify Client ID).
-- **8 colour schemes** in light and dark, a phone layout with a landscape rail, and keyboard support on desktop.
+- **Discover.** The Blind Test: a mystery song plays with its cover hidden. Rate it Love, OK or Skip, then see what it was and why it was picked. Your ratings teach Gruvo your taste.
+- **Dig**, in two modes:
+  - **Crates.** Roll a decade, place and genre ("70s Turkish psych", "90s Japanese rock") or browse scenes and over 1,100 genres. Each Roll brings up to 15 playable songs.
+  - **Moods.** Around 40 vibes (coffee shop, rainy window, late night, workout…). Each gives 20 songs that fit the mood *and* your taste, with a line saying why.
+- **Tree.** Start from any song and grow its family: same scene, band members, artists it was built on, and its roots. Dig one record at a time.
+- **Saved.** Your loved songs and recent finds, with export to a Spotify playlist (optional, with your own Spotify Client ID).
+- Two colour schemes in light and dark, a phone layout, and keyboard support on desktop. Preferences sit behind the gear icon.
 
 ## Install
 
 **Android:** download the latest `gruvo-x.y.z.apk` from [Releases](https://github.com/oferrind/gruvo/releases) and open it on your phone. Android will ask you to allow installs from your browser or file manager. Updating keeps your saved songs.
 
-**Windows:** there's no installer yet. Run it from source (below).
+**Windows:** download `gruvo-x.y.z-setup.exe` from [Releases](https://github.com/oferrind/gruvo/releases) and run it. The installer isn't code-signed yet, so Windows SmartScreen will say "unknown publisher": choose **More info**, then **Run anyway**.
 
 Gruvo is an early, unofficial build. It isn't on Google Play yet.
 
@@ -33,7 +43,7 @@ npm install
 npm start
 ```
 
-Run the tests with `npm test`.
+Run the tests with `npm test`. Build the Windows installer with `npm run win:build` (it lands in `dist/`).
 
 ### Android build
 
@@ -70,7 +80,7 @@ Gruvo is free, has no ads and no accounts, and keeps your profile on your device
 
 ## Status
 
-Version 0.3.1. Work in progress. A Google Play release waits on a reply from Deezer about API use, a privacy policy, and a closed test.
+Version 0.4.0. Work in progress. A Google Play release waits on a reply from Deezer about API use, a privacy policy, and a closed test.
 
 ## License
 
