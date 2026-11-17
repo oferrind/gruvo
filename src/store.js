@@ -27,7 +27,7 @@ const SRC = ['neighbour', 'genre', 'trail', 'explore', 'back', 'cold'], ALG = ['
 const name = s => typeof s === 'string' && s.trim() !== '' && s.length <= 200;
 const list = (a, ok, max) => (Array.isArray(a) ? a : []).filter(ok).slice(0, max);
 const uniq = a => [...new Set(a)];
-const SCHEMES = ['shop', 'bluelabel', 'riso', 'tuner', 'soul', 'bleep', 'mixtape', 'acid'];
+const SCHEMES = ['shop', 'mixtape'];
 function validPrefs(p) {
   p = p && typeof p === 'object' ? p : {};
   return {

@@ -74,5 +74,5 @@ test('the tree renderer guards a second More on a leaf and stale searches', () =
 });
 test('landscape touch keeps the logo, theme switch and search button at touch size', () => {
   const css = read('styles.css');
-  for (const re of [/\.touch \.brand \{ min-height: 48px/, /\.touch \.theme-toggle \{ min-width: 48px/, /\.touch \.search button \{ min-height: 48px/]) assert.match(css, re);
+  for (const re of [/\.touch \.brand \{ min-height: 48px/, /\.touch :is\(\.theme-toggle, \.prefs-open\) \{ min-width: 48px/, /\.touch \.search button \{ min-height: 48px/]) assert.match(css, re);
 });

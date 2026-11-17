@@ -18,8 +18,8 @@ const PAIRS = [
   ['color-on-accent', 'color-accent'], ['color-on-accent', 'color-love'], ['color-error', 'color-error-bg'], ['sticker-ink', 'sticker'], // the Love button is on-accent text on love
 ];
 
-test('the eight colour schemes exist, each with a light and a dark variant', () => {
-  assert.deepEqual(Object.keys(schemes).sort(), ['acid dark', 'acid light', 'bleep dark', 'bleep light', 'bluelabel dark', 'bluelabel light', 'mixtape dark', 'mixtape light', 'riso dark', 'riso light', 'shop dark', 'shop light', 'soul dark', 'soul light', 'tuner dark', 'tuner light']);
+test('the two colour schemes exist, each with a light and a dark variant', () => {
+  assert.deepEqual(Object.keys(schemes).sort(), ['mixtape dark', 'mixtape light', 'shop dark', 'shop light']);
   const keys = Object.keys(schemes['shop dark']).sort();
   for (const [name, s] of Object.entries(schemes)) assert.deepEqual(Object.keys(s).sort(), keys, `${name} overrides a different set of tokens`);
 });

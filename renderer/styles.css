@@ -9,7 +9,8 @@
 }
 
 :root {
-  color-scheme: dark;
+  --theme: dark;
+  color-scheme: var(--theme);
   /* stamp inks: one per continent in Genre Stamps, shared with the tree relations */
   --ink-1: var(--edge-member);
   --ink-2: var(--edge-builton);
@@ -47,33 +48,21 @@
   /* cover-art accent: hue + saturation from the playing cover (JS), lightness from the theme so text stays AA */
   --tint-h: 35;
   --tint-s: 86%;
-  --tint-l: 66%;
-  --tint: hsl(var(--tint-h) var(--tint-s) var(--tint-l));
-  --tint-glow: hsl(var(--tint-h) var(--tint-s) 52% / .5);
-  --tint-wash: hsl(var(--tint-h) var(--tint-s) 50% / .13);
+  --tint: light-dark(hsl(var(--tint-h) var(--tint-s) 27%), hsl(var(--tint-h) var(--tint-s) 66%));
+  --tint-glow: light-dark(hsl(var(--tint-h) var(--tint-s) 35% / .35), hsl(var(--tint-h) var(--tint-s) 52% / .5));
+  --tint-wash: light-dark(hsl(var(--tint-h) var(--tint-s) 40% / .1), hsl(var(--tint-h) var(--tint-s) 50% / .13));
 }
-:root[data-theme=light] {
-  color-scheme: light;
-  --shadow: 0 1px 2px rgb(60 40 20 / .08), 0 12px 28px -14px rgb(60 40 20 / .35);
-  --shadow-art: 0 8px 20px -8px rgb(40 25 10 / .5);
-  --shadow-bar: 0 -6px 18px -14px rgb(60 40 20 / .3);
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.08 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  --tint-l: 27%;
-  --tint-glow: hsl(var(--tint-h) var(--tint-s) 35% / .35);
-  --tint-wash: hsl(var(--tint-h) var(--tint-s) 40% / .1);
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme=dark]) {
-    color-scheme: light;
+/* Light or dark: dark unless the OS asks for light; data-theme (the header toggle, Preferences) overrides the OS either way.
+   The guards only flip --theme; color-scheme follows it, and the light-only values below live once. */
+:root[data-theme=light] { --theme: light; }
+@media (prefers-color-scheme: light) { :root:not([data-theme=dark]) { --theme: light; } }
+@container style(--theme: light) {
+  body {
     --shadow: 0 1px 2px rgb(60 40 20 / .08), 0 12px 28px -14px rgb(60 40 20 / .35);
     --shadow-art: 0 8px 20px -8px rgb(40 25 10 / .5);
     --shadow-bar: 0 -6px 18px -14px rgb(60 40 20 / .3);
     --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.12 0 0 0 0 0.08 0.1 0 0 0 -0.035'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
     --paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0.07 0 0 0 -0.03'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-    --tint-l: 27%;
-    --tint-glow: hsl(var(--tint-h) var(--tint-s) 35% / .35);
-    --tint-wash: hsl(var(--tint-h) var(--tint-s) 40% / .1);
   }
 }
 
@@ -113,166 +102,6 @@
   --color-groove: #2b221c;
 }
 
-/* Blue label: a cold hard-bop jazz sleeve. Midnight navy, one flat cobalt block, cool proof-paper type. */
-:root[data-scheme=bluelabel], [data-scheme=bluelabel] {
-  --color-bg: light-dark(#e3e7ec, #0e131c);
-  --color-surface: light-dark(#f4f6f8, #151c28);
-  --color-surface-2: light-dark(#d3d9e1, #1e2736);
-  --color-border: light-dark(#a8b3c2, #34405a);
-  --color-text: light-dark(#121a26, #e8edf3);
-  --color-muted: light-dark(#46536a, #9aa8bd);
-  --color-accent: light-dark(#1747a6, #4f9dff);
-  --color-on-accent: light-dark(#f4f7ff, #06101f);
-  --color-love: light-dark(#ac2e28, #ff7a70);
-  --color-focus: light-dark(#1747a6, #8cc2ff);
-  --color-error: light-dark(#a01d14, #ff9c8f);
-  --color-error-bg: light-dark(#f6dad6, #33191c);
-  --edge-scene: light-dark(#1f6b4c, #7fc8a9);
-  --edge-member: light-dark(#a63a2b, #f08a7a);
-  --edge-builton: light-dark(#1d55b0, #6fb0ff);
-  --edge-roots: light-dark(#6b5a12, #d9c070);
-  --edge-producer: light-dark(#5b45a8, #b8a4f0);
-  --edge-label: light-dark(#0b6470, #4fc6d0);
-  --edge-related: light-dark(#93306a, #e59ac4);
-  --edge-era: light-dark(#8c4a12, #f0a060);
-  --edge-place: light-dark(#4a6518, #a9c46a);
-  --edge-soundtrack: light-dark(#0a5e80, #8fd8f0);
-  --sticker: light-dark(#ffffff, #eef2f6);
-  --sticker-ink: light-dark(#121a26, #121a26);
-  --color-vinyl: #07090d;
-  --color-groove: #1c2230;
-  --tint-h: 215;
-  --tint-s: 90%;
-}
-
-/* Gig poster: a faded 70s risograph gig poster. Blue-black ink on newsprint, fluoro pink, yellow price stickers. */
-:root[data-scheme=riso], [data-scheme=riso] {
-  --color-bg: light-dark(#efe8d8, #161314);
-  --color-surface: light-dark(#f9f4e8, #201b1c);
-  --color-surface-2: light-dark(#e2d8c2, #2c2526);
-  --color-border: light-dark(#c4b597, #4a3f40);
-  --color-text: light-dark(#1d2233, #f3ece0);
-  --color-muted: light-dark(#4e5266, #b7aba0);
-  --color-accent: light-dark(#b21b54, #ff5f8f);
-  --color-on-accent: light-dark(#fff4f7, #1d0a10);
-  --color-love: light-dark(#9c1a6a, #ff8ad0); /* a riso magenta: a red heart fights the fluoro pink */
-  --color-focus: light-dark(#c21d5b, #ff9ab8);
-  --color-error: light-dark(#a01d14, #ff9c8f);
-  --color-error-bg: light-dark(#f8d9d2, #3a1a1f);
-  --edge-scene: light-dark(#156b50, #4fd1a8);
-  --edge-member: light-dark(#a73720, #ff8066);
-  --edge-builton: light-dark(#2050a8, #6ea8ff);
-  --edge-roots: light-dark(#705c0a, #ffd45c);
-  --edge-producer: light-dark(#6a3aa8, #c79bff);
-  --edge-label: light-dark(#0b6470, #3fc7d6);
-  --edge-related: light-dark(#ac2368, #ff7fb5);
-  --edge-era: light-dark(#95480b, #ffa24c);
-  --edge-place: light-dark(#4b6611, #b7d957);
-  --edge-soundtrack: light-dark(#0b5f7d, #7fd6ff);
-  --sticker: light-dark(#ffe14d, #ffe14d);
-  --sticker-ink: light-dark(#1d2233, #1d2233);
-  --color-vinyl: #0c0a0a;
-  --color-groove: #2a2324;
-  --tint-h: 340;
-  --tint-s: 90%;
-}
-
-/* Night tuner: the graveyard-shift radio booth. Black-green room, phosphor-green dial glow; light is the faceplate. */
-:root[data-scheme=tuner], [data-scheme=tuner] {
-  --color-bg: light-dark(#e1e7e1, #0a110e);
-  --color-surface: light-dark(#f2f6f2, #101a15);
-  --color-surface-2: light-dark(#d0d9d1, #17241d);
-  --color-border: light-dark(#a3b3a7, #2c4136);
-  --color-text: light-dark(#0f1d16, #e2efe6);
-  --color-muted: light-dark(#43564b, #93ad9e);
-  --color-accent: light-dark(#0a6a44, #58e6a0);
-  --color-on-accent: light-dark(#effff6, #04140b);
-  --color-love: light-dark(#a92e2c, #ff7a7a);
-  --color-focus: light-dark(#0a6a44, #9bf5c6);
-  --color-error: light-dark(#a01d14, #ff9c8f);
-  --color-error-bg: light-dark(#f6dad6, #2e1517);
-  --edge-scene: light-dark(#1d6a32, #7ee08f);
-  --edge-member: light-dark(#a8323d, #ff7f8a);
-  --edge-builton: light-dark(#1e56a8, #6cb6ff);
-  --edge-roots: light-dark(#685a0e, #e8d36a);
-  --edge-producer: light-dark(#5e3fa6, #c3a0ff);
-  --edge-label: light-dark(#06655f, #4fd8d0);
-  --edge-related: light-dark(#9a2c69, #ff92cf);
-  --edge-era: light-dark(#8e4a10, #ffa65c);
-  --edge-place: light-dark(#48650f, #c2e05a);
-  --edge-soundtrack: light-dark(#0a5f7c, #86e0ff);
-  --sticker: light-dark(#fbfffb, #e8f3ea);
-  --sticker-ink: light-dark(#0f1d16, #0f1d16);
-  --color-vinyl: #050806;
-  --color-groove: #17231d;
-  --tint-h: 150;
-  --tint-s: 70%;
-}
-
-/* Soul 45: a 60s soul 45 label. Cream paper, poppy-red print; dark is the oxblood listening booth. Love goes berry so it never reads as the accent. */
-:root[data-scheme=soul], [data-scheme=soul] {
-  --color-bg: light-dark(#f3ecdf, #1a0e0e);
-  --color-surface: light-dark(#fbf7ef, #241415);
-  --color-surface-2: light-dark(#e8dccb, #321c1d);
-  --color-border: light-dark(#d0b3a6, #55302f);
-  --color-text: light-dark(#2a1414, #f6e9df);
-  --color-muted: light-dark(#66423d, #c4a49c);
-  --color-accent: light-dark(#b3202a, #ff6a5c);
-  --color-on-accent: light-dark(#fff6f0, #200807);
-  --color-love: light-dark(#8f1d55, #ff8fc0);
-  --color-focus: light-dark(#b3202a, #ffa69c);
-  --color-error: light-dark(#9a1a12, #ffa08f);
-  --color-error-bg: light-dark(#f8d8d2, #3d1a1a);
-  --edge-scene: light-dark(#2c6b3b, #86c793);
-  --edge-member: light-dark(#ad3524, #ee7b68);
-  --edge-builton: light-dark(#22579a, #7db3e6);
-  --edge-roots: light-dark(#6e5710, #d6b65c);
-  --edge-producer: light-dark(#6a3e9e, #c3a2ec);
-  --edge-label: light-dark(#0f6359, #5cc2b4);
-  --edge-related: light-dark(#94305e, #e692b8);
-  --edge-era: light-dark(#8a4710, #e8914a);
-  --edge-place: light-dark(#546812, #aebf4f);
-  --edge-soundtrack: light-dark(#0e5f73, #7fd3e6);
-  --sticker: light-dark(#fffaf0, #f3e6d0);
-  --sticker-ink: light-dark(#2a1414, #2a1414);
-  --color-vinyl: #0e0808;
-  --color-groove: #2c1a1a;
-  --tint-h: 4;
-  --tint-s: 80%;
-}
-
-/* Bleep: 90s Sheffield bleep and IDM. Brushed-aluminium sleeve, neutral greys, one Warp-violet logo. */
-:root[data-scheme=bleep], [data-scheme=bleep] {
-  --color-bg: light-dark(#e4e4e6, #111113);
-  --color-surface: light-dark(#f4f4f5, #1a1a1d);
-  --color-surface-2: light-dark(#d4d4d8, #242428);
-  --color-border: light-dark(#a9a9b0, #3d3d44);
-  --color-text: light-dark(#151518, #ececef);
-  --color-muted: light-dark(#4c4c55, #a2a2ab);
-  --color-accent: light-dark(#5b2fc9, #ae94ff);
-  --color-on-accent: light-dark(#f7f4ff, #120a26);
-  --color-love: light-dark(#a8285a, #ff8fb3); /* raspberry, a warm note beside the violet */
-  --color-focus: light-dark(#5b2fc9, #cdbcff);
-  --color-error: light-dark(#a01d14, #ff9c8f);
-  --color-error-bg: light-dark(#f6dad6, #321a1a);
-  --edge-scene: light-dark(#1d6648, #7fc8a9);
-  --edge-member: light-dark(#9f3829, #f08a7a);
-  --edge-builton: light-dark(#1d55b0, #6fb0ff);
-  --edge-roots: light-dark(#6b5a12, #d9c070);
-  --edge-producer: light-dark(#5b45a8, #b8a4f0);
-  --edge-label: light-dark(#0b6470, #4fc6d0);
-  --edge-related: light-dark(#93306a, #e59ac4);
-  --edge-era: light-dark(#8c4a12, #f0a060);
-  --edge-place: light-dark(#496218, #a9c46a);
-  --edge-soundtrack: light-dark(#0a5e80, #8fd8f0);
-  --sticker: light-dark(#ffffff, #e6e6ea);
-  --sticker-ink: light-dark(#151518, #151518);
-  --color-vinyl: #08080a;
-  --color-groove: #222226;
-  --tint-h: 258;
-  --tint-s: 70%;
-}
-
 /* Mixtape: an 80s Memphis cassette inlay. Turquoise and coral on a pastel ground, yellow sticker; dark is the black tape shell. */
 :root[data-scheme=mixtape], [data-scheme=mixtape] {
   --color-bg: light-dark(#f5e8e3, #121315);
@@ -305,38 +134,6 @@
   --tint-s: 75%;
 }
 
-/* Acid house: 1988, a smiley badge on a black warehouse wall. Lemon on black; light is the photocopied flyer, lemon gone to olive ink. */
-:root[data-scheme=acid], [data-scheme=acid] {
-  --color-bg: light-dark(#f1eedc, #0e0e0b);
-  --color-surface: light-dark(#fbf9ee, #171712);
-  --color-surface-2: light-dark(#e3dfc6, #22221b);
-  --color-border: light-dark(#b9b394, #3d3c2e);
-  --color-text: light-dark(#18170e, #f3f1e0);
-  --color-muted: light-dark(#4f4c38, #b0ad92);
-  --color-accent: light-dark(#665800, #ffe32a);
-  --color-on-accent: light-dark(#fffbe0, #141200);
-  --color-love: light-dark(#b3302a, #ff7a6b);
-  --color-focus: light-dark(#665800, #fff07a);
-  --color-error: light-dark(#a01d14, #ff9c8f);
-  --color-error-bg: light-dark(#f6dad6, #34191a);
-  --edge-scene: light-dark(#1d6a32, #7ee08f);
-  --edge-member: light-dark(#a8323d, #ff7f8a);
-  --edge-builton: light-dark(#1e56a8, #6cb6ff);
-  --edge-roots: light-dark(#685a0e, #e8d36a);
-  --edge-producer: light-dark(#5e3fa6, #c3a0ff);
-  --edge-label: light-dark(#06655f, #4fd8d0);
-  --edge-related: light-dark(#9a2c69, #ff92cf);
-  --edge-era: light-dark(#8e4a10, #ffa65c);
-  --edge-place: light-dark(#4c6a10, #c2e05a);
-  --edge-soundtrack: light-dark(#0a5f7c, #86e0ff);
-  --sticker: light-dark(#ffe32a, #ffe32a);
-  --sticker-ink: light-dark(#18170e, #18170e);
-  --color-vinyl: #070706;
-  --color-groove: #20201a;
-  --tint-h: 55;
-  --tint-s: 95%;
-}
-
 * { box-sizing: border-box; }
 body { font: var(--font-size)/1.55 var(--font-body); margin: 0; padding-bottom: calc(var(--nowbar-h) + var(--space-4)); background: var(--grain), var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
 h1, h2, .brand, .reveal-artist { font-family: var(--font-display); }
@@ -358,7 +155,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 1px solid var(-
 button:disabled { opacity: .45; cursor: not-allowed; }
 button.primary { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); font-weight: 650; }
 @media (hover: hover) { button.primary:hover:not(:disabled) { background: var(--color-accent); border-color: var(--color-accent); filter: brightness(1.08); } }
-@media (hover: hover) { button:not(.way, .link, .ext, .ghost, [role=tab]):active:not(:disabled) { translate: 0 1px; filter: brightness(.94); } }
+@media (hover: hover) { button:not(.link, .ext, .ghost, [role=tab]):active:not(:disabled) { translate: 0 1px; filter: brightness(.94); } }
 button.ghost { border-color: transparent; background: transparent; }
 button.link { border: none; background: none; padding: 0; min-height: 0; text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; text-underline-offset: 3px; text-align: left; font-weight: 600; }
 @media (hover: hover) { button.link:hover:not(:disabled) { background: none; color: var(--color-accent); } }
@@ -379,15 +176,18 @@ input::placeholder { color: var(--color-muted); opacity: 1; }
 /* ---------- top bar + tabs ---------- */
 .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--space-6); padding: env(safe-area-inset-top, 0px) max(var(--space-5), env(safe-area-inset-right, 0px)) 0 max(var(--space-5), env(safe-area-inset-left, 0px)); background: var(--grain), var(--color-bg); border-bottom: 1px solid var(--color-border); }
 .brand { display: inline-flex; align-items: center; gap: var(--space-2); font-size: 19px; font-weight: 800; letter-spacing: .02em; padding: 0; min-height: 0; }
-.brand:hover:not(:disabled) { background: none; } /* a button (Home on phones) that still reads as the wordmark */
+.brand:hover:not(:disabled) { background: none; } /* a button (back to Discover) that still reads as the wordmark */
 .brand img { flex: none; width: 30px; height: 30px; border-radius: 7px; box-shadow: 0 0 0 1px var(--color-border); }
 #tabs { display: flex; gap: var(--space-2); }
 #tabs [role=tab] { border: none; border-radius: 0; background: none; padding: 10px var(--space-2); color: var(--color-muted); font-weight: 600; }
 @media (hover: hover) { #tabs [role=tab]:hover { color: var(--color-text); background: none; } }
 #tabs [aria-selected=true] { color: var(--color-text); box-shadow: inset 0 -3px 0 var(--color-accent); }
-.theme-toggle { margin-left: auto; width: 32px; height: 32px; min-height: 32px; padding: 0; border-radius: 50%; display: grid; place-items: center; color: var(--color-muted); }
-@media (hover: hover) { .theme-toggle:hover:not(:disabled) { color: var(--color-text); } }
-.theme-toggle svg { width: 18px; height: 18px; }
+:is(.prefs-open, .theme-toggle) { width: 32px; height: 32px; min-height: 32px; padding: 0; border-radius: 50%; display: grid; place-items: center; color: var(--color-muted); }
+@media (hover: hover) { :is(.prefs-open, .theme-toggle):hover:not(:disabled) { color: var(--color-text); } }
+:is(.prefs-open, .theme-toggle) svg { width: 18px; height: 18px; }
+.prefs-open { margin-left: auto; }
+.prefs-open + .theme-toggle { margin-left: calc(var(--space-2) - var(--space-6)); } /* the two header icons sit as a pair */
+.prefs-open[aria-current=page] { color: var(--color-accent); }
 
 main { max-width: var(--content-w); margin: 0 auto; padding: var(--space-6) max(var(--space-5), env(safe-area-inset-right, 0px)) var(--space-6) max(var(--space-5), env(safe-area-inset-left, 0px)); }
 main:has(> #tree:not([hidden])) { padding-bottom: 0; } /* the tree ends at its last song; body padding alone clears the now-playing bar */
@@ -694,6 +494,12 @@ main:has(> :is(#stamps, #moods, #tree):not([hidden])) { max-width: 1320px; } /* 
 :is(.stamp-mode, .saved-seg, .theme-seg) .chip[aria-pressed=true] { min-height: 46px; background: var(--paper), var(--color-surface); color: var(--color-text); border-color: var(--color-border); box-shadow: inset 0 3px 0 var(--color-accent); }
 @media (hover: hover) { :is(.stamp-mode, .saved-seg, .theme-seg) .chip:not([aria-pressed=true]):hover { color: var(--color-text); background: var(--color-surface-2); } }
 .touch :is(.stamp-mode, .saved-seg, .theme-seg) .chip[aria-pressed=true] { min-height: 54px; }
+/* Crates | Moods: Dig's two modes, a small two-way paper switch over the heading (the index cards below it are the mode's own) */
+.dig-switch { display: inline-flex; gap: 0; margin-bottom: var(--space-3); padding: 2px; border: 1px solid var(--color-border); border-radius: var(--radius-pill);
+  background: var(--paper), var(--color-surface); box-shadow: inset 0 1px 2px rgb(0 0 0 / .12); }
+.dig-switch .chip { min-height: 30px; padding: 0 var(--space-4); border: none; background: none; color: var(--color-muted); font: 700 14px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+.dig-switch .chip[aria-pressed=true] { background: var(--color-accent); color: var(--color-on-accent); }
+@media (hover: hover) { .dig-switch .chip:not([aria-pressed=true]):hover:not(:disabled) { color: var(--color-text); background: none; } }
 /* the browse search: one field over Scenes and Genres, a drawn lens in it, its own clear button (the native one is too small to hit) */
 .find { position: relative; margin-bottom: var(--space-3); }
 .find input { padding-left: 38px; padding-right: 44px; }
@@ -921,7 +727,9 @@ main:has(> :is(#stamps, #moods, #tree):not([hidden])) { max-width: 1320px; } /* 
 .search input, .search select { flex: 1; }
 select { font: inherit; min-width: 0; min-height: 34px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-muted); border-radius: var(--radius); background: var(--color-surface); color: var(--color-text); accent-color: var(--color-accent); }
 /* Tune tick-boxes: name (and a hint under More ways) on the left, the box on the right */
-.genre-btn, .saved-seg, #saved-recent-wrap, .sheet, .menu-rate:empty { display: none; }
+.genre-btn, .sheet, .menu-rate:empty { display: none; }
+.saved-seg { margin-bottom: var(--space-3); }
+#saved[data-seg=recent] .saved-loved, #saved:not([data-seg=recent]) #saved-recent-wrap { display: none; }
 .genre-btn { font: inherit; padding: 0 2px; border: none; border-bottom: 2px solid var(--color-accent); border-radius: 0; background: transparent; color: var(--color-accent); }
 .grow-edges { border: none; margin: 0; padding: 0; }
 .grow-edges legend { font-weight: 600; padding: 0 0 var(--space-2); }
@@ -1094,42 +902,8 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .np-time { display: none; }
   .nowbar .full-song { display: none; } /* no room; the reveal and Saved rows still carry the links */
 }
-/* ---------- home: the last record on the counter, then the crate ---------- */
-.platter { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-6) 56px; align-items: center; margin-bottom: var(--space-6); }
-.platter-art { --rec: 220px; position: relative; width: calc(var(--rec) * 1.45); height: var(--rec); }
-.platter-art::after { content: ""; position: absolute; z-index: 0; top: 4%; left: calc(var(--rec) * .5); width: calc(var(--rec) * .92); aspect-ratio: 1; border-radius: 50%; box-shadow: var(--shadow-art);
-  background: radial-gradient(circle, var(--color-bg) 0 2.4%, transparent 2.8%), radial-gradient(circle closest-side, var(--tint) 0 33%, var(--color-vinyl) 34% 37%, transparent 38%),
-    repeating-radial-gradient(circle, var(--color-groove) 0 1px, var(--color-vinyl) 1.5px 4px); }
-.platter-art > :is(img, .sleeve-blank) { position: relative; z-index: 1; display: block; width: var(--rec); height: var(--rec); border-radius: 3px; object-fit: cover; box-shadow: 10px 14px 28px -10px rgb(0 0 0 / .7); }
-.platter h1 { font-size: 20px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 var(--space-3); }
-.platter .track { padding: 0; align-items: flex-start; gap: var(--space-4); }
-.platter .track:hover, .platter .track.is-playing { background: none; }
-.platter .track > :is(img, .cover-ph) { display: none; }
-.platter .track .play { width: 44px; height: 44px; margin-top: 4px; background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); }
-.platter .track .title { font: 800 44px/1 var(--font-display); letter-spacing: .005em; overflow-wrap: anywhere; }
-.platter .track .artist { font-size: 17px; margin-top: var(--space-1); }
-.platter .track .reason { margin-top: var(--space-2); }
-.platter .track .meta { flex: 0 1 auto; }
-.platter .track .love { margin-top: 10px; }
-.platter .row { margin-top: var(--space-5); }
-/* No cover to show: a plain kraft inner sleeve, its die-cut hole showing the record's label; never a fake cover. */
-.sleeve-blank { --kraft: color-mix(in oklab, var(--color-accent) 30%, var(--color-surface-2));
-  background: radial-gradient(circle, var(--color-bg) 0 1.3%, var(--tint) 1.7% 12.5%, rgb(0 0 0 / .45) 13% 14%, transparent 14.6%),
-    linear-gradient(transparent 6%, rgb(0 0 0 / .12) 6% 6.6%, transparent 6.6%), var(--paper), var(--kraft); }
-.lately { max-width: 52ch; margin: var(--space-5) 0 0; padding-top: var(--space-4); border-top: 1px dashed var(--color-border); font-size: 15px; text-wrap: pretty; }
-.ways-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); padding: var(--space-4) 0; border-block: 1px solid var(--color-border); }
-.ways-label { color: var(--color-muted); font-size: var(--font-size-sm); }
-.ways { display: contents; list-style: none; }
-/* Other ways in: real buttons, a raised crate divider each; the platter row above holds the one amber primary. */
-.way { display: grid; grid-template-columns: auto; align-items: center; gap: 2px var(--space-3); min-height: 48px; padding: var(--space-2) var(--space-4);
-  text-align: left; background: var(--paper), var(--color-surface); border-color: var(--color-border); box-shadow: inset 0 1px 0 rgb(255 255 255 / .05), 0 3px 6px -2px rgb(0 0 0 / .35);
-  transition: background var(--dur), border-color var(--dur), box-shadow var(--dur), translate var(--dur); }
-@media (hover: hover) { .way:hover:not(:disabled) { background: var(--paper), var(--color-surface-2); border-color: var(--color-accent); } }
-@media (hover: hover) { .way:active:not(:disabled) { translate: 0 1px; box-shadow: inset 0 2px 4px rgb(0 0 0 / .3); } }
-.way-name { font: 700 18px/1.1 var(--font-display); letter-spacing: .02em; }
-.way-live { color: var(--color-muted); font-size: var(--font-size-sm); }
-.home > h2 { margin-top: 36px; }
-@media (max-width: 720px) { .platter { grid-template-columns: 1fr; } .platter-art { --rec: 170px; } .platter .track .title { font-size: 32px; } }
+/* Saved: one sentence of your taste lately, under the heading like a note on the crate */
+.lately { max-width: 52ch; margin: var(--space-3) 0 0; padding-top: var(--space-3); border-top: 1px dashed var(--color-border); font-size: 15px; text-wrap: pretty; }
 
 /* recent finds: a crate of sleeves */
 .crate { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-5) var(--space-4); }
@@ -1199,7 +973,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .brand { min-height: 48px; }
   main { padding: var(--space-4) max(var(--space-3), env(safe-area-inset-right, 0px)) var(--space-4) max(var(--space-3), env(safe-area-inset-left, 0px)); }
 
-  /* bottom bar: Blind Test, Crate Dig, Tree, Saved. Home is the wordmark. The selected label is underlined in amber, no pill. */
+  /* bottom bar: Discover, Dig, Tree, Saved; Preferences is the gear in the top bar. The selected label is underlined in amber, no pill. */
   #tabs { position: fixed; z-index: 6; left: 0; right: 0; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0;
     padding: 0 env(safe-area-inset-right, 0px) var(--safe-b) env(safe-area-inset-left, 0px); background: var(--grain), var(--color-bg); border-top: 1px solid var(--color-border); }
   /* each tab: a drawn icon over a short label; the selected one gets an amber marker stroke under its label, slightly askew */
@@ -1214,19 +988,12 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   #tabs [aria-selected=true]::after { opacity: 1; scale: 1; }
   #tabs [role=tab]:active::before { scale: .86; }
   #tab-blind { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9.3'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3Cpath d='M12 5.9a6.1 6.1 0 0 1 6.1 6.1M5.9 12A6.1 6.1 0 0 0 12 18.1'/%3E%3C/svg%3E"); }
-  #tab-stamps { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11h18v9.5H3zM9.5 15h5M5.6 11 4.3 5.1l6.1-1.3 1.1 7.2M12.6 11l1.6-7.3 6 1.3-1.4 6'/%3E%3C/svg%3E"); }
-  #tab-moods { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 20h19M4 20V9h4.5v11M8.5 20V6h5v14M16.1 20l-2.6-9.7 3.9-1 2.6 9.7'/%3E%3Ccircle cx='11' cy='10' r='1.3'/%3E%3C/svg%3E"); }
+  #tab-dig { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11h18v9.5H3zM9.5 15h5M5.6 11 4.3 5.1l6.1-1.3 1.1 7.2M12.6 11l1.6-7.3 6 1.3-1.4 6'/%3E%3C/svg%3E"); }
   #tab-tree { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='19.3' r='2.2'/%3E%3Ccircle cx='5.2' cy='5.6' r='2.1'/%3E%3Ccircle cx='12' cy='4.2' r='2.1'/%3E%3Ccircle cx='18.8' cy='5.6' r='2.1'/%3E%3Cpath d='M12 17.1V11.5M12 11.5 6.7 7.2M12 11.5l5.3-4.3M12 11.5V6.3'/%3E%3C/svg%3E"); }
   #tab-saved { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M12 19.6s-7.6-4.6-7.6-10.1A4.2 4.2 0 0 1 12 7.1a4.2 4.2 0 0 1 7.6 2.4c0 5.5-7.6 10.1-7.6 10.1z'/%3E%3C/svg%3E"); }
   /* the Saved count is a price sticker on the heart */
   #tabs .count { position: absolute; top: 5px; left: calc(50% + 7px); margin: 0; padding: 2px 4px 1px; border-radius: 3px; background: var(--sticker); color: var(--sticker-ink);
     font: 700 10px/1 var(--font-mono); rotate: -5deg; box-shadow: 0 1px 2px rgb(0 0 0 / .35); }
-  #tabs #tab-home { display: none; }
-  #tabs #tab-prefs { position: fixed; top: env(safe-area-inset-top, 0px); right: calc(var(--space-2) + env(safe-area-inset-right, 0px)); width: 48px; height: 56px; padding: 0; font-size: 0; display: flex; align-items: center; justify-content: center; }
-  #tabs #tab-prefs { --tab-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' fill='none' stroke='black'%3E%3Ccircle cx='11' cy='11' r='7.6' stroke-width='3.4' stroke-dasharray='2.4 3.57'/%3E%3Ccircle cx='11' cy='11' r='5.6' stroke-width='1.8'/%3E%3Ccircle cx='11' cy='11' r='2' stroke-width='1.8'/%3E%3C/svg%3E"); }
-  #tabs #tab-prefs::before { width: 22px; height: 22px; }
-  #tabs #tab-prefs::after { display: none; }
-  #tabs #tab-prefs[aria-selected=true]::before { color: var(--color-accent); }
 
   /* now playing: a 64px shelf docked on the tab bar, gone entirely while nothing is playing. Sleeve, title over artist, heart, play;
      the progress runs along its top edge in the cover's hue, the one colour on it besides the play button */
@@ -1302,8 +1069,6 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .stamp-main:has(.stamp-info) { min-height: calc(100dvh - 56px - var(--tabbar-h) - var(--safe-b)); } /* room to bring a fresh pick to the top while its songs load */
 
 
-  /* Home on a phone: the record and the recent crate; the bottom bar replaces "Other ways in" */
-  .ways-row { display: none; }
 
   /* ⋯ menu: a bottom sheet over a scrim (desktop keeps the hover popover) */
   #main :is(.node-menu, .sheet) { position: fixed; z-index: 30; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 75dvh; overflow-y: auto;
@@ -1336,9 +1101,6 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   .dig-head { font-size: 21px; }
   .has-sheet #b-genre { display: none; }
   .has-sheet .genre-btn { display: inline-block; }
-  .saved-seg { display: flex; margin-bottom: var(--space-3); }
-  #saved[data-seg=recent] .saved-loved, #saved:not([data-seg=recent]) #saved-recent-wrap { display: none; }
-  #saved[data-seg=recent] #saved-recent-wrap { display: block; }
   .track .meta { overflow-wrap: anywhere; }
   .about-src { white-space: normal; }
   #main .node-menu summary { min-height: 48px; display: flex; align-items: center; font-size: 15px; }
@@ -1360,7 +1122,7 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
   font: 750 18px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase; text-decoration: none; }
 .touch #mystery-next:hover:not(:disabled) { background: var(--color-accent); color: var(--color-on-accent); }
 .mystery.is-revealed #rate { display: none; } /* the verdict is in; the reveal keeps one Love */
-.touch :is(.chip, .love, .track .play, .rate button, .suggest-row, .cat-item, .scheme, .way, .theme-toggle) { min-height: 48px; }
+.touch :is(.chip, .love, .track .play, .rate button, .suggest-row, .cat-item, .scheme, .theme-toggle, .prefs-open) { min-height: 48px; }
 .touch .track .play { width: 48px; height: 48px; margin-top: 0; }
 .touch :is(.node-actions > button, .node-actions .dots, .node-actions summary, .node-rate button) { min-height: 48px; min-width: 48px; padding-inline: var(--space-2); justify-content: center; }
 .touch :is(.more-toggle, button.ext, .cat-more, .sp-export button) { min-height: 44px; }
@@ -1372,12 +1134,12 @@ button.ext::after { content: ""; display: inline-block; width: 9px; height: 9px;
 .touch .chip { padding-inline: var(--space-4); }
 .touch .about-more summary { padding-block: 12px; min-height: 44px; }
 .touch .brand { min-height: 48px; }
-.touch .theme-toggle { min-width: 48px; } /* landscape touch: the logo and the theme switch are targets too */
+.touch :is(.theme-toggle, .prefs-open) { min-width: 48px; } /* landscape touch: the logo, the gear and the theme switch are targets too */
 .touch :is(.adventurous, .grow-edge, .bring-back) { min-height: 48px; }
 .touch :is(.scheme input, .field input[type=checkbox]) { width: 22px; height: 22px; }
 /* touch at any width (a tablet gets the desktop layout; a landscape phone gets the phone rules): 48px controls, 16px fields */
 .touch :is(select, input[type=search], input[type=text]) { min-height: 48px; font-size: 16px; }
-.touch :is(.platter .row button, button.cat-more, .state button, .cat-empty button, .find-clear, #stamp-more button, .grow-done) { min-height: 48px; }
+.touch :is(button.cat-more, .state button, .cat-empty button, .find-clear, #stamp-more button, .grow-done) { min-height: 48px; }
 .touch .grow-filters :is(select, input[type=range]) { min-height: 48px; }
 .touch :is(#sp-go, #prefs-done, .slider input) { min-height: 48px; } /* landscape touch: the controls the phone rules cover */
 .touch .slider .end { margin-top: -10px; } /* the 48px slider's track sits mid-box: keep its ends tight under it */
@@ -1491,7 +1253,7 @@ html { -webkit-tap-highlight-color: transparent; }
   #saved-list .reason { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
   .track .full-song { margin-top: var(--space-2); }
   /* chips: tonal pills, the chosen ones inked */
-  :not(.stamp-mode, .saved-seg, .theme-seg) > .chip:not([aria-pressed=true]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
+  :not(.stamp-mode, .saved-seg, .theme-seg, .dig-switch) > .chip:not([aria-pressed=true]) { border-color: transparent; background: color-mix(in srgb, var(--color-text) 9%, transparent); }
 }
 @keyframes panel-in { from { opacity: 0; translate: 0 10px; } }
 @keyframes sheet-in { from { translate: 0 100%; box-shadow: 0 0 0 100vmax transparent; } }
@@ -1513,7 +1275,6 @@ html { -webkit-tap-highlight-color: transparent; }
   #tabs { top: 0; right: auto; width: var(--rail-w); grid-auto-flow: row; grid-auto-columns: auto; grid-auto-rows: 72px; align-content: center;
     padding: env(safe-area-inset-top, 0px) 0 var(--safe-b) env(safe-area-inset-left, 0px); border-top: none; border-right: 1px solid var(--color-border); }
   #tabs [role=tab] { min-height: 0; padding: 0 4px 10px; white-space: normal; line-height: 1.1; text-align: center; }
-  #tabs #tab-prefs { height: 44px; }
   .nowbar { left: var(--rail-w); bottom: 0; }
   .toast { bottom: calc(var(--nowbar-h) + var(--space-3)); margin-left: calc(var(--rail-w) / 2); }
   main { padding-top: var(--space-3); }

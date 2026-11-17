@@ -116,10 +116,18 @@ test('Family Tree grow settings persist in prefs.tree; old profiles get the defa
 
 test('colour scheme persists in prefs.scheme; unknown values fall back to Record shop', () => {
   tmp();
-  store.save({ likes: [], heard: [], prefs: { scheme: 'tuner' } });
-  assert.equal(store.load().prefs.scheme, 'tuner');
+  store.save({ likes: [], heard: [], prefs: { scheme: 'mixtape' } });
+  assert.equal(store.load().prefs.scheme, 'mixtape');
   store.save({ likes: [], heard: [], prefs: { scheme: { x: 1 } } });
   assert.equal(store.load().prefs.scheme, 'shop');
+});
+
+test('a profile saved with a retired colour scheme opens in Record shop', () => {
+  tmp();
+  for (const scheme of ['bluelabel', 'riso', 'tuner', 'soul', 'bleep', 'acid']) {
+    store.save({ likes: [], heard: [], prefs: { scheme } });
+    assert.equal(store.load().prefs.scheme, 'shop', scheme);
+  }
 });
 
 test('prefs.bringBack defaults on and only an explicit false turns it off; back state is bounded', () => {
