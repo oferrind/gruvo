@@ -61,7 +61,7 @@ const audio = $('#audio');
 let current = null, currentExtra = null, currentFrom = null, retried = false, onFail = null;
 const hidden = t => t === mystery && !rated; // an unrated mystery: nothing that names it (cover, colour, last-played) may show
 
-// from: {tab, label} where the track was started, for the bar's "came from" chip and Home's "continue".
+// from: {tab, label} where the track was started, for the bar's "came from" chip.
 async function play(item, { onFail: failCb, extra, from } = {}) {
   current = item; currentExtra = extra || null; currentFrom = from || null; retried = false; onFail = failCb || null;
   renderNpLike(); renderNpMeta(); syncPlayState();
@@ -106,7 +106,7 @@ function logEvent(e) {
   if (profile.events.length > 3000) profile.events.splice(0, profile.events.length - 3000); // store.js keeps the same cap
   return ev;
 }
-const activeTab = () => tabs.find(b => b.getAttribute('aria-selected') === 'true')?.dataset.tab;
+const activeTab = () => shown; // the panel, so Dig logs 'stamps' or 'moods' as before
 audio.addEventListener('timeupdate', () => {
   const d = audio.currentTime - lastPos;
   lastPos = audio.currentTime;
@@ -171,7 +171,7 @@ $('#deck').addEventListener('animationend', e => { if (e.target.classList.contai
 $('#np-toggle').onclick = togglePlay;
 
 // The bar: the cover (a plain "?" sleeve while it is a mystery), title over artist, and the "came from" link back to the source.
-const tabName = id => ($(`#tab-${id}`)?.firstChild.textContent || id).trim();
+const tabName = id => ({ stamps: 'Crate Dig', moods: 'Mood Shelf' })[id] || ($(`#tab-${id}`)?.firstChild.textContent || id).trim(); // Dig's two modes go by their own names
 function renderNpMeta() {
   const [title, artist] = !current ? ['Nothing playing', ''] : hidden(current) ? ['Mystery track', ''] : [cleanTitle(current.title), current.artist];
   $('#now-playing').textContent = title; $('#np-artist').textContent = artist;
@@ -189,9 +189,9 @@ $('#np-from').onclick = () => {
   if (current === mystery) return $('#mystery-play').focus();
   const row = current && $(`#${currentFrom.tab} .track[data-key="${CSS.escape(likeKey(current))}"]`);
   if (row) { row.scrollIntoView({ block: 'center' }); row.querySelector('.play').focus(); }
-  else $(`#tab-${currentFrom.tab}`)?.focus(); // the row is gone (a regrown tree, a cleared list): land on its tab, not on nothing
+  else $(`#tab-${tabOf(currentFrom.tab)}`)?.focus(); // the row is gone (a regrown tree, a cleared list): land on its tab, not on nothing
 };
-// Last played (never an unrated mystery), kept in the profile for Home's "continue where you left off".
+// Last played (never an unrated mystery), kept in the profile.
 function remember(t) {
   if (hidden(t)) return;
   const { source, id, title, artist, artistDzId, albumId, cover, isrc } = t;
@@ -294,7 +294,6 @@ function afterLikeChange() {
   $$('.love').forEach(b => b.sync && b.sync());
   $('#saved-count').textContent = profile.likes.length || '';
   renderStamps();
-  if (!$('#home').hidden && !$('#home').contains(document.activeElement)) renderHome(); // never re-render under the focused Love
   if ($('#saved').hidden) return;
   const i = $$('#saved-list > li').findIndex(r => r.contains(document.activeElement));
   renderSaved(); // R3: Saved reflects unloves immediately
@@ -388,23 +387,36 @@ const tabs = $$('#tabs [role=tab]');
 let introOpen = false;
 const tabHist = []; // tabs left behind, for the Android back button
 let prefsFrom = null, prefsFirst = false; // the tab Preferences was opened from: the last button leads back there
-let goingBack = false;
+let goingBack = false, shown = null; // shown: the panel on screen (Dig's tab shows 'stamps' or 'moods')
+// Dig is one tab over two panels, Crate Dig (stamps) and Mood Shelf (moods); it reopens on the mode used last.
+const DIG = ['stamps', 'moods'];
+const tabOf = name => (DIG.includes(name) ? 'dig' : name);
 function showTab(name, focus) {
+  if (name === 'dig') name = ls('digMode') === 'moods' ? 'moods' : 'stamps';
+  if (DIG.includes(name)) {
+    ls('digMode', name);
+    $$('[data-dig]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dig === name)));
+    $('#tab-dig').setAttribute('aria-controls', name);
+  }
   closeIntro();
-  const prev = tabs.find(b => b.getAttribute('aria-selected') === 'true')?.dataset.tab;
+  const prev = shown;
+  shown = name;
   if (prev && prev !== name && !goingBack) { const i = tabHist.lastIndexOf(name); if (i >= 0) tabHist.length = i; tabHist.push(prev); } // revisiting a tab drops the loop, so Back never replays ping-pong
-  tabs.forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+  const tab = tabOf(name), isTab = tabs.some(b => b.dataset.tab === tab); // Preferences is no tab: none selected, the first stays in the Tab order
+  tabs.forEach((b, i) => { const on = b.dataset.tab === tab; b.setAttribute('aria-selected', on); b.tabIndex = on || (!isTab && !i) ? 0 : -1; if (on && focus) b.focus(); });
+  if (name === 'prefs') $('#prefs-open').setAttribute('aria-current', 'page'); else $('#prefs-open').removeAttribute('aria-current');
   $$('.panel').forEach(p => { p.hidden = p.id !== name; });
   if (prev !== name && !goingBack) scrollTo(0, 0); // a new tab opens at its top
-  if (name === 'home') renderHome();
-  if (name === 'blind' && mystery && !rated && !current) playMystery(); // Home is the landing page: the first mystery waits until you come here
+  if (name === 'blind' && mystery && !rated && !current && navigator.userActivation?.hasBeenActive) playMystery(); // the app opens here: no sound before the first tap
   if (name === 'saved') renderSaved();
   if (name === 'moods') renderMoods();
   if (name === 'prefs') { if (prev && prev !== 'prefs') prefsFrom = prev; renderPrefs(); prefsMode(prefsFirst); }
   if (name === 'tree' && !trNodes.length) showStart(true);
 }
 $('#tabs').addEventListener('click', e => { const t = e.target.closest('[role=tab]'); if (t) showTab(t.dataset.tab); });
-$('#brand').onclick = () => showTab('home'); // phones have no Home tab: the brand is the way back
+$('#brand').onclick = () => showTab('blind');
+$('#prefs-open').onclick = () => showTab('prefs');
+$$('[data-dig]').forEach(b => { b.onclick = () => { showTab(b.dataset.dig); $(`#${b.dataset.dig} [data-dig="${b.dataset.dig}"]`).focus(); }; }); // the switch is in both panels: keep focus on it
 // Touch screen with no mouse: hide key hints (CSS .touch) and say "tap" where the copy says "press Enter".
 {
   const mq = matchMedia('(hover: none) and (pointer: coarse)');
@@ -723,7 +735,7 @@ function showMystery() {
   $('#mystery-title').textContent = 'Mystery track';
   $('#mystery-play').disabled = false; setRateEnabled(true);
   aboutOf(mystery); // prefetch only; nothing reaches the DOM before the rating
-  if (!$('#blind').hidden) playMystery(); // autoplay only where the user is looking (not over the intro or another tab)
+  if (!$('#blind').hidden && navigator.userActivation?.hasBeenActive) playMystery(); // autoplay only where the user is looking (not over the intro or another tab), never before the first tap
   syncPlayState();
   fill();
 }
@@ -1133,8 +1145,6 @@ const vbState = (kind, msg, opts) => setState($('#vibe-state'), kind, msg, opts)
 const POOL_TTL = 10 * 60 * 1000; // Deezer preview tokens die after ~15 min
 let vbRun = 0, vbCur = null, vbOpen = null, vbShown = new Set(), vbRows = [], vbWhy, vbNear = null, vbShelfDone = false;
 const vbPools = new Map(), vbTags = new Map(); // vibe id -> {t, rows}; normalised artist name -> MusicBrainz tags | null (looked up, none)
-const vbLabel = () => { $('#tab-moods').firstChild.textContent = PHONE.matches ? 'Moods' : 'Mood Shelf'; };
-PHONE.addEventListener('change', vbLabel); vbLabel();
 
 // Which of your loved artists list each artist as related: asked once per session (the 15 newest loves, then Preferences artists).
 function vbNearMap() {
@@ -1515,7 +1525,7 @@ async function moreTree(n, quiet) { // quiet: a Dig started it, the family just 
 }
 
 // ---------- Saved ----------
-// Phone only (CSS hides the chips on desktop, where Home has Recent finds): Loved | Recent.
+// Loved | Recent.
 function setSeg(seg) {
   $('#saved').dataset.seg = seg;
   $('#seg-loved').setAttribute('aria-pressed', String(seg === 'loved')); $('#seg-recent').setAttribute('aria-pressed', String(seg === 'recent'));
@@ -1528,6 +1538,8 @@ function renderSaved() {
   fillCrate($('#saved-recent'), $('#saved-recent-count'));
   $('#saved-like-count').textContent = profile.likes.length;
   $('#saved-export').parentElement.hidden = !profile.likes.length;
+  // Lately: one sentence from your loves and picks, not a stats table.
+  $('#lately').textContent = Dig.lately(profile.likes, c => countryNames[c] || c, profile.prefs.genres.map(g => Dig.shopGenre(g.name)).filter(Boolean)) || 'Love a few records and your taste starts to show here.';
   const list = $('#saved-list');
   list.replaceChildren(...profile.likes.slice().reverse().map((t, i) => {
     const row = trackRow(t, { extra: extraOf(t), full: true, // re-loving keeps the stamp
@@ -1540,45 +1552,9 @@ function renderSaved() {
     el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'), btn('Open Crate Dig', () => showTab('stamps')))));
 }
 
-// ---------- Home ----------
 // One short date everywhere: "26 Oct", with the year only when it is not this year ("26 Oct 2025").
 const day = ts => { const d = new Date(ts); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); };
-function renderHome() {
-  if (!profile) return;
-  const { last, likes } = profile, f = last && last.from && $(`#tab-${last.from.tab}`) ? last.from : null;
-  // Last on the platter: the record you played last; before any play, the newest love; before any love, a blank inner sleeve.
-  const newest = likes.findLast(t => !current || likeKey(t) !== likeKey(current)), showLast = last && !(newest && current && likeKey(current) === likeKey(last.track)); // the mini-player already shows what is playing
-  const loved = !showLast && newest, shown = showLast ? last.track : loved;
-  if (!current) setTint(shown && shown.cover);
-  const blank = () => el('span', { className: 'sleeve-blank' });
-  const art = shown && shown.cover ? el('img', { src: shown.cover, alt: '' }) : blank();
-  if (art.tagName === 'IMG') art.onerror = () => art.replaceWith(blank());
-  $('#platter').classList.toggle('is-empty', !shown);
-  $('#platter-title').textContent = showLast ? 'Last on the platter' : loved ? 'Last you loved' : 'Nothing on the platter yet';
-  $('#platter-art').replaceChildren(art);
-  $('#platter-body').replaceChildren(...(shown ? [
-    trackRow(shown, { tag: 'div', from: f || undefined, extra: extraOf(shown),
-      reason: showLast ? `Played ${day(last.ts)}${f ? ` from ${f.label || tabName(f.tab)}` : ''}` : loved.ts ? `Loved ${day(loved.ts)}` : 'Loved' }),
-    el('div', { className: 'row' }, btn(tonight.length ? 'Next mystery' : 'Start a Blind Test', () => showTab('blind'), 'primary'),
-      f && f.tab !== 'blind' ? btn(`Back to ${tabName(f.tab)}`, () => showTab(f.tab)) : null)]
-    : [el('p', { className: 'muted', textContent: 'Start with a mystery: one track, no names, and you rate it before you find out who it was.' }),
-      el('div', { className: 'row' }, btn('Start a Blind Test', () => showTab('blind'), 'primary'))]));
-
-  // Lately: one sentence from your loves and picks, not a stats table.
-  $('#lately').textContent = Dig.lately(likes, c => countryNames[c] || c, profile.prefs.genres.map(g => Dig.shopGenre(g.name)).filter(Boolean)) || 'Love a few records and your taste starts to show here.';
-
-  // Other ways in: a quiet row (the tabs are the ways in); the stamps tab is whatever the tab after Blind Test is called now.
-  const stampTab = tabs.find(b => !['home', 'blind', 'moods', 'tree', 'saved', 'prefs'].includes(b.dataset.tab));
-  const ways = [['blind', tonight.length ? `${tonight.length} revealed tonight` : 'a mystery is cued up'],
-    stampTab && [stampTab.dataset.tab, 'roll a genre you have never heard'],
-    ['moods', 'pick a vibe, get twenty songs'],
-    ['tree', newest ? `grow one from “${cleanTitle(newest.title)}”` : 'start from any song']].filter(Boolean);
-  $('#ways').replaceChildren(...ways.map(([tab, live]) => el('li', {}, el('button', { type: 'button', className: 'way', onclick: () => showTab(tab) },
-    el('span', { className: 'way-name', textContent: tabName(tab) }), el('span', { className: 'way-live', textContent: live })))));
-
-  fillCrate($('#recent'), $('#recent-count'));
-}
-// Recent finds: tonight's reveals and your newest loves, one crate of sleeves (Home, and Saved > Recent on a phone).
+// Recent finds: tonight's reveals and your newest loves, one crate of sleeves (Saved > Recent).
 function fillCrate(list, count) {
   const seen = new Set(), finds = [];
   for (const { t, kind, extra } of tonight) finds.push({ t, extra, reason: `You said ${VERDICT[kind]} tonight` });
@@ -1690,7 +1666,7 @@ async function renderGenres() {
 }
 
 // Colour scheme (profile.prefs.scheme): applied at once; mirrored in localStorage so a launch paints it before the profile loads.
-const SCHEMES = { shop: 'Record shop', bluelabel: 'Blue label', riso: 'Gig poster', tuner: 'Night tuner', soul: 'Soul 45', bleep: 'Bleep', mixtape: 'Mixtape', acid: 'Acid house' };
+const SCHEMES = { shop: 'Record shop', mixtape: 'Mixtape' };
 function applyScheme(s) { document.documentElement.dataset.scheme = s; try { localStorage.setItem('scheme', s); } catch {} }
 function renderSchemes() {
   $('#pref-scheme').replaceChildren(...Object.entries(SCHEMES).map(([id, label]) => {
@@ -1728,15 +1704,15 @@ function renderPrefs() {
   $('#pref-regions').append(...Object.keys(regionList).map(r => toggleChip(r, p.regions.includes(r), on => { profile.prefs.regions = setIn(profile.prefs.regions, r, on); })));
 }
 
-// First launch: this step comes before the intro; Continue and Skip both lead there. Later it is just a tab.
+// First launch: this step comes before the intro; Continue and Skip both lead there. Later it opens from the header gear.
 let regionList = {};
 function prefsMode(first) {
   $('#prefs-title').textContent = first ? 'First, what do you already love?' : 'Your taste';
   $('#prefs-skip').hidden = !first;
   prefsFirst = first;
-  const back = prefsFrom && prefsFrom !== 'prefs' && $(`#tab-${prefsFrom}`) ? prefsFrom : null;
+  const back = prefsFrom && prefsFrom !== 'prefs' && $(`#tab-${tabOf(prefsFrom)}`) ? prefsFrom : null;
   $('#prefs-done').textContent = first ? 'Continue' : back ? `Back to ${tabName(back)}` : 'Done';
-  $('#prefs-done').onclick = () => (first ? openIntro() : showTab(back || 'home'));
+  $('#prefs-done').onclick = () => (first ? openIntro() : showTab(back || 'blind'));
 }
 function openPrefs(first) {
   prefsMode(first);
@@ -1822,7 +1798,7 @@ $('#tree-export').onclick = e => {
   afterLikeChange();
   renderTonight();
   syncPlayState(); // draws the play icons
-  if (!introSeen() && !profile.likes.length) openPrefs(true); else showTab('home');
+  if (!introSeen() && !profile.likes.length) openPrefs(true); else showTab('blind');
   fill();
   seedTaste(); // finishes seeding an interrupted earlier session; no-op otherwise
 })();

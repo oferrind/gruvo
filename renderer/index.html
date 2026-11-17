@@ -10,16 +10,14 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="topbar">
-    <button id="brand" type="button" class="brand ghost" title="Home"><img src="img/logo-96.png" alt="" width="30" height="30">Gruvo</button>
+    <button id="brand" type="button" class="brand ghost" title="Discover"><img src="img/logo-96.png" alt="" width="30" height="30">Gruvo</button>
     <nav id="tabs" role="tablist" aria-label="Modes">
-      <button role="tab" id="tab-home" data-tab="home" aria-controls="home" aria-selected="true">Home</button>
-      <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="false" tabindex="-1">Blind Test</button>
-      <button role="tab" id="tab-stamps" data-tab="stamps" aria-controls="stamps" aria-selected="false" tabindex="-1">Crate Dig</button>
-      <button role="tab" id="tab-moods" data-tab="moods" aria-controls="moods" aria-selected="false" tabindex="-1">Mood Shelf</button>
-      <button role="tab" id="tab-tree" data-tab="tree" aria-controls="tree" aria-selected="false" tabindex="-1">Family Tree</button>
+      <button role="tab" id="tab-blind" data-tab="blind" aria-controls="blind" aria-selected="true">Discover</button>
+      <button role="tab" id="tab-dig" data-tab="dig" aria-controls="stamps" aria-selected="false" tabindex="-1">Dig</button>
+      <button role="tab" id="tab-tree" data-tab="tree" aria-controls="tree" aria-selected="false" tabindex="-1">Tree</button>
       <button role="tab" id="tab-saved" data-tab="saved" aria-controls="saved" aria-selected="false" tabindex="-1">Saved <span id="saved-count" class="count"></span></button>
-      <button role="tab" id="tab-prefs" data-tab="prefs" aria-controls="prefs" aria-selected="false" tabindex="-1">Preferences</button>
     </nav>
+    <button id="prefs-open" type="button" class="prefs-open ghost" aria-label="Preferences" title="Preferences"><svg viewBox="0 0 22 22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7.6" stroke-width="3.4" stroke-dasharray="2.4 3.57"/><circle cx="11" cy="11" r="5.6" stroke-width="1.8"/><circle cx="11" cy="11" r="2" stroke-width="1.8"/></svg></button>
     <button id="theme-toggle" type="button" class="theme-toggle ghost" aria-label="Dark theme" aria-pressed="true" title="Switch between light and dark"><svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
   </header>
 
@@ -34,21 +32,6 @@
         <li><button type="button" data-goto="stamps"><span class="tl-no" aria-hidden="true">A2</span><span class="tl-name">Crate Dig</span><span class="tl-say">Roll a genre, a place or a decade. Up to fifteen songs from it.</span></button></li>
         <li><button type="button" data-goto="tree"><span class="tl-no" aria-hidden="true">A3</span><span class="tl-name">Family Tree</span><span class="tl-say">Start from any song and dig through its family, one record at a time.</span></button></li>
       </ol>
-    </section>
-
-    <!-- Home: the landing page once the first-launch steps are done -->
-    <section id="home" class="panel home" role="tabpanel" aria-labelledby="tab-home">
-      <div id="platter" class="platter">
-        <div id="platter-art" class="platter-art" aria-hidden="true"></div>
-        <div class="platter-text">
-          <h1 id="platter-title">Last on the platter</h1>
-          <div id="platter-body"></div>
-          <p id="lately" class="lately"></p>
-        </div>
-      </div>
-      <nav class="ways-row" aria-labelledby="ways-label"><span id="ways-label" class="ways-label">Other ways in</span><ul id="ways" class="ways"></ul></nav>
-      <h2>Recent finds <span id="recent-count" class="count"></span></h2>
-      <ul id="recent" class="tracks crate"></ul>
     </section>
 
     <!-- A. Blind Taste Test -->
@@ -112,8 +95,12 @@
     </section>
 
     <!-- B. Crate Dig (code name: stamps) -->
-    <section id="stamps" class="panel" role="tabpanel" aria-labelledby="tab-stamps" hidden>
+    <section id="stamps" class="panel" role="tabpanel" aria-labelledby="tab-dig" hidden>
       <div class="panel-head">
+        <div class="chips dig-switch" role="group" aria-label="Dig by">
+          <button type="button" class="chip" data-dig="stamps" aria-pressed="true">Crates</button>
+          <button type="button" class="chip" data-dig="moods" aria-pressed="false">Moods</button>
+        </div>
         <h1>Crate Dig</h1>
         <p class="muted">A genre, a place, a decade, or all three. Up to fifteen songs from it.</p>
         <div class="chips stamp-mode" role="group" aria-label="Find music">
@@ -184,8 +171,12 @@
     </section>
 
     <!-- B2. Mood Shelf (docs/19; code name: moods) -->
-    <section id="moods" class="panel" role="tabpanel" aria-labelledby="tab-moods" hidden>
+    <section id="moods" class="panel" role="tabpanel" aria-labelledby="tab-dig" hidden>
       <div class="panel-head">
+        <div class="chips dig-switch" role="group" aria-label="Dig by">
+          <button type="button" class="chip" data-dig="stamps" aria-pressed="false">Crates</button>
+          <button type="button" class="chip" data-dig="moods" aria-pressed="true">Moods</button>
+        </div>
         <h1>Mood Shelf</h1>
         <p class="muted">Pick a vibe. Twenty songs that fit it and your taste.</p>
       </div>
@@ -258,6 +249,7 @@
       <div class="panel-head">
         <h1>Saved</h1>
         <p class="muted">Everything you loved, newest first.</p>
+        <p id="lately" class="lately"></p>
         <div class="sp-export" hidden><button id="saved-export" type="button">Export to Spotify</button><p id="saved-export-status" class="hint" aria-live="polite"></p></div>
       </div>
       <div class="chips saved-seg" role="group" aria-label="Show">
@@ -275,7 +267,7 @@
     </section>
 
     <!-- Preferences: first-launch step, editable later -->
-    <section id="prefs" class="panel" role="tabpanel" aria-labelledby="tab-prefs" hidden>
+    <section id="prefs" class="panel" aria-labelledby="prefs-title" hidden>
       <div class="panel-head">
         <h1 id="prefs-title">Your taste</h1>
         <p id="prefs-lede" class="muted">All optional. The Blind Test listens to your favourite artists to learn their sound, finds music near them, and never plays them back to you.</p>
